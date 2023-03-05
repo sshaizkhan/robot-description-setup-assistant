@@ -57,6 +57,75 @@ class JointLimits:
     wrist_3: JointParameters
 
 
+@dataclass
+class LinksParams:
+    radius: float
+    length: float
+
+
+@dataclass
+class Links:
+    base: LinksParams
+    shoulder: LinksParams
+    upperarm: LinksParams
+    forearm: LinksParams
+    wrist_1: LinksParams
+    wrist_2: LinksParams
+    wrist_3: LinksParams
+
+
+@dataclass
+class CenterOfMass:
+    shoulder_cog: Position
+    upper_arm_cog: Position
+    forearm_cog: Position
+    wrist_1_cog: Position
+    wrist_2_cog: Position
+    wrist_3_cog: Position
+
+
+@dataclass
+class DHParameters:
+    d1: float
+    a2: float
+    a3: float
+    d4: float
+    d5: float
+    d6: float
+
+
+@dataclass
+class JointOffset:
+    shoulder_offset: float
+    elbow_offset: float
+
+
+@dataclass
+class IntertiaParameters:
+    base_mass: float
+    shoulder_mass: float
+    upper_arm_mass: float
+    upper_arm_inertia_offset: float
+    forearm_mass: float
+    wrist_1_mass: float
+    wrist_2_mass: float
+    wrist_3_mass: float
+    shoulder_radius: float
+    upper_arm_radius: float
+    elbow_radius: float
+    forearm_radius: float
+    wrist_radius: float
+    links: Links
+    center_of_mass: CenterOfMass
+
+
+@dataclass
+class PhysicalParameters:
+    dh_parameters: DHParameters
+    offsets: JointOffset
+    inertia_parameters: IntertiaParameters
+
+
 def dataclass_from_dict(klass, d):
     try:
         fieldtypes = {f.name: f.type for f in fields(klass)}
@@ -108,6 +177,30 @@ def create_joint_limits_from_yaml(joint_limits_config_path: str) -> JointLimits:
 
     return joint_limits
 
+
+def create_physical_parameters_from_yaml(
+    physical_parameters_config_path: str,
+) -> PhysicalParameters:
+    with open(physical_parameters_config_path, "r") as yaml_file:
+        physical_parameters_config_dict = yaml.safe_load(yaml_file)
+
+    # print(physical_parameters_config_dict)
+
+    dh_parameters = dataclass_from_dict(
+        DHParameters, physical_parameters_config_dict["dh_parameters"]
+    )
+    offset = dataclass_from_dict(
+        JointOffset, physical_parameters_config_dict["offsets"]
+    )
+
+    inertia_parameters = dataclass_from_dict(
+        IntertiaParameters, physical_parameters_config_dict["inertia_parameters"]
+    )
+
+    physical_parameters = PhysicalParameters(dh_parameters, offset, inertia_parameters)
+    return physical_parameters
+
+
 if __name__ == "__main__":
     current_file_path = os.path.abspath(__file__)
 
@@ -140,3 +233,18 @@ if __name__ == "__main__":
         )
     )
     b = create_joint_limits_from_yaml(joint_limits_config_path)
+
+    physical_param_config_path = os.path.abspath(
+        os.path.join(
+            current_file_path,
+            "..",
+            "..",
+            "..",
+            "..",
+            "robot_description_resources",
+            "config",
+            "ur5",
+            "physical_parameters.yaml",
+        )
+    )
+    c = create_physical_parameters_from_yaml(physical_param_config_path)
