@@ -52,3 +52,7 @@ CATKIN_IGNORE
 
 #Mac generated files
 .DS_Store
+
+#ignored for now
+
+resources/config
