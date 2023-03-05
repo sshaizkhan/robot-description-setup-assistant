@@ -1,4 +1,5 @@
 import yaml
+import os
 from dataclasses import dataclass, fields
 
 
@@ -46,7 +47,6 @@ def dataclass_from_dict(klass, d):
 
 
 def create_kinematics_from_yaml(default_kinematics_path: str):
-
     kinematic_config_dict: dict
     with open(default_kinematics_path, "r") as yaml_file:
         kinematic_config_dict = yaml.safe_load(yaml_file)
@@ -76,8 +76,22 @@ def create_kinematics_from_yaml(default_kinematics_path: str):
 
 
 if __name__ == "__main__":
-    default_kinematics_path = r"/home/bot/moveit2_ws/src/robot-description-setup-assistant/resources/config/ur5/default_kinematics.yaml"
+    current_file_path = os.path.abspath(__file__)
+
+    default_kinematics_path = os.path.abspath(
+        os.path.join(
+            current_file_path,
+            "..",
+            "..",
+            "..",
+            "..",
+            "robot_description_resources",
+            "config",
+            "ur5",
+            "default_kinematics.yaml",
+        )
+    )
     a = create_kinematics_from_yaml(default_kinematics_path)
 
-    print(a.random_wrist.position)
+    print(a.shoulder)
     # print(type(a))
