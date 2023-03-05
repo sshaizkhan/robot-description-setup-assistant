@@ -55,4 +55,4 @@ CATKIN_IGNORE
 
 #ignored for now
 
-resources/config
+# resources/config
