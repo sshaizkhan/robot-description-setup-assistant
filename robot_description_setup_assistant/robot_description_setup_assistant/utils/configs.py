@@ -1,6 +1,9 @@
 import yaml
 import os
-from dataclasses import dataclass, fields
+import json
+
+from dataclasses import dataclass, asdict, fields
+from typing import List, Dict
 
 
 @dataclass
@@ -23,19 +26,14 @@ class KinematicComponent:
     orientation: Orientation
 
 
-def create_kinematics_class(names):
-    components = {name: f"components['{name}']" for name in names}
-
-    class Kinematics:
-        def __init__(self, **kwargs):
-            for name, value in kwargs.items():
-                setattr(self, name, value)
-
-        def __repr__(self):
-            args = ", ".join([f"{name}={components[name]}" for name in names])
-            return f"Kinematics({args})"
-
-    return Kinematics
+@dataclass
+class Kinematics:
+    shoulder: KinematicComponent
+    upper_arm: KinematicComponent
+    forearm: KinematicComponent
+    wrist_1: KinematicComponent
+    wrist_2: KinematicComponent
+    wrist_3: KinematicComponent
 
 
 def dataclass_from_dict(klass, d):
@@ -46,32 +44,30 @@ def dataclass_from_dict(klass, d):
         return d
 
 
-def create_kinematics_from_yaml(default_kinematics_path: str):
+def create_kinematics_from_yaml(default_kinematics_path: str) -> Kinematics:
+
     kinematic_config_dict: dict
     with open(default_kinematics_path, "r") as yaml_file:
         kinematic_config_dict = yaml.safe_load(yaml_file)
 
-    Kinematics = create_kinematics_class(kinematic_config_dict.keys())
-    # print(kinematic_config_dict)
+    print(kinematic_config_dict)
     print("=======================================")
 
-    components = {}
-    for name, data in kinematic_config_dict.items():
-        position = dataclass_from_dict(
-            Position, {"x": data["x"], "y": data["y"], "z": data["z"]}
+    components = [
+        KinematicComponent(
+            dataclass_from_dict(
+                Position, {"x": data["x"], "y": data["y"], "z": data["z"]}
+            ),
+            dataclass_from_dict(
+                Orientation,
+                {"roll": data["roll"], "pitch": data["pitch"], "yaw": data["yaw"]},
+            ),
         )
-
-        orientation = dataclass_from_dict(
-            Orientation,
-            {"roll": data["roll"], "pitch": data["pitch"], "yaw": data["yaw"]},
-        )
-
-        component = KinematicComponent(position, orientation)
-        components[name] = component
+        for data in kinematic_config_dict.values()
+    ]
 
     # Create a Kinematics object using the components list as arguments
-    kinematics = Kinematics(**components)
-
+    kinematics = Kinematics(*components)
     return kinematics
 
 
