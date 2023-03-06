@@ -7,6 +7,7 @@ mesh_files:
         color: "0.7 0.7 0.7 1.0"
     collision:
       mesh: "package://moveit_resources_ur_description/meshes/ur5/collision/base.stl"
+    visual_offset: 0.0
 
   shoulder:
     visual:
@@ -16,6 +17,7 @@ mesh_files:
         color: "0.7 0.7 0.7 1.0"
     collision:
       mesh: "package://moveit_resources_ur_description/meshes/ur5/collision/shoulder.stl"
+    visual_offset: 0.0
 
   upper_arm:
     visual:
@@ -25,7 +27,7 @@ mesh_files:
         color: "0.7 0.7 0.7 1.0"
     collision:
       mesh: "package://moveit_resources_ur_description/meshes/ur5/collision/upperarm.stl"
-      mesh_files:
+    visual_offset: 0.0
 
   forearm:
     visual:
@@ -35,6 +37,7 @@ mesh_files:
         color: "0.7 0.7 0.7 1.0"
     collision:
       mesh: "package://moveit_resources_ur_description/meshes/ur5/collision/forearm.stl"
+    visual_offset: 0.0
 
   wrist_1:
     visual:
