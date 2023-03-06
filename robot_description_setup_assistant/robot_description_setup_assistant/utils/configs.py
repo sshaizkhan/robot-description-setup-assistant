@@ -125,6 +125,41 @@ class IntertiaParameters:
 
 
 @dataclass
+class Material:
+    name: str
+    color: str
+
+
+@dataclass
+class Visual:
+    mesh: str
+    material: Material
+
+
+@dataclass
+class Collision:
+    mesh: str
+
+
+@dataclass
+class ModelComponenets:
+    visual: Visual
+    collision: Collision
+    visual_offset: float
+
+
+@dataclass
+class VisualParameters:
+    base: ModelComponenets
+    shoulder: ModelComponenets
+    upper_arm: ModelComponenets
+    forearm: ModelComponenets
+    wrist_1: ModelComponenets
+    wrist_2: ModelComponenets
+    wrist_3: ModelComponenets
+
+
+@dataclass
 class PhysicalParameters:
     dh_parameters: DHParameters
     offsets: JointOffset
@@ -143,8 +178,8 @@ def create_kinematics_from_yaml(default_kinematics_path: str) -> Kinematics:
     with open(default_kinematics_path, "r") as yaml_file:
         kinematic_config_dict = yaml.safe_load(yaml_file)
 
-    kinematics = dataclass_from_dict(Kinematics, kinematic_config_dict["kinematics"])
-    return kinematics
+    default_kinematics = dataclass_from_dict(Kinematics, kinematic_config_dict["kinematics"])
+    return default_kinematics
 
 
 def create_joint_limits_from_yaml(joint_limits_config_path: str) -> JointLimits:
@@ -176,6 +211,19 @@ def create_physical_parameters_from_yaml(
 
     physical_parameters = PhysicalParameters(dh_parameters, offset, inertia_parameters)
     return physical_parameters
+
+
+def create_visual_parameters_from_yaml(
+    visual_param_config_path: str,
+) -> VisualParameters:
+    with open(visual_param_config_path, "r") as yaml_file:
+        visual_parameters_config_dict = yaml.safe_load(yaml_file)
+
+    visual_parameters = dataclass_from_dict(
+        VisualParameters, visual_parameters_config_dict["mesh_files"]
+    )
+
+    return visual_parameters
 
 
 if __name__ == "__main__":
@@ -210,7 +258,6 @@ if __name__ == "__main__":
         )
     )
     b = create_joint_limits_from_yaml(joint_limits_config_path)
-    # print(b.shoulder_lift.has_acceleration_limits)
 
     physical_param_config_path = os.path.abspath(
         os.path.join(
@@ -226,3 +273,18 @@ if __name__ == "__main__":
         )
     )
     c = create_physical_parameters_from_yaml(physical_param_config_path)
+
+    visual_param_config_path = os.path.abspath(
+        os.path.join(
+            current_file_path,
+            "..",
+            "..",
+            "..",
+            "..",
+            "robot_description_resources",
+            "config",
+            "ur5",
+            "visual_parameters.yaml",
+        )
+    )
+    d = create_visual_parameters_from_yaml(visual_param_config_path)
