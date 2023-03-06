@@ -46,10 +46,15 @@ class JointParameters:
     max_velocity: float
     min_position: float
 
+    def __post_init__(self):
+        self.max_position = math.radians(self.max_position)
+        self.max_velocity = math.radians(self.max_velocity)
+        self.min_position = math.radians(self.min_position)
+
 
 @dataclass
 class JointLimits:
-    shoulder: JointParameters
+    shoulder_pan: JointParameters
     shoulder_lift: JointParameters
     elbow_joint: JointParameters
     wrist_1: JointParameters
@@ -146,26 +151,9 @@ def create_joint_limits_from_yaml(joint_limits_config_path: str) -> JointLimits:
     with open(joint_limits_config_path, "r") as yaml_file:
         joint_limits_config_dict = yaml.safe_load(yaml_file)
 
-    joint_params_list = [
-        dataclass_from_dict(
-            JointParameters,
-            {
-                "has_acceleration_limits": joint_params["has_acceleration_limits"],
-                "has_effort_limits": joint_params["has_effort_limits"],
-                "has_position_limits": joint_params["has_position_limits"],
-                "has_velocity_limits": joint_params["has_velocity_limits"],
-                "max_effort": joint_params["max_effort"],
-                "max_position": math.radians(joint_params["max_position"]),
-                "max_velocity": math.radians(joint_params["min_position"]),
-                "min_position": math.radians(joint_params["max_velocity"]),
-            },
-        )
-        for joint_data in joint_limits_config_dict.values()
-        for joint_params in joint_data.values()
-    ]
-
-    joint_limits = JointLimits(*joint_params_list)
-
+    joint_limits = dataclass_from_dict(
+        JointLimits, joint_limits_config_dict["joint_limits"]
+    )
     return joint_limits
 
 
@@ -174,8 +162,6 @@ def create_physical_parameters_from_yaml(
 ) -> PhysicalParameters:
     with open(physical_parameters_config_path, "r") as yaml_file:
         physical_parameters_config_dict = yaml.safe_load(yaml_file)
-
-    # print(physical_parameters_config_dict)
 
     dh_parameters = dataclass_from_dict(
         DHParameters, physical_parameters_config_dict["dh_parameters"]
@@ -224,6 +210,7 @@ if __name__ == "__main__":
         )
     )
     b = create_joint_limits_from_yaml(joint_limits_config_path)
+    # print(b.shoulder_lift.has_acceleration_limits)
 
     physical_param_config_path = os.path.abspath(
         os.path.join(
