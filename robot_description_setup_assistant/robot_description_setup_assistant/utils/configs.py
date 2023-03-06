@@ -138,16 +138,7 @@ def create_kinematics_from_yaml(default_kinematics_path: str) -> Kinematics:
     with open(default_kinematics_path, "r") as yaml_file:
         kinematic_config_dict = yaml.safe_load(yaml_file)
 
-    kinematic_components = [
-        KinematicComponent(
-            dataclass_from_dict(Position, pose),
-            dataclass_from_dict(Orientation, pose),
-        )
-        for kinematic in kinematic_config_dict.values()
-        for pose in kinematic.values()
-    ]
-
-    kinematics = Kinematics(*kinematic_components)
+    kinematics = dataclass_from_dict(Kinematics, kinematic_config_dict["kinematics"])
     return kinematics
 
 
