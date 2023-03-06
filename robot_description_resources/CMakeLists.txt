@@ -31,7 +31,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY config
+install(DIRECTORY config mesh_models
   DESTINATION share/${PROJECT_NAME}
 )
 
