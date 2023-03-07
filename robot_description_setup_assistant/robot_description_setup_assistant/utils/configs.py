@@ -14,7 +14,7 @@ class Position:
     y: float  # the y coordinate
     z: float  # the z coordinate
 
-    def __post_init__(self):
+    def validate(self):
         if not isinstance(self.x, (int, float)):
             raise TypeError(
                 f"x coordinate must be numeric, got {type(self.x).__name__}"
@@ -37,7 +37,7 @@ class Orientation:
     pitch: float  # rotation about the y-axis
     yaw: float  # rotation about the z-axis
 
-    def __post_init__(self):
+    def validate(self):
         if not isinstance(self.roll, (int, float)):
             raise TypeError(
                 f"roll coordinate must be numeric, got {type(self.roll).__name__}"
@@ -68,16 +68,14 @@ class KinematicComponent:
             )
         return NotImplemented
 
-    def __post_init__(self):
-        """Performs additional initialization after the instance has been created."""
-        if not isinstance(self.position, Position):
-            raise TypeError("position must be an instance of Position")
-        if not isinstance(self.orientation, Orientation):
-            raise TypeError("orientation must be an instance of Orientation")
-
     def __repr__(self):
         """Returns a string representation of the instance."""
         return f"{self.__class__.__name__}(position={self.position}, orientation={self.orientation})"
+
+    def validate(self):
+        for attr in fields(self):
+            attr_validate = getattr(self, attr.name)
+            attr_validate.validate()
 
 
 @dataclass
@@ -106,20 +104,6 @@ class Kinematics:
             ]
         )
 
-    def __post_init__(self):
-        for attr in [
-            "shoulder",
-            "upper_arm",
-            "forearm",
-            "wrist_1",
-            "wrist_2",
-            "wrist_3",
-        ]:
-            if not isinstance(getattr(self, attr), KinematicComponent):
-                raise TypeError(
-                    f"Attribute '{attr}' must be of type KinematicComponent"
-                )
-
     def __repr__(self):
         return (
             f"Kinematics("
@@ -130,6 +114,11 @@ class Kinematics:
             f"wrist_2={self.wrist_2!r}, "
             f"wrist_3={self.wrist_3!r})"
         )
+
+    def validate(self):
+        for attr in fields(self):
+            attr_valiate: KinematicComponent = getattr(self, attr.name)
+            attr_valiate.validate()
 
 
 @dataclass
@@ -329,7 +318,8 @@ class Links:
 
     def validate(self):
         for link in fields(self):
-            link.value.validate()
+            link_parms: LinksParams = getattr(self, link.name)
+            link_parms.validate()
 
 
 @dataclass
@@ -360,6 +350,11 @@ class CenterOfMass:
     wrist_2_cog: Position
     wrist_3_cog: Position
 
+    def validate(self):
+        for attr in fields(self):
+            attr_validate: Position = getattr(self, attr.name)
+            attr_validate.validate()
+
 
 @dataclass
 class DHParameters:
@@ -389,6 +384,32 @@ class DHParameters:
     d5: float
     d6: float
 
+    def validate(self):
+        if not isinstance(self.d1, (int, float)):
+            raise TypeError(
+                f"d1 coordinate must be numeric, got {type(self.d1).__name__}"
+            )
+        if not isinstance(self.a2, (int, float)):
+            raise TypeError(
+                f"a2 coordinate must be numeric, got {type(self.a2).__name__}"
+            )
+        if not isinstance(self.a3, (int, float)):
+            raise TypeError(
+                f"a3 coordinate must be numeric, got {type(self.a3).__name__}"
+            )
+        if not isinstance(self.d4, (int, float)):
+            raise TypeError(
+                f"d4 coordinate must be numeric, got {type(self.d4).__name__}"
+            )
+        if not isinstance(self.d5, (int, float)):
+            raise TypeError(
+                f"d5 coordinate must be numeric, got {type(self.d5).__name__}"
+            )
+        if not isinstance(self.d6, (int, float)):
+            raise TypeError(
+                f"d6 coordinate must be numeric, got {type(self.d6).__name__}"
+            )
+
 
 @dataclass
 class JointOffset:
@@ -405,6 +426,16 @@ class JointOffset:
 
     shoulder_offset: float
     elbow_offset: float
+
+    def validate(self):
+        if not isinstance(self.shoulder_offset, (int, float)):
+            raise TypeError(
+                f"shoulder_offset coordinate must be numeric, got {type(self.shoulder_offset).__name__}"
+            )
+        if not isinstance(self.elbow_offset, (int, float)):
+            raise TypeError(
+                f"elbow_offset coordinate must be numeric, got {type(self.elbow_offset).__name__}"
+            )
 
 
 @dataclass
@@ -425,11 +456,77 @@ class IntertiaParameters:
     links: Links
     center_of_mass: CenterOfMass
 
+    def validate(self):
+        if not isinstance(self.base_mass, (int, float)):
+            raise TypeError(
+                f"base_mass must be numeric, got {type(self.base_mass).__name__}"
+            )
+        if not isinstance(self.shoulder_mass, (int, float)):
+            raise TypeError(
+                f"shoulder_mass must be numeric, got {type(self.shoulder_mass).__name__}"
+            )
+        if not isinstance(self.upper_arm_mass, (int, float)):
+            raise TypeError(
+                f"upper_arm_mass must be numeric, got {type(self.upper_arm_mass).__name__}"
+            )
+        if not isinstance(self.upper_arm_inertia_offset, (int, float)):
+            raise TypeError(
+                f"upper_arm_inertia_offset must be numeric, got {type(self.upper_arm_inertia_offset).__name__}"
+            )
+        if not isinstance(self.forearm_mass, (int, float)):
+            raise TypeError(
+                f"forearm_mass must be numeric, got {type(self.forearm_mass).__name__}"
+            )
+        if not isinstance(self.wrist_1_mass, (int, float)):
+            raise TypeError(
+                f"wrist_1_mass must be numeric, got {type(self.wrist_1_mass).__name__}"
+            )
+        if not isinstance(self.wrist_2_mass, (int, float)):
+            raise TypeError(
+                f"wrist_2_mass must be numeric, got {type(self.wrist_2_mass).__name__}"
+            )
+        if not isinstance(self.wrist_3_mass, (int, float)):
+            raise TypeError(
+                f"wrist_3_mass must be numeric, got {type(self.wrist_3_mass).__name__}"
+            )
+        if not isinstance(self.shoulder_radius, (int, float)):
+            raise TypeError(
+                f"shoulder_radius must be numeric, got {type(self.shoulder_radius).__name__}"
+            )
+        if not isinstance(self.upper_arm_radius, (int, float)):
+            raise TypeError(
+                f"upper_arm_radius must be numeric, got {type(self.upper_arm_radius).__name__}"
+            )
+        if not isinstance(self.elbow_radius, (int, float)):
+            raise TypeError(
+                f"elbow_radius must be numeric, got {type(self.elbow_radius).__name__}"
+            )
+        if not isinstance(self.forearm_radius, (int, float)):
+            raise TypeError(
+                f"forearm_radius must be numeric, got {type(self.forearm_radius).__name__}"
+            )
+        if not isinstance(self.wrist_radius, (int, float)):
+            raise TypeError(
+                f"wrist_radius must be numeric, got {type(self.wrist_radius).__name__}"
+            )
+
+        # Validate the links attribute
+        self.links.validate()
+
+        # Validate the center_of_mass attribute
+        self.center_of_mass.validate()
+
 
 @dataclass
 class Material:
     name: str
     color: str
+
+    def validate(self):
+        if not isinstance(self.name, (str)):
+            raise TypeError(f"name must be numeric, got {type(self.name).__name__}")
+        if not isinstance(self.color, (str)):
+            raise TypeError(f"color must be numeric, got {type(self.color).__name__}")
 
 
 @dataclass
@@ -437,10 +534,19 @@ class Visual:
     mesh: str
     material: Material
 
+    def validate(self):
+        if not isinstance(self.mesh, (str)):
+            raise TypeError(f"mesh must be numeric, got {type(self.mesh).__name__}")
+        self.material.validate()
+
 
 @dataclass
 class Collision:
     mesh: str
+
+    def validate(self):
+        if not isinstance(self.mesh, (str)):
+            raise TypeError(f"mesh must be numeric, got {type(self.mesh).__name__}")
 
 
 @dataclass
@@ -448,6 +554,14 @@ class ModelComponenets:
     visual: Visual
     collision: Collision
     visual_offset: float
+
+    def validate(self):
+        if not isinstance(self.visual_offset, (int, float)):
+            raise TypeError(
+                f"visual_offset must be numeric, got {type(self.visual_offset).__name__}"
+            )
+        self.visual.validate()
+        self.collision.validate()
 
 
 @dataclass
@@ -460,12 +574,22 @@ class VisualParameters:
     wrist_2: ModelComponenets
     wrist_3: ModelComponenets
 
+    def validate(self):
+        for attr in fields(self):
+            attr_validate: ModelComponenets = getattr(self, attr.name)
+            attr_validate.validate()
+
 
 @dataclass
 class PhysicalParameters:
     dh_parameters: DHParameters
     offsets: JointOffset
     inertia_parameters: IntertiaParameters
+
+    def validate(self):
+        for attr in fields(self):
+            attr_validate = getattr(self, attr.name)
+            attr_validate.validate()
 
 
 @dataclass
@@ -491,7 +615,11 @@ def parse_default_kinematics_config(default_kinematics_path: str) -> Kinematics:
     default_kinematics = dataclass_from_dict(
         Kinematics, kinematic_config_dict["kinematics"]
     )
-    return default_kinematics
+    try:
+        default_kinematics.validate()
+        return default_kinematics
+    except Exception as e:
+        print(f"Caught exception of type {type(e)}, {e}")
 
 
 def parse_joint_limits_config(joint_limits_config_path: str) -> JointLimits:
@@ -501,8 +629,12 @@ def parse_joint_limits_config(joint_limits_config_path: str) -> JointLimits:
     joint_limits = dataclass_from_dict(
         JointLimits, joint_limits_config_dict["joint_limits"]
     )
-    joint_limits.validate()
-    return joint_limits
+    try:
+        joint_limits.validate()
+        return joint_limits
+    except Exception as e:
+        print(f"Caught exception of type {type(e)}, {e}")
+        return
 
 
 def parse_physical_parameters_config(
@@ -523,7 +655,12 @@ def parse_physical_parameters_config(
     )
 
     physical_parameters = PhysicalParameters(dh_parameters, offset, inertia_parameters)
-    return physical_parameters
+
+    try:
+        physical_parameters.validate()
+        return physical_parameters
+    except Exception as e:
+        print(f"Caught exception of type {type(e)}, {e}")
 
 
 def parse_visual_parameters_config(
@@ -535,8 +672,11 @@ def parse_visual_parameters_config(
     visual_parameters = dataclass_from_dict(
         VisualParameters, visual_parameters_config_dict["mesh_files"]
     )
-
-    return visual_parameters
+    try:
+        visual_parameters.validate()
+        return visual_parameters
+    except Exception as e:
+        print(f"Caught exception of type {type(e)}, {e}")
 
 
 if __name__ == "__main__":
@@ -602,6 +742,8 @@ if __name__ == "__main__":
     )
     d = parse_visual_parameters_config(visual_param_config_path)
 
-    robot_arm_config = RobotArmConfig(a, b, c, d)
+    try:
+        robot_arm_config = RobotArmConfig(a, b, c, d)
 
-    print(robot_arm_config.joint_limits.shoulder_pan.max_position)
+    except Exception as e:
+        print("Caught exception", e)
