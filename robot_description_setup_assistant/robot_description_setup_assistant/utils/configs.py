@@ -241,12 +241,9 @@ class JointLimits:
         Raises:
             ValueError: If any of the JointParameters objects are invalid.
         """
-        self.shoulder_pan.validate()
-        self.shoulder_lift.validate()
-        self.elbow_joint.validate()
-        self.wrist_1.validate()
-        self.wrist_2.validate()
-        self.wrist_3.validate()
+        for joint in fields(self):
+            joint_param: JointParameters = getattr(self, joint.name)
+            joint_param.validate()
 
 
 @dataclass
