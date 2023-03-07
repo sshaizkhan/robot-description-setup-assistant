@@ -8,11 +8,23 @@ import yaml
 
 @dataclass
 class Position:
-    """Represents a point in 3D space"""
+    """
+    A class representing a point in three-dimensional space with `x`, `y`, and `z` coordinates.
 
-    x: float  # the x coordinate
-    y: float  # the y coordinate
-    z: float  # the z coordinate
+    ---
+    ### Attributes:
+            - x (float): The x coordinate of the position.
+            - y (float): The y coordinate of the position.
+            - z (float): The z coordinate of the position.
+
+    ### Methods:
+            - validate: Check that the x, y, and z coordinates are numeric (int or float).
+            - Raises: TypeError, if any coordinate is not numeric.
+    """
+
+    x: float
+    y: float
+    z: float
 
     def validate(self):
         if not isinstance(self.x, (int, float)):
