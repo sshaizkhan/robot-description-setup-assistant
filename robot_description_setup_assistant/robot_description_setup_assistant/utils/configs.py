@@ -545,6 +545,15 @@ class Material:
 class Visual:
     mesh: str
     material: Material
+    name: str = ''
+
+    def __post_init__(self):
+        self.name = self.extract_name_from_mesh()
+
+    def extract_name_from_mesh(self):
+        # Extract the last part of the mesh path, remove the '.dae' extension and add '_visual_mesh'
+        link_name = self.mesh.split('/')[-1].replace('.dae', '')
+        return f"{link_name}_visual_mesh"
 
     def validate(self):
         if not isinstance(self.mesh, (str)):
@@ -555,6 +564,15 @@ class Visual:
 @dataclass
 class Collision:
     mesh: str
+    name : str = ''
+
+    def __post_init__(self):
+        self.name = self.extract_name_from_mesh()
+
+    def extract_name_from_mesh(self):
+        # Extract the last part of the mesh path, remove the '.stl' extension and add '_collision_mesh'
+        link_name = self.mesh.split('/')[-1].replace('.stl', '')
+        return f"{link_name}_collision_mesh"
 
     def validate(self):
         if not isinstance(self.mesh, (str)):
@@ -756,6 +774,8 @@ if __name__ == "__main__":
 
     try:
         robot_arm_config = RobotArmConfig(a, b, c, d)
+
+        print(robot_arm_config.visual_parameters.forearm.collision.name)
 
     except Exception as e:
         print("Caught exception", e)
