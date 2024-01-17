@@ -56,3 +56,4 @@ CATKIN_IGNORE
 #ignored for now
 
 # resources/config
+*panda_robot.xacro
