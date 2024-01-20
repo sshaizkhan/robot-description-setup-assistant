@@ -278,6 +278,15 @@ if __name__ == "__main__":
         joint_type="fixed"
     )
 
+    # Tool0 Link
+    ur5.create_link(
+        "tool0",
+        collision_origin=Origin(xyz=("0", "0", "0"),
+                                rpy=("0", "0", "0")),
+        geometry_type="box",
+        geometry_dimensions=["0.1", "0.1", "0.1"]
+    )
+#
     ur5.write_to_file(
         "/home/bot/rds_ws/src/robot_description_app/robot-description-setup-assistant/robot_description_setup_assistant/generated_xacro/test_ur5_robot.xacro"
     )

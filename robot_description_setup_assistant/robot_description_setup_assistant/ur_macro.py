@@ -1,6 +1,6 @@
 import math
 from lxml import etree
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 from dataclasses import dataclass
 from robot_description_setup_assistant.ur_common import RobotModelData
 
@@ -76,16 +76,18 @@ class CylinderInertia:
 
 class Link:
     def __init__(self, name: str,
-                 visual_origin: Origin,
-                 visual_mesh: str,
-                 material_name: str,
-                 material_color: str,
-                 collision_origin: Origin,
-                 collision_mesh: str,
-                 inertial_origin: Origin,
-                 inertial_radius: str,
-                 inertial_length: str,
-                 inertial_mass: str
+                 visual_origin: Optional[Origin] = None,
+                 visual_mesh: Optional[str] = None,
+                 material_name: Optional[str] = None,
+                 material_color: Optional[str] = None,
+                 collision_origin: Optional[Origin] = None,
+                 collision_mesh: Optional[str] = None,
+                 inertial_origin: Optional[Origin] = None,
+                 inertial_radius: Optional[str] = None,
+                 inertial_length: Optional[str] = None,
+                 inertial_mass: Optional[str] = None,
+                 geometry_type: str = "mesh",
+                 geometry_dimensions: List[str] = None,
                  ):
 
         self.link_name = name
@@ -103,35 +105,55 @@ class Link:
         self.inertial_radius = inertial_radius
         self.inertial_length = inertial_length
         self.inertial_mass = inertial_mass
+        self.geometry_type = geometry_type
+        self.geometry_dimensions = geometry_dimensions
 
     def to_xml(self):
         link: list = etree.Element("link", name=self.link_name)
 
         # Visual element
-        visual = etree.SubElement(link, "visual")
-        etree.SubElement(visual, "origin",
-                         xyz=" ".join(map(str, self.visual_origin.xyz)),
-                         rpy=" ".join(map(str, self.visual_origin.rpy))
-                         )
-        geometry_visual = etree.SubElement(visual, "geometry")
-        etree.SubElement(geometry_visual, "mesh",
-                         filename=self.visual_mesh)
-
-        material = etree.SubElement(
-            visual, "material", name=self.material_name)
-        # Corrected part
-        etree.SubElement(material, "color",
-                         rgba=self.material_color)
+        if self.visual_origin:
+            visual = etree.SubElement(link, "visual")
+            etree.SubElement(visual, "origin",
+                             xyz=" ".join(map(str, self.visual_origin.xyz)),
+                             rpy=" ".join(map(str, self.visual_origin.rpy))
+                             )
+            geometry_visual = etree.SubElement(visual, "geometry")
+            if self.geometry_type == "mesh":
+                etree.SubElement(geometry_visual, "mesh",
+                                 filename=self.visual_mesh)
+            elif self.geometry_type == "cylinder":
+                etree.SubElement(geometry_visual, "cylinder",
+                                 radius=self.geometry_dimensions[0],
+                                 length=self.geometry_dimensions[1])
+            elif self.geometry_type == "box":
+                etree.SubElement(geometry_visual, "box",
+                                 size=" ".join(self.geometry_dimensions))
+        # Material element
+        if self.material_color and self.material_name:
+            material = etree.SubElement(
+                visual, "material", name=self.material_name)
+            etree.SubElement(material, "color",
+                             rgba=self.material_color)
 
         # Collision element
-        collision = etree.SubElement(link, "collision")
-        etree.SubElement(collision, "origin",
-                         xyz=" ".join(map(str, self.collision_origin.xyz)),
-                         rpy=" ".join(map(str, self.collision_origin.rpy))
-                         )
-        geometry_collision = etree.SubElement(collision, "geometry")
-        etree.SubElement(geometry_collision, "mesh",
-                         filename=self.collision_mesh)
+        if self.collision_origin:
+            collision = etree.SubElement(link, "collision")
+            etree.SubElement(collision, "origin",
+                             xyz=" ".join(map(str, self.collision_origin.xyz)),
+                             rpy=" ".join(map(str, self.collision_origin.rpy))
+                             )
+            geometry_collision = etree.SubElement(collision, "geometry")
+            if self.geometry_type == "mesh":
+                etree.SubElement(geometry_collision, "mesh",
+                                 filename=self.collision_mesh)
+            elif self.geometry_type == "cylinder":
+                etree.SubElement(geometry_collision, "cylinder",
+                                 radius=self.geometry_dimensions[0],
+                                 length=self.geometry_dimensions[1])
+            elif self.geometry_type == "box":
+                etree.SubElement(geometry_collision, "box",
+                                 size=" ".join(self.geometry_dimensions))
 
         # Inertial element
         if self.inertial_origin:
@@ -245,16 +267,18 @@ class URRobot(RobotModelData):
         self.joints: List[Joint] = []
 
     def create_link(self, link_name: str,
-                    visual_origin: Origin,
-                    visual_mesh: str,
-                    visual_material_name: str,
-                    visual_material_color: str,
-                    collision_origin: Origin,
-                    collision_mesh: str,
-                    inertial_origin: Origin,
-                    inertial_radius: str,
-                    inertial_length: str,
-                    link_mass: str
+                    visual_origin: Optional[Origin] = None,
+                    visual_mesh: Optional[str] = None,
+                    visual_material_name: Optional[str] = None,
+                    visual_material_color: Optional[str] = None,
+                    collision_origin: Optional[Origin] = None,
+                    collision_mesh: Optional[str] = None,
+                    inertial_origin: Optional[Origin] = None,
+                    inertial_radius: Optional[str] = None,
+                    inertial_length: Optional[str] = None,
+                    link_mass: Optional[str] = None,
+                    geometry_type: str = "mesh",
+                    geometry_dimensions: List[str] = None,
                     ):
 
         self.links.append(
@@ -269,7 +293,9 @@ class URRobot(RobotModelData):
                 inertial_origin,
                 inertial_radius,
                 inertial_length,
-                link_mass
+                link_mass,
+                geometry_type,
+                geometry_dimensions
             )
         )
 
