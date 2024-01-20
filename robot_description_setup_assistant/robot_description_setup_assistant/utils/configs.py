@@ -1,6 +1,6 @@
 import math
 import os
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 from typing import Optional
 
 import yaml
@@ -279,7 +279,8 @@ class LinksParams:
 
     def __setattr__(self, name, value):
         if name not in ["radius", "length"]:
-            raise AttributeError(f"'LinksParams' object has no attribute '{name}'")
+            raise AttributeError(
+                f"'LinksParams' object has no attribute '{name}'")
         object.__setattr__(self, name, value)
 
     def validate(
@@ -536,9 +537,11 @@ class Material:
 
     def validate(self):
         if not isinstance(self.name, (str)):
-            raise TypeError(f"name must be numeric, got {type(self.name).__name__}")
+            raise TypeError(
+                f"name must be numeric, got {type(self.name).__name__}")
         if not isinstance(self.color, (str)):
-            raise TypeError(f"color must be numeric, got {type(self.color).__name__}")
+            raise TypeError(
+                f"color must be numeric, got {type(self.color).__name__}")
 
 
 @dataclass
@@ -553,18 +556,19 @@ class Visual:
     def extract_name_from_mesh(self):
         # Extract the last part of the mesh path, remove the '.dae' extension and add '_visual_mesh'
         link_name = self.mesh.split('/')[-1].replace('.dae', '')
-        return f"{link_name}_visual_mesh"
+        return f"{link_name}"
 
     def validate(self):
         if not isinstance(self.mesh, (str)):
-            raise TypeError(f"mesh must be numeric, got {type(self.mesh).__name__}")
+            raise TypeError(
+                f"mesh must be numeric, got {type(self.mesh).__name__}")
         self.material.validate()
 
 
 @dataclass
 class Collision:
     mesh: str
-    name : str = ''
+    name: str = ''
 
     def __post_init__(self):
         self.name = self.extract_name_from_mesh()
@@ -572,11 +576,12 @@ class Collision:
     def extract_name_from_mesh(self):
         # Extract the last part of the mesh path, remove the '.stl' extension and add '_collision_mesh'
         link_name = self.mesh.split('/')[-1].replace('.stl', '')
-        return f"{link_name}_collision_mesh"
+        return f"{link_name}"
 
     def validate(self):
         if not isinstance(self.mesh, (str)):
-            raise TypeError(f"mesh must be numeric, got {type(self.mesh).__name__}")
+            raise TypeError(
+                f"mesh must be numeric, got {type(self.mesh).__name__}")
 
 
 @dataclass
@@ -620,14 +625,6 @@ class PhysicalParameters:
         for attr in fields(self):
             attr_validate = getattr(self, attr.name)
             attr_validate.validate()
-
-
-@dataclass
-class RobotArmConfig:
-    default_kinematics: Kinematics
-    joint_limits: JointLimits
-    physical_parameters: PhysicalParameters
-    visual_parameters: VisualParameters
 
 
 def dataclass_from_dict(klass, d):
@@ -684,7 +681,8 @@ def parse_physical_parameters_config(
         IntertiaParameters, physical_parameters_config_dict["inertia_parameters"]
     )
 
-    physical_parameters = PhysicalParameters(dh_parameters, offset, inertia_parameters)
+    physical_parameters = PhysicalParameters(
+        dh_parameters, offset, inertia_parameters)
 
     try:
         physical_parameters.validate()
@@ -709,73 +707,42 @@ def parse_visual_parameters_config(
         print(f"Caught exception of type {type(e)}, {e}")
 
 
+@dataclass
+class RobotArmConfig:
+    default_kinematics: Kinematics = field(init=False)
+    joint_limits: JointLimits = field(init=False)
+    physical_parameters: PhysicalParameters = field(init=False)
+    visual_parameters: VisualParameters = field(init=False)
+
+    def __init__(self, default_kinematics_path: str, joint_limits_path: str, physical_parameters_path: str, visual_parameters_path: str):
+        self.default_kinematics = parse_default_kinematics_config(
+            default_kinematics_path)
+        self.joint_limits = parse_joint_limits_config(joint_limits_path)
+        self.physical_parameters = parse_physical_parameters_config(
+            physical_parameters_path)
+        self.visual_parameters = parse_visual_parameters_config(
+            visual_parameters_path)
+
+
 if __name__ == "__main__":
     current_file_path = os.path.abspath(__file__)
+    base_path = os.path.join(current_file_path, "..", "..", "..",
+                             "..", "robot_description_resources", "config", "ur5")
 
     default_kinematics_path = os.path.abspath(
-        os.path.join(
-            current_file_path,
-            "..",
-            "..",
-            "..",
-            "..",
-            "robot_description_resources",
-            "config",
-            "ur5",
-            "default_kinematics.yaml",
-        )
-    )
-    a = parse_default_kinematics_config(default_kinematics_path)
-
+        os.path.join(base_path, "default_kinematics.yaml"))
     joint_limits_config_path = os.path.abspath(
-        os.path.join(
-            current_file_path,
-            "..",
-            "..",
-            "..",
-            "..",
-            "robot_description_resources",
-            "config",
-            "ur5",
-            "joint_limits.yaml",
-        )
-    )
-    b = parse_joint_limits_config(joint_limits_config_path)
-
+        os.path.join(base_path, "joint_limits.yaml"))
     physical_param_config_path = os.path.abspath(
-        os.path.join(
-            current_file_path,
-            "..",
-            "..",
-            "..",
-            "..",
-            "robot_description_resources",
-            "config",
-            "ur5",
-            "physical_parameters.yaml",
-        )
-    )
-    c = parse_physical_parameters_config(physical_param_config_path)
-
+        os.path.join(base_path, "physical_parameters.yaml"))
     visual_param_config_path = os.path.abspath(
-        os.path.join(
-            current_file_path,
-            "..",
-            "..",
-            "..",
-            "..",
-            "robot_description_resources",
-            "config",
-            "ur5",
-            "visual_parameters.yaml",
-        )
-    )
-    d = parse_visual_parameters_config(visual_param_config_path)
+        os.path.join(base_path, "visual_parameters.yaml"))
 
     try:
-        robot_arm_config = RobotArmConfig(a, b, c, d)
+        robot_arm_config = RobotArmConfig(
+            default_kinematics_path, joint_limits_config_path, physical_param_config_path, visual_param_config_path)
 
-        print(robot_arm_config.visual_parameters.forearm.collision.name)
-
+        if robot_arm_config:
+            print(robot_arm_config.visual_parameters.forearm.collision.name)
     except Exception as e:
         print("Caught exception", e)
