@@ -265,6 +265,7 @@ class URRobot(RobotModelData):
 
         self.links: List[Link] = []
         self.joints: List[Joint] = []
+        self.elements_order: List[Tuple[str, str]] = []
 
     def create_link(self, link_name: str,
                     visual_origin: Optional[Origin] = None,
@@ -298,6 +299,7 @@ class URRobot(RobotModelData):
                 geometry_dimensions
             )
         )
+        self.elements_order.append(("link", f"{self.prefix}{link_name}"))
 
     def create_joint(self,
                      joint_name: str,
@@ -329,20 +331,25 @@ class URRobot(RobotModelData):
                 joint_type
             )
         )
+        self.elements_order.append(("joint", f"{self.prefix}{joint_name}"))
 
     def to_xml(self):
         self.robot: list = etree.Element("robot", name=self.robot_name)
-        for link in self.links:
-            self.robot.append(etree.Comment(link.link_name.upper()))
-            self.robot.append(link.to_xml())
 
-        for joint in self.joints:
-            self.robot.append(etree.Comment(joint.joint_name.upper()))
-            self.robot.append(joint.to_xml())
+        # Iterate through the elements in the order they were created
+        for element_type, element_name in self.elements_order:
+            if element_type == "link":
+                link = next(
+                    link for link in self.links if link.link_name == element_name)
+                self.robot.append(etree.Comment(link.link_name.upper()))
+                self.robot.append(link.to_xml())
+            elif element_type == "joint":
+                joint = next(
+                    joint for joint in self.joints if joint.joint_name == element_name)
+                self.robot.append(etree.Comment(joint.joint_name.upper()))
+                self.robot.append(joint.to_xml())
 
-        return etree.tostring(
-            self.robot, xml_declaration=True,
-            encoding="UTF-8", pretty_print=True).decode()
+        return etree.tostring(self.robot, xml_declaration=True, encoding="UTF-8", pretty_print=True).decode()
 
     def write_to_file(self, filename):
         xml_content = self.to_xml()
