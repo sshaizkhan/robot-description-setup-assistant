@@ -1,6 +1,5 @@
 import math
-from robot_description_setup_assistant.ur_common import RobotModelData
-from robot_description_setup_assistant.ur_macro import URRobot, Origin, SafetyParams, JointLimits
+from robot_description_setup_assistant.ur_macro import URRobot, Origin, JointLimits
 
 
 class UR5Robot(URRobot):
