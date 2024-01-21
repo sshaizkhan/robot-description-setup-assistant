@@ -1,7 +1,7 @@
 import unittest
 from lxml import etree
 from typing import List, Optional
-from robot_description_setup_assistant.utils.data_classes.origin import Origin
+from robot_description_setup_assistant.utils.data_classes.elements import Origin
 from robot_description_setup_assistant.utils.cylinder_inertia import CylinderInertia
 
 
