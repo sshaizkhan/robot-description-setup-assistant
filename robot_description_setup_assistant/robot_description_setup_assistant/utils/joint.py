@@ -6,7 +6,6 @@ import unittest
 from robot_description_setup_assistant.utils.data_classes.elements import (
     Origin,
     SafetyController,
-    SafetyParams,
     Limits,
     Dynamics,
     JointMimic,
@@ -25,7 +24,6 @@ class Joint:
                  limits: Optional[Limits] = None,
                  safety_controller: Optional[SafetyController] = None,
                  safety_limits: Optional[bool] = False,
-                 safety_params: Optional[SafetyParams] = None,
                  joint_type: JointType = JointType.REVOLUTE,
                  dynamics: Optional[Dynamics] = None,
                  joint_mimic: Optional[JointMimic] = None,
@@ -40,7 +38,6 @@ class Joint:
         self.limits = limits
         self.safety_controller = safety_controller
         self.safety_limits = safety_limits
-        self.joint_safety_params = safety_params
         self.joint_type = joint_type.value
         self.dynamics = dynamics
         self.joint_mimic = joint_mimic
@@ -77,7 +74,7 @@ class Joint:
                 etree.SubElement(joint, "calibration",
                                  falling=str(self.calibration.falling))
 
-        if self.safety_controller:
+        if self.safety_limits:
             safety_controller_attributes = {k: str(getattr(self.safety_controller, k)) for k in [
                 "soft_lower_limit", "soft_upper_limit", "k_position", "k_velocity"]}
             etree.SubElement(joint, "safety_controller",
