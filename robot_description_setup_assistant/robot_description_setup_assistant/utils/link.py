@@ -84,7 +84,7 @@ class Link:
                                  length=self.geometry_dimensions[1])
             elif self.geometry_type == "box":
                 etree.SubElement(geometry_collision, "box",
-                                 size=" ".join(self.geometry_dimensions))
+                                 size=" ".join(map(str, self.geometry_dimensions)))
 
         # Inertial element
         if self.inertial_origin:
