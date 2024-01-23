@@ -1,3 +1,5 @@
+# Replace 'your_module' with the actual module name
+import unittest
 import math
 from lxml import etree
 from typing import Optional, Union
@@ -108,15 +110,53 @@ class PandaHandXacro:
         return self.panda_hand
 
 
-if __name__ == "__main__":
-    # Example usage
-    panda_hand = PandaHandXacro(prefix="",
-                                conneted_to="tool0",
-                                namespace="panda"
-                                )
-    panda_hand.to_xml()
+class TestPandaHandXacro(unittest.TestCase):
 
-    for i in panda_hand.panda_hand:
-        i: Optional[Union[Link, Joint]]
-        xacro: bytearray = etree.tostring(i.to_xml(), pretty_print=True)
-        print(xacro.decode())
+    def setUp(self):
+        self.prefix = "test_prefix"
+        self.connected_to = "test_tool0"
+        self.namespace = "test_panda"
+        self.panda_hand_xacro = PandaHandXacro(prefix=self.prefix,
+                                               conneted_to=self.connected_to,
+                                               namespace=self.namespace)
+
+    def test_initialization(self):
+        self.assertEqual(self.panda_hand_xacro.prefix, self.prefix)
+        self.assertEqual(self.panda_hand_xacro.conneted_to, self.connected_to)
+        self.assertEqual(self.panda_hand_xacro.namespace, self.namespace)
+
+    def test_to_xml_structure(self):
+        xacro_elements = self.panda_hand_xacro.to_xml()
+        # Expecting 6 elements (links and joints)
+        self.assertEqual(len(xacro_elements), 6)
+
+        # Further tests can be added here to check the structure and attributes of each element
+
+    def test_xml_content(self):
+        xacro_elements = self.panda_hand_xacro.to_xml()
+
+        # Test for specific attributes in the elements
+        # For example, checking if the hand link name is correctly set
+        hand_link: Union[Link, Joint] = xacro_elements[0]
+        expected_hand_link_name = f"{self.prefix}{self.namespace}_hand"
+        self.assertEqual(hand_link.link_name, expected_hand_link_name)
+
+        # Add more checks for other elements and attributes
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
+# if __name__ == "__main__":
+#     # Example usage
+#     panda_hand = PandaHandXacro(prefix="",
+#                                 conneted_to="tool0",
+#                                 namespace="panda"
+#                                 )
+#     panda_hand.to_xml()
+
+#     for i in panda_hand.panda_hand:
+#         i: Optional[Union[Link, Joint]]
+#         xacro: bytearray = etree.tostring(i.to_xml(), pretty_print=True)
+#         print(xacro.decode())
