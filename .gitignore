@@ -52,3 +52,8 @@ CATKIN_IGNORE
 
 #Mac generated files
 .DS_Store
+
+#ignored for now
+
+# resources/config
+robot_description_setup_assistant/generated_xacro/*

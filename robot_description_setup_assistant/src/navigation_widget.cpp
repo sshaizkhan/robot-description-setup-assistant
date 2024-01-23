@@ -1,1 +1,0 @@
-#include "robot_description_setup_assistant/navigation_widget.hpp"
