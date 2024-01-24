@@ -16,6 +16,8 @@ from ament_index_python.packages import get_package_share_directory
 
 def write_to_file(filename):
     xml_content = ur5_robot_xacro
+    if not os.path.exists(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename))
     with open(filename, 'w') as file:
         file.write(xml_content)
 
@@ -74,4 +76,4 @@ if __name__ == "__main__":
     ur5_robot_xacro: bytearray = etree.tostring(
         ur5_robot_xacro, xml_declaration=True, encoding="UTF-8", pretty_print=True).decode()
 
-    write_to_file("/home/bot/rds_ws/src/robot_description_app/robot-description-setup-assistant/robot_description_setup_assistant/robot_description_setup_assistant/ur_arms/generated_xacros/ur5e_robot.xacro")
+    write_to_file("/home/bot/rds_ws/src/robot_description_app/robot-description-setup-assistant/robot_description_setup_assistant/robot_description_setup_assistant/ur_arms/generated_xacros/ur5_robot.xacro")
