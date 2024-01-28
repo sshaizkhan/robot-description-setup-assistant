@@ -47,8 +47,11 @@ class Joint:
         return float(value) * math.pi / 180
 
     def to_xml(self):
-        joint = etree.Element(
+        joint: list = etree.Element(
             "joint", name=self.joint_name, type=self.joint_type)
+        comment = etree.Comment(f"Joint {self.joint_name.upper()}")
+        joint.append(comment)
+
         etree.SubElement(joint, "parent", link=self.parent_link)
         etree.SubElement(joint, "child", link=self.child_link)
 

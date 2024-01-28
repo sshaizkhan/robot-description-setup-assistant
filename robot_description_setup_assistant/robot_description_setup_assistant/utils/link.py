@@ -41,6 +41,8 @@ class Link:
 
     def to_xml(self):
         link: list = etree.Element("link", name=self.link_name)
+        comment = etree.Comment(f"Link {self.link_name.upper()}")
+        link.append(comment)
 
         # Visual element
         if self.visual_origin:
