@@ -33,7 +33,6 @@
  *********************************************************************/
 
 #include "robot_description_setup_assistant/setup_assistant_widget.hpp"
-#include <mutex>
 
 namespace robot_description::setup_assistant
 {
