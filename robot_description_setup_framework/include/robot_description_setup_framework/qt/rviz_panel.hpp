@@ -1,0 +1,109 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2021, PickNik Robotics
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of PickNik Robotics nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+
+#pragma once
+
+//  Rviz includes
+#include <qwidget.h>
+#include <rviz_common/render_panel.hpp>
+#include <rviz_common/window_manager_interface.hpp>
+#include <rviz_common/visualization_manager.hpp>
+#include <rviz_common/view_manager.hpp>
+#include <rviz_common/view_controller.hpp>
+
+// MoveIt includes
+#include <moveit/robot_state_rviz_plugin/robot_state_display.h>
+
+// Qt includes
+#include <QWidget>
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QApplication>
+
+// Rviz includes
+#include <rviz_common/tool_manager.hpp>
+
+namespace robot_description::setup_framework
+{
+static const std::string ROBOT_DESCRIPTION = "robot_description";
+static const std::string ROBOT_STATE = "robot_state";
+
+class RVizPanel : public QWidget, public rviz_common::WindowManagerInterface
+{
+  Q_OBJECT
+public:
+  RVizPanel(QWidget* parent, const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction);
+
+  ~RVizPanel() override;
+
+  bool isReadyForInitialization() const
+  {
+    return rviz_render_panel_ == nullptr && getRobotModel() != nullptr;
+  }
+
+  void initialize();
+  void updateFixedFrame();
+
+  QWidget* getParentWindow() override
+  {
+    return parent_;
+  }
+
+  rviz_common::PanelDockWidget* addPane(const QString& /*name*/, QWidget* /*pane*/,
+                                        Qt::DockWidgetArea /*area*/ = Qt::LeftDockWidgetArea,
+                                        bool /*floating*/ = true) override
+  {
+    // Stub for now...just to define the WindowManagerInterface methods
+    return nullptr;
+  }
+
+  void setStatus(const QString& /*message*/) override
+  {
+    // Stub for now...just to define the WindowManagerInterface methods
+  }
+
+protected:
+  moveit::core::RobotModelPtr getRobotModel() const;
+
+  QWidget* parent_;
+  rviz_common::RenderPanel* rviz_render_panel_{ nullptr };
+  rviz_common::VisualizationManager* rviz_manager_{ nullptr };
+  moveit_rviz_plugin::RobotStateDisplay* robot_state_display_{ nullptr };
+  rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr node_abstraction_;
+  rclcpp::Node::SharedPtr node_;
+  std::shared_ptr<rclcpp::Logger> logger_;
+};
+}  // namespace robot_description::setup_framework

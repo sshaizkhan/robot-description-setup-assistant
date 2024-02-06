@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>robot_description_setup_assistant</name>
+  <version>0.1.0</version>
+  <description>Generate a configuration package to work with Moveit2 setup assistant</description>
+  <maintainer email="sshaizkhan@gmail.com">Shahwaz Khan</maintainer>
+  <license>BSD</license>
+
+  <url type="website"></url>
+  <url type="repository"></url>
+  <url type="bugtracker"></url>
+
+  <author email="sshaizkhan@gmail.com">Shahwaz Khan</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>ament_index_cpp</depend>
+  <depend>pluginlib</depend>
+  <depend>qtbase5-dev</depend>
+  <depend>rclcpp</depend>
+  <depend>robot_description_setup_framework</depend>
+  <depend>robot_description_core_plugins</depend>
+  <depend>robot_description_common</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_clang_format</test_depend>
+  <test_depend>ament_cmake_lint_cmake</test_depend>
+  <test_depend>ament_cmake_xmllint</test_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
