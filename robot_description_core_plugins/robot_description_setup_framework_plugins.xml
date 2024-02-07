@@ -1,0 +1,5 @@
+<library path="robot_description_core_plugins">
+  <class type="robot_description::core_plugins::StartScreenWidget" base_class_type="robot_description::setup_framework::SetupStepWidget">
+    <description>Start Screen for loading the URDF or initial MoveIt Config</description>
+  </class>
+</library>
