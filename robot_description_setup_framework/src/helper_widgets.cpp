@@ -31,8 +31,8 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-
 /* Author: Shahwaz Khan */
+/* Modified from Original code by Dave Coleman */
 
 #include "robot_description_setup_framework/qt/helper_widgets.hpp"
 
@@ -70,13 +70,13 @@ void HeaderWidget::configureLayout()
 
 // LoadPathWidget Implementation
 LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions, QWidget* parent, bool directoryOnly,
-                               bool loadOnly)
+                               bool loadOnly, bool showBrowseBtn)
   : QFrame(parent), directory_only_(directoryOnly), load_only_(loadOnly)
 {
-  setupUI(title, instructions);
+  setupUI(title, instructions, showBrowseBtn);
 }
 
-void LoadPathWidget::setupUI(const QString& title, const QString& instructions)
+void LoadPathWidget::setupUI(const QString& title, const QString& instructions, bool& show_browse_btn)
 {
   setFrameShape(QFrame::StyledPanel);
   setFrameShadow(QFrame::Raised);
@@ -92,15 +92,17 @@ void LoadPathWidget::setupUI(const QString& title, const QString& instructions)
   QLabel* instruction_label = new QLabel(instructions, this);
   instruction_label->setWordWrap(true);
   main_layout->addWidget(instruction_label);
+  if (show_browse_btn)
+  {
+    path_edit_ = new QLineEdit(this);
+    connect(path_edit_, &QLineEdit::textChanged, this, &LoadPathWidget::pathChanged);
+    connect(path_edit_, &QLineEdit::editingFinished, this, &LoadPathWidget::pathEditingFinished);
+    path_layout->addWidget(path_edit_);
 
-  path_edit_ = new QLineEdit(this);
-  connect(path_edit_, &QLineEdit::textChanged, this, &LoadPathWidget::pathChanged);
-  connect(path_edit_, &QLineEdit::editingFinished, this, &LoadPathWidget::pathEditingFinished);
-  path_layout->addWidget(path_edit_);
-
-  QPushButton* browse_button = new QPushButton("Browse", this);
-  connect(browse_button, &QPushButton::clicked, this, &LoadPathWidget::openFileDialog);
-  path_layout->addWidget(browse_button);
+    QPushButton* browse_button = new QPushButton("Browse", this);
+    connect(browse_button, &QPushButton::clicked, this, &LoadPathWidget::openFileDialog);
+    path_layout->addWidget(browse_button);
+  }
 
   main_layout->addLayout(path_layout);
 }
@@ -151,15 +153,15 @@ void LoadPathWidget::setPath(const std::string& path)
 
 // LoadPathArgsWidget Implementation
 LoadPathArgsWidget::LoadPathArgsWidget(const QString& title, const QString& instructions,
-                                       const QString& argInstructions, QWidget* parent, bool directoryOnly,
-                                       bool loadOnly)
-  : LoadPathWidget(title, instructions, parent, directoryOnly, loadOnly)
+                                       const QString& /*argInstructions*/, QWidget* parent, bool directoryOnly,
+                                       bool loadOnly, bool showBrowseBtn)
+  : LoadPathWidget(title, instructions, parent, directoryOnly, loadOnly, showBrowseBtn)
 {
-  arguments_label_ = new QLabel(argInstructions, this);
-  layout()->addWidget(arguments_label_);
+  // arguments_label_ = new QLabel(argInstructions, this);
+  // layout()->addWidget(arguments_label_);
 
-  arguments_edit_ = new QLineEdit(this);
-  layout()->addWidget(arguments_edit_);
+  // arguments_edit_ = new QLineEdit(this);
+  // layout()->addWidget(arguments_edit_);
 }
 
 QString LoadPathArgsWidget::getArguments() const
