@@ -31,8 +31,8 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-
 /* Author: Shahwaz Khan */
+/* Modified from Original code by Dave Coleman */
 
 #pragma once
 
@@ -92,7 +92,7 @@ public:
   LoadPathWidget& operator=(const LoadPathWidget&) = delete;
   LoadPathWidget& operator=(LoadPathWidget&&) = delete;
   explicit LoadPathWidget(const QString& title, const QString& description, QWidget* parent = nullptr,
-                          bool directory_only = false, bool load_only = false);
+                          bool directory_only = false, bool load_only = false, bool show_browse_btn = false);
 
   /**
    * @brief Returns the path.
@@ -137,7 +137,7 @@ private:
    * @param title The title of the user interface.
    * @param instructions The instructions for the user interface.
    */
-  void setupUI(const QString& title, const QString& instructions);
+  void setupUI(const QString& title, const QString& instructions, bool& show_browse_btn);
 
   /**
    * @brief The QLineEdit object used for editing the path.
@@ -184,7 +184,7 @@ public:
    * @param load_only Specifies whether only loading should be allowed.
    */
   explicit LoadPathArgsWidget(const QString& title, const QString& description, const QString& arg_instructions,
-                              QWidget* parent = nullptr, bool directory_only = false, bool load_only = false);
+                              QWidget* parent = nullptr, bool directory_only = false, bool load_only = false, bool show_browse_btn = false);
 
   /**
    * @brief Gets the arguments entered in the widget.

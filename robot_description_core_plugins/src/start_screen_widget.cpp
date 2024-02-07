@@ -94,22 +94,22 @@ void StartScreenWidget::onInit()
 
   // Path Box Area
   stack_path_ = new setup_framework::LoadPathArgsWidget(
-      "Load Existing Robot Description Setup Package",
-      "Specify the package name or path of an existing MoveIt configuration package "
-      "to be edited for your robot. Example package name: <i>panda_moveit_config</i>",
-      "optional xacro arguments:", this, true);
+      "Load Robot Description Setup Package",
+      "Specify the package name or path of an existing Robot Description configuration package "
+      "to be edited for your robot. Example package name: <i>panda_robot_description_config</i>",
+      "", this, false, false, true);
   stack_path_->hide();
-  stack_path_->setArguments("");
+  // stack_path_->setArguments("");
   connect(stack_path_, SIGNAL(pathChanged(const QString&)), this, SLOT(onPackagePathChanged(const QString&)));
   left_layout->addWidget(stack_path_);
 
   // urdf File Dialog
   urdf_file_ = new setup_framework::LoadPathArgsWidget(
-      "Load URDF File",
-      "Specify the path to the URDF file for your robot. This file is typically named <i>robot_description.urdf</i>.",
-      "optional xacro arguments:", this, false, true);
+      "Ready to create new Robot Description Package",
+      "You are now ready to create a new Robot Description configuration package. Move to Arm Selection step.",
+      "", this, false, true, false);
   urdf_file_->hide();
-  urdf_file_->setArguments("");
+  // urdf_file_->setArguments("");
   connect(urdf_file_, SIGNAL(pathChanged(const QString&)), this, SLOT(onUrdfPathChanged(const QString&)));
   left_layout->addWidget(urdf_file_);
 
@@ -178,32 +178,46 @@ void StartScreenWidget::focusGiven()
 
 void StartScreenWidget::showNewOptions()
 {
-  QMessageBox::information(this, "New Package", "New Package Selected");
-  RCLCPP_INFO(node_->get_logger(), "New Package Selected");
+  RCLCPP_INFO(setup_step_.getLogger(), "New Package Selected");
+
+  select_mode_widget_->btn_existing_->setChecked(false);
+  select_mode_widget_->btn_new_->setChecked(true);
+  select_mode_widget_->widget_instructions_->hide();
+  urdf_file_->show();
+  stack_path_->hide();
+  btn_load_->hide();
+
+  create_new_package_ = true;
 }
 
 void StartScreenWidget::showExistingOptions()
 {
-  QMessageBox::information(this, "Existing Package", "Existing Package Selected");
-  RCLCPP_INFO(node_->get_logger(), "Existing Package Selected");
+  RCLCPP_INFO(setup_step_.getLogger(), "Existing Package Selected");
+
+  select_mode_widget_->btn_existing_->setChecked(true);
+  select_mode_widget_->btn_new_->setChecked(false);
+  select_mode_widget_->widget_instructions_->hide();
+  urdf_file_->hide();
+  stack_path_->show();
+  btn_load_->show();
 }
 
 void StartScreenWidget::onPackagePathChanged(const QString& package_path)
 {
   QMessageBox::information(this, "Package Path", "Package Path Changed");
-  RCLCPP_INFO(node_->get_logger(), "Package Path Changed: %s", package_path.toStdString().c_str());
+  RCLCPP_INFO(setup_step_.getLogger(), "Package Path Changed: %s", package_path.toStdString().c_str());
 }
 
 void StartScreenWidget::onUrdfPathChanged(const QString& urdf_path)
 {
   QMessageBox::information(this, "URDF Path", "URDF Path Changed");
-  RCLCPP_INFO(node_->get_logger(), "URDF Path Changed: %s", urdf_path.toStdString().c_str());
+  RCLCPP_INFO(setup_step_.getLogger(), "URDF Path Changed: %s", urdf_path.toStdString().c_str());
 }
 
 void StartScreenWidget::loadFilesClicked()
 {
   QMessageBox::information(this, "Load Files", "Load Files Clicked");
-  RCLCPP_INFO(node_->get_logger(), "Load Files Clicked");
+  RCLCPP_INFO(setup_step_.getLogger(), "Load Files Clicked");
 }
 
 bool StartScreenWidget::loadPackageSettings(bool show_warning)
@@ -219,14 +233,14 @@ bool StartScreenWidget::loadPackageSettings(bool show_warning)
 bool StartScreenWidget::loadNewFiles()
 {
   QMessageBox::information(this, "Load New Files", "Load New Files");
-  RCLCPP_INFO(node_->get_logger(), "Load New Files");
+  RCLCPP_INFO(setup_step_.getLogger(), "Load New Files");
   return true;
 }
 
 bool StartScreenWidget::loadExistingFiles()
 {
   QMessageBox::information(this, "Load Existing Files", "Load Existing Files");
-  RCLCPP_INFO(node_->get_logger(), "Load Existing Files");
+  RCLCPP_INFO(setup_step_.getLogger(), "Load Existing Files");
   return true;
 }
 
