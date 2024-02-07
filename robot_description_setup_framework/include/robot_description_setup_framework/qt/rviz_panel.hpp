@@ -31,7 +31,8 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-
+/* Author: Shahwaz Khan */
+/* Modified from original code by David V. Lu */
 
 #pragma once
 
@@ -94,6 +95,44 @@ public:
   {
     // Stub for now...just to define the WindowManagerInterface methods
   }
+
+public Q_SLOTS:
+  /**
+   * Highlight a link of the robot
+   *
+   * @param link_name name of link to highlight
+   */
+  void highlightLink(const std::string& link_name, const QColor& color)
+  {
+    Q_EMIT highlightLinkSignal(link_name, color);
+  }
+
+  /**
+   * Highlight a robot group
+   */
+  void highlightGroup(const std::string& group_name)
+  {
+    Q_EMIT highlightGroupSignal(group_name);
+  }
+
+  /**
+   * Unhighlight all links of a robot
+   */
+  void unhighlightAll()
+  {
+    Q_EMIT unhighlightAllSignal();
+  }
+
+Q_SIGNALS:
+  // Protected event handlers
+  void highlightLinkSignal(const std::string& link_name, const QColor& color);
+  void highlightGroupSignal(const std::string& group_name);
+  void unhighlightAllSignal();
+
+protected Q_SLOTS:
+  void highlightLinkEvent(const std::string& link_name, const QColor& color);
+  void highlightGroupEvent(const std::string& group_name);
+  void unhighlightAllEvent();
 
 protected:
   moveit::core::RobotModelPtr getRobotModel() const;

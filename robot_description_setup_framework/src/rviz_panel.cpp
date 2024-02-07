@@ -31,6 +31,8 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
+/* Author: Shahwaz Khan */
+/* Modified from original code by David V. Lu */
 
 #include "robot_description_setup_framework/qt/rviz_panel.hpp"
 #include <rclcpp/logger.hpp>
@@ -128,6 +130,66 @@ void RVizPanel::updateFixedFrame()
     rviz_manager_->setFixedFrame(QString::fromStdString(frame));
     robot_state_display_->reset();
     robot_state_display_->setVisible(true);
+  }
+}
+
+void RVizPanel::highlightLinkEvent(const std::string& link_name, const QColor& color)
+{
+  auto rm = getRobotModel();
+  if (!rm)
+    return;
+  const moveit::core::LinkModel* lm = rm->getLinkModel(link_name);
+  if (!lm->getShapes().empty())  // skip links with no geometry
+    robot_state_display_->setLinkColor(link_name, color);
+}
+
+void RVizPanel::highlightGroupEvent(const std::string& group_name)
+{
+  auto rm = getRobotModel();
+  if (!rm)
+    return;
+  // Highlight the selected planning group by looping through the links
+  if (!rm->hasJointModelGroup(group_name))
+    return;
+
+  const moveit::core::JointModelGroup* joint_model_group = rm->getJointModelGroup(group_name);
+  if (joint_model_group)
+  {
+    const std::vector<const moveit::core::LinkModel*>& link_models = joint_model_group->getLinkModels();
+    // Iterate through the links
+    for (std::vector<const moveit::core::LinkModel*>::const_iterator link_it = link_models.begin();
+         link_it < link_models.end(); ++link_it)
+      highlightLink((*link_it)->getName(), QColor(255, 0, 0));
+  }
+}
+
+void RVizPanel::unhighlightAllEvent()
+{
+  auto rm = getRobotModel();
+  if (!rm)
+    return;
+  // Get the names of the all links robot
+  const std::vector<std::string>& links = rm->getLinkModelNamesWithCollisionGeometry();
+
+  // Quit if no links found
+  if (links.empty())
+  {
+    return;
+  }
+
+  // check if rviz is ready
+  if (!rviz_manager_ || !robot_state_display_)
+  {
+    return;
+  }
+
+  // Iterate through the links
+  for (std::vector<std::string>::const_iterator link_it = links.begin(); link_it < links.end(); ++link_it)
+  {
+    if ((*link_it).empty())
+      continue;
+
+    robot_state_display_->unsetLinkColor(*link_it);
   }
 }
 
