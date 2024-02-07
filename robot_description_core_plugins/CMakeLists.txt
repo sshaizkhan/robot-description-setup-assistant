@@ -33,6 +33,7 @@ qt5_wrap_cpp(MOC_FILES
 )
 
 add_library(${PROJECT_NAME}
+  src/start_screen.cpp
   src/start_screen_widget.cpp
   ${MOC_FILES}
 )
@@ -59,6 +60,9 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+install(FILES robot_description_setup_framework_plugins.xml
+        DESTINATION share/${PROJECT_NAME}
+)
 install(DIRECTORY include/ DESTINATION include)
 
 ament_export_targets(export_robot_description_core_plugins HAS_LIBRARY_TARGET)
@@ -81,5 +85,10 @@ ament_export_dependencies(robot_description_setup_framework)
 ament_export_dependencies(rviz_common)
 ament_export_dependencies(rviz_rendering)
 ament_export_dependencies(rviz_default_plugins)
+
+pluginlib_export_plugin_description_file(robot_description_setup_framework robot_description_setup_framework_plugins.xml)
+
+ament_export_libraries(${PROJECT_NAME})
+ament_export_targets(export_${PROJECT_NAME})
 
 ament_package()
