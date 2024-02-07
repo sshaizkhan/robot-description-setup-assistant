@@ -63,6 +63,7 @@ class QSplitter;
 #include "robot_description_setup_assistant/navigation_widget.hpp"
 #include <robot_description_setup_framework/utilities.hpp>
 #include <robot_description_setup_framework/qt/rviz_panel.hpp>
+#include <robot_description_setup_framework/qt/setup_step_widget.hpp>
 
 #include <robot_description_core_plugins/start_screen_widget.hpp>
 

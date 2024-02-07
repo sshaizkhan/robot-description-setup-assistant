@@ -30,6 +30,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 qt5_wrap_cpp(MOC_FILES
   include/robot_description_setup_framework/qt/helper_widgets.hpp
   include/robot_description_setup_framework/qt/rviz_panel.hpp
+  include/robot_description_setup_framework/qt/setup_step_widget.hpp
 )
 
 add_library(${PROJECT_NAME}

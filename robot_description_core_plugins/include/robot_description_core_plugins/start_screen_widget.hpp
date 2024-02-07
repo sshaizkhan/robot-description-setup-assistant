@@ -1,6 +1,7 @@
 #pragma once
 
 #include <robot_description_setup_framework/qt/helper_widgets.hpp>
+#include <robot_description_setup_framework/qt/setup_step_widget.hpp>
 
 #include <QWidget>
 #include <QFrame>
@@ -45,21 +46,15 @@ class SelectModeWidget;
  * It also includes slots for event handling and private member variables for managing package settings
  * and loading files.
  */
-class StartScreenWidget : public QWidget
+class StartScreenWidget : public robot_description::setup_framework::SetupStepWidget
 {
   Q_OBJECT
 public:
-  explicit StartScreenWidget(QWidget* parent = nullptr);
-  void onInit();
+  void onInit() override;
 
   ~StartScreenWidget();
 
-  std::string getName() const
-  {
-    return "Start Screen";
-  }
-
-  void focusGiven();
+  void focusGiven() override;
 
   // Qt Components
   SelectModeWidget* select_mode_widget_;
@@ -70,6 +65,11 @@ public:
   QProgressBar* progess_bar_;
   QImage* right_image_;
   QLabel* right_image_label_;
+
+  SetupStep& getSetupStep() override
+  {
+    return setup_step_;
+  }
 
 private Q_SLOTS:
   // Slot Event Handlers
