@@ -35,9 +35,6 @@
 #pragma once
 
 // ROS
-#include <qobjectdefs.h>
-#include <qwidget.h>
-#include <pluginlib/class_loader.hpp>
 #include <rviz_common/ros_integration/ros_client_abstraction.hpp>
 
 // Qt
@@ -60,7 +57,6 @@
 #include <rviz_common/ros_integration/ros_node_abstraction_iface.hpp>
 class QSplitter;
 
-#include "robot_description_setup_assistant/navigation_widget.hpp"
 #include <robot_description_setup_framework/utilities.hpp>
 #include <robot_description_setup_framework/qt/rviz_panel.hpp>
 #include <robot_description_setup_framework/qt/setup_step_widget.hpp>
@@ -71,6 +67,8 @@ class QSplitter;
 // Other
 #include <boost/program_options/variables_map.hpp>  // for parsing input arguments
 #endif
+
+#include "robot_description_setup_assistant/navigation_widget.hpp"
 
 namespace robot_description::setup_assistant
 {
@@ -111,9 +109,8 @@ private:
   std::mutex change_screen_lock_;
 
   // Setup Steps
-  core_plugins::StartScreenWidget* start_screen_;
-  // pluginlib::ClassLoader<SetupStepWidget> widget_loader_;
-  // std::vector<std::shared_ptr<SetupStepWidget>> steps_;
+  pluginlib::ClassLoader<robot_description::setup_framework::SetupStepWidget> widget_loader_;
+  std::vector<std::shared_ptr<setup_framework::SetupStepWidget>> steps_;
 
   /// Contains all the configuration data for the setup assistant
   // DataWarehousePtr config_data_;

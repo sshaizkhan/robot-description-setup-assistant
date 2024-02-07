@@ -40,7 +40,10 @@ namespace robot_description::setup_assistant
 SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
     const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node, QWidget* parent,
     const boost::program_options::variables_map& /*args*/)
-  : QWidget(parent), node_abstraction_(node), node_(node_abstraction_.lock()->get_raw_node())
+  : QWidget(parent)
+  , node_abstraction_(node)
+  , node_(node_abstraction_.lock()->get_raw_node())
+  , widget_loader_("robot_description_setup_framework", "robot_description::setup_framework::SetupStepWidget")
 {
   // Setting the window icon
   auto icon_path = getSharePath("robot_description_setup_assistant") / "resources/icons/rds_logo.png";
@@ -54,15 +57,31 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   main_content_ = new QStackedWidget(this);
   current_index_ = -1;
 
+  // Setup Steps --------------------------------------------------------
+  std::vector<std::string> setup_steps;
+  setup_steps.push_back("robot_description::core_plugins::StartScreenWidget");
+  // setup_steps = node_->get_parameter("setup_steps").as_string_array();
+
   rviz_panel_ = new robot_description::setup_framework::RVizPanel(this, node_abstraction_);
   main_content_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   rviz_panel_->hide();
 
-  start_screen_ = new core_plugins::StartScreenWidget(this);
-  const std::string start_screen_name = start_screen_->getName();
-  main_content_->addWidget(start_screen_);
+  for (const std::string& setup_step : setup_steps)
+  {
+    auto widget = widget_loader_.createSharedInstance(setup_step);
+    widget->initialize(node_, this, rviz_panel_);
 
-  nav_name_list_ << start_screen_name.c_str();
+    connect(widget.get(), SIGNAL(dataUpdated()), this, SLOT(onDataUpdate()));
+    connect(widget.get(), SIGNAL(advanceRequest()), this, SLOT(onAdvanceRequest()));
+    connect(widget.get(), SIGNAL(setModalMode(bool)), this, SLOT(onModalModeUpdate(bool)));
+
+    const std::string name = widget->getSetupStep().getName();
+    steps_.push_back(widget);
+
+    main_content_->addWidget(widget.get());
+    nav_name_list_ << name.c_str();
+  }
+
   nav_name_list_.push_back("Arm Selection");
   nav_name_list_.push_back("End-Effector Tool");
   nav_name_list_.push_back("Base (Optional)");
@@ -74,8 +93,11 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   navs_view_ = new NavigationWidget(this);
   navs_view_->setNavs(nav_name_list_);
 
-  navs_view_->setEnabled(0, true);
-  moveToScreen(0);
+  if (!steps_.empty())
+  {
+    navs_view_->setEnabled(0, true);
+    moveToScreen(0);
+  }
 
   // Split screen
   splitter_ = new QSplitter(Qt::Horizontal, this);
@@ -102,12 +124,26 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
 
 void SetupRobotDescriptionAssistantWidget::onAdvanceRequest()
 {
-  // TODO: Figure out if this is necessary
+  if (static_cast<unsigned int>(current_index_ + 1) < steps_.size())
+  {
+    moveToScreen(current_index_ + 1);
+  }
 }
 
 void SetupRobotDescriptionAssistantWidget::onDataUpdate()
 {
-  // TODO: Figure out if this is necessary
+  for (size_t index = 0; index < steps_.size(); index++)
+  {
+    bool ready = steps_[index]->isReady();
+    navs_view_->setEnabled(index, ready);
+  }
+
+  if (rviz_panel_->isReadyForInitialization())
+  {
+    rviz_panel_->initialize();
+    // Replace logo with Rviz screen
+    rviz_panel_->show();
+  }
 }
 
 void SetupRobotDescriptionAssistantWidget::navigationClicked(const QModelIndex& index)
@@ -116,24 +152,41 @@ void SetupRobotDescriptionAssistantWidget::navigationClicked(const QModelIndex& 
   moveToScreen(row);
 }
 
-void SetupRobotDescriptionAssistantWidget::moveToScreen(int index)
+void SetupRobotDescriptionAssistantWidget::moveToScreen(const int index)
 {
-  std::scoped_lock lock(change_screen_lock_);
+  std::scoped_lock slock(change_screen_lock_);
   if (!navs_view_->isEnabled(index))
   {
     return;
   }
 
-  // if(current_index_ != index)
-  // {
-  //   if (current_index_ >= 0)
-  //   {
+  if (current_index_ != index)
+  {
+    // Send the focus lost command to the screen widget
+    if (current_index_ >= 0)
+    {
+      auto ssw = steps_[current_index_];
+      if (!ssw->focusLost())
+      {
+        navs_view_->setSelected(current_index_);
+        return;  // switching not accepted
+      }
+    }
 
-  //   }
-  // }
-  current_index_ = index;
-  main_content_->setCurrentIndex(index);
-  navs_view_->setSelected(index);
+    current_index_ = index;
+
+    // Unhighlight anything on robot
+    rviz_panel_->unhighlightAll();
+
+    // Change screens
+    main_content_->setCurrentIndex(index);
+
+    // Send the focus given command to the screen widget
+    steps_[current_index_]->focusGiven();
+
+    // Change navigation selected option
+    navs_view_->setSelected(index);
+  }
 }
 
 // ******************************************************************************************
@@ -172,9 +225,14 @@ bool SetupRobotDescriptionAssistantWidget::notify(QObject* /*receiver*/, QEvent*
   return false;
 }
 
-void SetupRobotDescriptionAssistantWidget::onModalModeUpdate(bool /*isModal*/)
+void SetupRobotDescriptionAssistantWidget::onModalModeUpdate(bool isModal)
 {
-  // TODO: Figure out if this is necessary
+  navs_view_->setDisabled(isModal);
+
+  for (int i = 0; i < nav_name_list_.count(); ++i)
+  {
+    navs_view_->setEnabled(i, !isModal && steps_[i]->isReady());
+  }
 }
 
 }  // namespace robot_description::setup_assistant
