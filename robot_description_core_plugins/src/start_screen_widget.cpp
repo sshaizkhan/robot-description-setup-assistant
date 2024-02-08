@@ -270,8 +270,8 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   widget_instructions_->setWordWrap(true);
   widget_instructions_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   widget_instructions_->setText(
-      "All settings for MoveIt are stored in the MoveIt configuration package. Here you have the option to create a "
-      "new configuration package or load an existing one. Note: changes to a MoveIt configuration package outside this "
+      "All settings for Robot Description are stored in the Robot description configuration package. Here you have the option to create a "
+      "new configuration package or load an existing one. Note: changes to a Robot Description configuration package outside this "
       "Setup Assistant are likely to be overwritten by this tool.");
 
   layout->addWidget(widget_instructions_);
