@@ -31,6 +31,8 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
+/*Author: Shahwaz Khan*/
+/*Modified from the origianl code by Dave Coleman*/
 
 #include "robot_description_setup_assistant/setup_assistant_widget.hpp"
 
