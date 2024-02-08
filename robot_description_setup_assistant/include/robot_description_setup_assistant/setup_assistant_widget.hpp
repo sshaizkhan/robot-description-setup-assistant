@@ -31,6 +31,8 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
+/*Author: Shahwaz Khan*/
+/*Modified from the origianl code by Dave Coleman*/
 
 #pragma once
 
