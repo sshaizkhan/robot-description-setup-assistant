@@ -62,6 +62,21 @@ private:
   void configureLayout();
 };
 
+class AddInfoWidget : public QFrame
+{
+  Q_OBJECT
+public:
+  AddInfoWidget(const AddInfoWidget&) = delete;
+  AddInfoWidget(AddInfoWidget&&) = delete;
+  AddInfoWidget& operator=(const AddInfoWidget&) = delete;
+  AddInfoWidget& operator=(AddInfoWidget&&) = delete;
+
+  AddInfoWidget(const std::string& title, const std::string& description, QWidget* parent = nullptr);
+
+private:
+  void setupWidget(const QString& title, const QString& description);
+};
+
 /**
  * @brief The LoadPathWidget class represents a widget for loading a file or directory path.
  *
@@ -184,7 +199,8 @@ public:
    * @param load_only Specifies whether only loading should be allowed.
    */
   explicit LoadPathArgsWidget(const QString& title, const QString& description, const QString& arg_instructions,
-                              QWidget* parent = nullptr, bool directory_only = false, bool load_only = false, bool show_browse_btn = false);
+                              QWidget* parent = nullptr, bool directory_only = false, bool load_only = false,
+                              bool show_browse_btn = false);
 
   /**
    * @brief Gets the arguments entered in the widget.

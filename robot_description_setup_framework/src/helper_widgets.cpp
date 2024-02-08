@@ -180,4 +180,31 @@ void LoadPathArgsWidget::setArgumentsEnabled(bool enabled)
 {
   arguments_edit_->setEnabled(enabled);
 }
+
+AddInfoWidget::AddInfoWidget(const std::string& title, const std::string& instructions, QWidget* parent)
+  : QFrame(parent)
+{
+  setupWidget(QString::fromStdString(title), QString::fromStdString(instructions));
+}
+
+void AddInfoWidget::setupWidget(const QString& title, const QString& description)
+{
+  setFrameShape(QFrame::StyledPanel);
+  setFrameShadow(QFrame::Raised);
+  setLineWidth(1);
+
+  QVBoxLayout* main_layout = new QVBoxLayout(this);
+
+  QLabel* title_label = new QLabel(title, this);
+  title_label->setFont(QFont("Sans Serif", 12, QFont::Bold));
+  main_layout->addWidget(title_label);
+
+  QLabel* description_label = new QLabel(description, this);
+  description_label->setWordWrap(true);
+  main_layout->addWidget(description_label);
+
+  QSizePolicy size_policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+  setSizePolicy(size_policy);
+}
+
 }  // namespace robot_description::setup_framework
