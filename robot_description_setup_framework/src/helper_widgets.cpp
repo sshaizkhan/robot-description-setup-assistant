@@ -102,9 +102,11 @@ void LoadPathWidget::setupWidget(const QString& title, const QString& instructio
     QPushButton* browse_button = new QPushButton("Browse", this);
     connect(browse_button, &QPushButton::clicked, this, &LoadPathWidget::openFileDialog);
     path_layout->addWidget(browse_button);
+    main_layout->addLayout(path_layout);
   }
 
-  main_layout->addLayout(path_layout);
+  QSizePolicy size_policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+  setSizePolicy(size_policy);
 }
 
 void LoadPathWidget::openFileDialog()
