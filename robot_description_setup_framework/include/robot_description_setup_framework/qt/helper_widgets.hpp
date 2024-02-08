@@ -137,7 +137,7 @@ private:
    * @param title The title of the user interface.
    * @param instructions The instructions for the user interface.
    */
-  void setupUI(const QString& title, const QString& instructions, bool& show_browse_btn);
+  void setupWidget(const QString& title, const QString& instructions, bool& show_browse_btn);
 
   /**
    * @brief The QLineEdit object used for editing the path.

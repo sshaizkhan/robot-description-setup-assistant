@@ -73,10 +73,10 @@ LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions
                                bool loadOnly, bool showBrowseBtn)
   : QFrame(parent), directory_only_(directoryOnly), load_only_(loadOnly)
 {
-  setupUI(title, instructions, showBrowseBtn);
+  setupWidget(title, instructions, showBrowseBtn);
 }
 
-void LoadPathWidget::setupUI(const QString& title, const QString& instructions, bool& show_browse_btn)
+void LoadPathWidget::setupWidget(const QString& title, const QString& instructions, bool& show_browse_btn)
 {
   setFrameShape(QFrame::StyledPanel);
   setFrameShadow(QFrame::Raised);
