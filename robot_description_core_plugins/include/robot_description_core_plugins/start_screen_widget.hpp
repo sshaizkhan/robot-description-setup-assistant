@@ -99,7 +99,8 @@ public:
   // Qt Components
   SelectModeWidget* select_mode_widget_;
   setup_framework::LoadPathArgsWidget* stack_path_;
-  setup_framework::LoadPathArgsWidget* urdf_file_;
+  // setup_framework::LoadPathArgsWidget* urdf_file_;
+  setup_framework::AddInfoWidget* add_info_widget_;
   QPushButton* btn_load_;
   QLabel* next_label_;
   QProgressBar* progess_bar_;

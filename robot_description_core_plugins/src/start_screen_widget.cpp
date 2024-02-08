@@ -96,7 +96,7 @@ void StartScreenWidget::onInit()
   stack_path_ = new setup_framework::LoadPathArgsWidget(
       "Load Robot Description Setup Package",
       "Specify the package name or path of an existing Robot Description configuration package "
-      "to be edited for your robot. Example package name: <i>panda_robot_description_config</i>",
+      "to be edited for your robot. Example package name: <i>ur5_robot_description_config</i>",
       "", this, false, false, true);
   stack_path_->hide();
   // stack_path_->setArguments("");
@@ -104,14 +104,12 @@ void StartScreenWidget::onInit()
   left_layout->addWidget(stack_path_);
 
   // urdf File Dialog
-  urdf_file_ = new setup_framework::LoadPathArgsWidget(
+  add_info_widget_ = new setup_framework::AddInfoWidget(
       "Ready to create new Robot Description Package",
-      "You are now ready to create a new Robot Description configuration package. Move to Arm Selection step.",
-      "", this, false, true, false);
-  urdf_file_->hide();
+      "You are now ready to create a new Robot Description configuration package. Move to Arm Selection step.", this);
+  add_info_widget_->hide();
   // urdf_file_->setArguments("");
-  connect(urdf_file_, SIGNAL(pathChanged(const QString&)), this, SLOT(onUrdfPathChanged(const QString&)));
-  left_layout->addWidget(urdf_file_);
+  left_layout->addWidget(add_info_widget_);
 
   // Load setting box
   QHBoxLayout* load_files_layout = new QHBoxLayout();
@@ -136,7 +134,7 @@ void StartScreenWidget::onInit()
   next_label_ = new QLabel(this);
   QFont next_label_font(QFont().defaultFamily(), 11, QFont::Bold);
   next_label_->setFont(next_label_font);
-  next_label_->setText("Success! Now you can proceed to the next step.");
+  next_label_->setText("Now you can proceed to the Arm Selection Page.");
   next_label_->hide();
 
   // Final Layout
@@ -183,7 +181,7 @@ void StartScreenWidget::showNewOptions()
   select_mode_widget_->btn_existing_->setChecked(false);
   select_mode_widget_->btn_new_->setChecked(true);
   select_mode_widget_->widget_instructions_->hide();
-  urdf_file_->show();
+  add_info_widget_->show();
   stack_path_->hide();
   btn_load_->hide();
 
@@ -197,7 +195,7 @@ void StartScreenWidget::showExistingOptions()
   select_mode_widget_->btn_existing_->setChecked(true);
   select_mode_widget_->btn_new_->setChecked(false);
   select_mode_widget_->widget_instructions_->hide();
-  urdf_file_->hide();
+  add_info_widget_->hide();
   stack_path_->show();
   btn_load_->show();
 }
