@@ -181,6 +181,7 @@ void StartScreenWidget::showNewOptions()
   RCLCPP_INFO(setup_step_.getLogger(), "New Package Selected");
 
   select_mode_widget_->btn_existing_->setChecked(false);
+  select_mode_widget_->btn_existing_->setEnabled(false);
   select_mode_widget_->btn_new_->setChecked(true);
   select_mode_widget_->widget_instructions_->hide();
   add_info_widget_->show();
