@@ -30,11 +30,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 qt5_wrap_cpp(MOC_FILES
   include/robot_description_core_plugins/start_screen_widget.hpp
+  include/robot_description_core_plugins/robot_selection_widget.hpp
 )
 
 add_library(${PROJECT_NAME}
   src/start_screen.cpp
   src/start_screen_widget.cpp
+  src/robot_selection.cpp
+  src/robot_selection_widget.cpp
   ${MOC_FILES}
 )
 

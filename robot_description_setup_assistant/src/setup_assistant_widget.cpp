@@ -62,6 +62,7 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   // Setup Steps --------------------------------------------------------
   std::vector<std::string> setup_steps;
   setup_steps.push_back("robot_description::core_plugins::StartScreenWidget");
+  setup_steps.push_back("robot_description::core_plugins::RobotSelectionWidget");
   // setup_steps = node_->get_parameter("setup_steps").as_string_array();
 
   rviz_panel_ = new robot_description::setup_framework::RVizPanel(this, node_abstraction_);
@@ -84,7 +85,7 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
     nav_name_list_ << name.c_str();
   }
 
-  nav_name_list_.push_back("Arm Selection");
+  // nav_name_list_.push_back("Arm Selection");
   nav_name_list_.push_back("End-Effector Tool");
   nav_name_list_.push_back("Base (Optional)");
   nav_name_list_.push_back("Author Info");

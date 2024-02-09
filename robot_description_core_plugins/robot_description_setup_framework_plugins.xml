@@ -3,3 +3,8 @@
     <description>Start Screen for loading the URDF or initial MoveIt Config</description>
   </class>
 </library>
+<library path="robot_description_core_plugins">
+  <class type="robot_description::core_plugins::RobotSelectionWidget" base_class_type="robot_description::setup_framework::SetupStepWidget">
+    <description>Load a Robot Selection Page</description>
+  </class>
+</library>
