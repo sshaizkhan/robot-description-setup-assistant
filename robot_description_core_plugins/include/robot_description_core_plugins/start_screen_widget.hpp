@@ -103,7 +103,7 @@ public:
   setup_framework::AddInfoWidget* add_info_widget_;
   QPushButton* btn_load_;
   QLabel* next_label_;
-  QProgressBar* progess_bar_;
+  QProgressBar* progress_bar_;
   QImage* right_image_;
   QLabel* right_image_label_;
 

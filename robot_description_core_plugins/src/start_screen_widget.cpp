@@ -115,11 +115,11 @@ void StartScreenWidget::onInit()
   QHBoxLayout* load_files_layout = new QHBoxLayout();
 
   // progress bar
-  progess_bar_ = new QProgressBar(this);
-  progess_bar_->setMaximum(100);
-  progess_bar_->setMinimum(0);
-  progess_bar_->hide();
-  load_files_layout->addWidget(progess_bar_);
+  progress_bar_ = new QProgressBar(this);
+  progress_bar_->setMaximum(100);
+  progress_bar_->setMinimum(0);
+  progress_bar_->hide();
+  load_files_layout->addWidget(progress_bar_);
 
   // Load button
   btn_load_ = new QPushButton("Load Package", this);
