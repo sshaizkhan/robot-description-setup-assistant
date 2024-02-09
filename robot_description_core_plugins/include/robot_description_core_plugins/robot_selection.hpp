@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2021, PickNik Robotics
+ *  Copyright (c) 2012, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of PickNik Robotics nor the names of its
+ *   * Neither the name of Willow Garage nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -28,23 +28,29 @@
  *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
  *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE`
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
+/*Author: Shahwaz Khan*/
 
-/* Author: Shahwaz Khan */
-/* Modified from original code by David Lu!! */
-
-#include "robot_description_core_plugins/start_screen.hpp"
-#include <rclcpp/logging.hpp>
-#include <rclcpp/rclcpp.hpp>
+#pragma once
+#include <robot_description_setup_framework/setup_step.hpp>
 
 namespace robot_description::core_plugins
 {
-void StartScreen::onInit()
+class RobotSelection : public SetupStep
 {
-  auto logger = getLogger();
-  RCLCPP_INFO(logger, "Starting the robot description setup assistant...");
-}
+public:
+  std::string getName() const override
+  {
+    return "Robot Selection";
+  }
 
+  void onInit() override;
+
+  bool isReady() const override
+  {
+    return true;  // always ready, no dependencies
+  }
+};
 }  // namespace robot_description::core_plugins

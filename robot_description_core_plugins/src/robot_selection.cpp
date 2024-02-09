@@ -33,18 +33,16 @@
  *********************************************************************/
 
 /* Author: Shahwaz Khan */
-/* Modified from original code by David Lu!! */
 
-#include "robot_description_core_plugins/start_screen.hpp"
-#include <rclcpp/logging.hpp>
+#include "robot_description_core_plugins/robot_selection.hpp"
 #include <rclcpp/rclcpp.hpp>
 
 namespace robot_description::core_plugins
 {
-void StartScreen::onInit()
+void RobotSelection::onInit()
 {
   auto logger = getLogger();
-  RCLCPP_INFO(logger, "Starting the robot description setup assistant...");
+  RCLCPP_INFO(logger, "Started Robot arm selection setup...");
 }
 
 }  // namespace robot_description::core_plugins
