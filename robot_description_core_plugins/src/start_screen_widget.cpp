@@ -156,7 +156,9 @@ void StartScreenWidget::onInit()
 
   // Attach bottom layout
   layout->addWidget(next_label_);
-  layout->setAlignment(next_label_, Qt::AlignRight);
+  // Align in bottom and in center
+  layout->setAlignment(next_label_, Qt::AlignBottom | Qt::AlignHCenter);
+
   layout->addLayout(load_files_layout);
 
   setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -186,6 +188,30 @@ void StartScreenWidget::showNewOptions()
   btn_load_->hide();
 
   create_new_package_ = true;
+
+  progress_bar_->setValue(20);
+  QApplication::processEvents();
+
+  // call Q_SIGNAL that enables Navigation bar
+  Q_EMIT dataUpdated();
+
+  // progress to 50
+  progress_bar_->setValue(50);
+  QApplication::processEvents();
+
+  // progress to 70
+  progress_bar_->setValue(70);
+  QApplication::processEvents();
+
+  // progress to 100
+  progress_bar_->setValue(100);
+  QApplication::processEvents();
+
+  right_image_label_->hide();
+
+  next_label_->show();
+
+  RCLCPP_INFO(setup_step_.getLogger(), "Loading Setup Assistant Complete");
 }
 
 void StartScreenWidget::showExistingOptions()
@@ -269,10 +295,11 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   widget_instructions_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
   widget_instructions_->setWordWrap(true);
   widget_instructions_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  widget_instructions_->setText(
-      "All settings for Robot Description are stored in the Robot description configuration package. Here you have the option to create a "
-      "new configuration package or load an existing one. Note: changes to a Robot Description configuration package outside this "
-      "Setup Assistant are likely to be overwritten by this tool.");
+  widget_instructions_->setText("All settings for Robot Description are stored in the Robot description configuration "
+                                "package. Here you have the option to create a "
+                                "new configuration package or load an existing one. Note: changes to a Robot "
+                                "Description configuration package outside this "
+                                "Setup Assistant are likely to be overwritten by this tool.");
 
   layout->addWidget(widget_instructions_);
   layout->setAlignment(widget_instructions_, Qt::AlignTop);
