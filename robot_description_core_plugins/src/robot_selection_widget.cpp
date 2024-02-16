@@ -56,6 +56,8 @@ void RobotSelectionWidget::onInit()
   main_layout->addWidget(header_widget);
 
   scroll_area_ = new QScrollArea(this);
+  // set size of scroll area
+  scroll_area_->setMinimumSize(480, 350);
   scroll_area_widget_contents_ = new QWidget(scroll_area_);
   scroll_area_grid_layout_ = new QGridLayout(scroll_area_widget_contents_);
 
@@ -73,6 +75,9 @@ void RobotSelectionWidget::onInit()
   }
 
   scroll_area_widget_contents_->setLayout(scroll_area_grid_layout_);
+  // set sizepolicy to set the size of the widget
+  scroll_area_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
+
   scroll_area_->setWidget(scroll_area_widget_contents_);
   main_layout->addWidget(scroll_area_);
 
