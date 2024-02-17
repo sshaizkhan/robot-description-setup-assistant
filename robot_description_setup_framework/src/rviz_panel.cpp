@@ -35,9 +35,7 @@
 /* Modified from original code by David V. Lu */
 
 #include "robot_description_setup_framework/qt/rviz_panel.hpp"
-#include <moveit_setup_framework/data/srdf_config.hpp>
-#include <moveit_setup_framework/data/urdf_config.hpp>
-#include <rclcpp/logger.hpp>
+#include <rviz_rendering/render_window.hpp>
 
 namespace robot_description::setup_framework
 {
@@ -57,9 +55,10 @@ void RVizPanel::initialize()
 {
   rviz_render_panel_ = new rviz_common::RenderPanel();
   rviz_render_panel_->setMinimumWidth(200);
-  rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   QApplication::processEvents();
+  rviz_render_panel_->getRenderWindow()->initialize();
 
   rviz_manager_ =
       new rviz_common::VisualizationManager(rviz_render_panel_, node_abstraction_, this, node_->get_clock());
@@ -70,7 +69,7 @@ void RVizPanel::initialize()
   auto tm = rviz_manager_->getToolManager();
   tm->addTool("rviz_default_plugins/MoveCamera");
 
-  // Create new MoveIt Rviz Panel and attach to display
+  // Create the MoveIt Rviz Plugin and attach to display
   robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
   robot_state_display_->setName("Robot State");
 
