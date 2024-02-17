@@ -36,7 +36,6 @@
 /* Modified from original code by David V. Lu */
 
 #include "robot_description_core_plugins/robot_selection.hpp"
-#include <rclcpp/rclcpp.hpp>
 
 namespace robot_description::core_plugins
 {

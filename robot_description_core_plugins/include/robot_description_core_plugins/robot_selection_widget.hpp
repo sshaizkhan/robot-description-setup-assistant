@@ -36,12 +36,23 @@
 
 #pragma once
 
+// ROS2 includes
+#include <rclcpp/rclcpp.hpp>
+
+// rdsa includes
 #include <robot_description_setup_framework/qt/helper_widgets.hpp>
 #include <robot_description_setup_framework/qt/setup_step_widget.hpp>
+#include <robot_description_setup_framework/qt/helper_widgets.hpp>
+#include <robot_description_setup_framework/utilities.hpp>
+#include <robot_description_setup_framework/setup_step.hpp>
 
+#ifndef Q_MOC_RUN
+#include <robot_description_core_plugins/robot_selection.hpp>
+#endif
+
+// Qt includes
 #include <QWidget>
 #include <QFrame>
-
 #include <QApplication>
 #include <QFileDialog>
 #include <QFont>
@@ -56,13 +67,6 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QScrollArea>
-
-#include <rclcpp/rclcpp.hpp>
-#include <robot_description_setup_framework/setup_step.hpp>
-
-#ifndef Q_MOC_RUN
-#include <robot_description_core_plugins/robot_selection.hpp>
-#endif
 
 class QLabel;
 class QPushButton;
@@ -82,7 +86,7 @@ public:
     return setup_step_;
   }
 
-  // TODO: Qt components
+  // Qt components
   QImage* robot_image_;
   QScrollArea* scroll_area_;
   QWidget* scroll_area_widget_contents_;

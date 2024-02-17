@@ -35,10 +35,7 @@
 /* Modified from original code by Dave Coleman */
 
 #include "robot_description_core_plugins/robot_selection_widget.hpp"
-#include <qboxlayout.h>
-#include <qwidget.h>
-#include <robot_description_setup_framework/qt/helper_widgets.hpp>
-#include <robot_description_setup_framework/utilities.hpp>
+
 
 namespace robot_description::core_plugins
 {
