@@ -71,7 +71,7 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   // setup_steps = node_->get_parameter("setup_steps").as_string_array();
 
   rviz_panel_ = new robot_description::setup_framework::RVizPanel(this, node_abstraction_, config_data_);
-  main_content_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  rviz_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   rviz_panel_->hide();
 
   for (const std::string& setup_step : setup_steps)

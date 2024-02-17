@@ -36,17 +36,22 @@
 
 #pragma once
 
+// ROS2 includes
+#include <rclcpp/logger.hpp>
+
 //  Rviz includes
-#include <qwidget.h>
 #include <rviz_common/render_panel.hpp>
 #include <rviz_common/window_manager_interface.hpp>
 #include <rviz_common/visualization_manager.hpp>
 #include <rviz_common/view_manager.hpp>
 #include <rviz_common/view_controller.hpp>
+#include <rviz_common/tool_manager.hpp>
 
 // MoveIt includes
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
 #include <moveit_setup_framework/data_warehouse.hpp>
+#include <moveit_setup_framework/data/srdf_config.hpp>
+#include <moveit_setup_framework/data/urdf_config.hpp>
 
 // Qt includes
 #include <QWidget>
@@ -56,7 +61,6 @@
 #include <QApplication>
 
 // Rviz includes
-#include <rviz_common/tool_manager.hpp>
 
 namespace robot_description::setup_framework
 {
