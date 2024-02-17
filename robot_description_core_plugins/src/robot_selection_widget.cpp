@@ -69,7 +69,7 @@ void RobotSelectionWidget::onInit()
     image_button->setIcon(QIcon(image_path.string().c_str()));  // replace with actual image path
     image_button->setIconSize(QSize(100, 100));                 // set a proper size for the images
     image_button->setFlat(true);
-    connect(image_button, &QPushButton::clicked, this, &RobotSelectionWidget::onChooseRobotButtonClicked);
+    connect(image_button, SIGNAL(clicked()), this, SLOT(loadDefinedURDFClick()));
 
     scroll_area_grid_layout_->addWidget(image_button, i / 5, i % 5);  // adjust the grid dimensions as necessary
   }
@@ -124,6 +124,56 @@ void RobotSelectionWidget::onChooseRobotButtonClicked()
   RCLCPP_INFO_STREAM(setup_step_.getLogger(), "RobotSelectionWidget::onChooseRobotButtonClicked()");
   // Set QMessage Box
   QMessageBox::information(this, "Robot Selection", "UR5");
+}
+
+void RobotSelectionWidget::loadDefinedURDFClick()
+{
+  RCLCPP_INFO_STREAM(setup_step_.getLogger(), "Loading defined URDF file");
+
+  auto result = loadDefinedFile();
+
+  if (result)
+  {
+    RCLCPP_INFO_STREAM(setup_step_.getLogger(), "URDF file loaded successfully");
+  }
+  else
+  {
+    RCLCPP_ERROR_STREAM(setup_step_.getLogger(), "Failed to load URDF file");
+  }
+}
+
+bool RobotSelectionWidget::loadDefinedFile()
+{
+  // define hardcoded path to URDF file
+  std::filesystem::path urdf_path = getSharePath("moveit_resources_ur_description") / "urdf/model.urdf";
+
+  if (urdf_path.empty())
+  {
+    QMessageBox::warning(this, "Error Loading Files", "No robot model file specified");
+    return false;
+  }
+
+  // Check that this file exits
+  if (!std::filesystem::is_regular_file(urdf_path))
+  {
+    QMessageBox::warning(this, "Error Loading Files",
+                         QString("Unable to locate the URDF file: ").append(urdf_path.c_str()));
+    return false;
+  }
+  try
+  {
+    setup_step_.loadURDFFile(urdf_path, "");
+  }
+  catch (const std::runtime_error& e)
+  {
+    QMessageBox::warning(this, "Error Loading URDF", QString(e.what()));
+    return false;
+  }
+
+  Q_EMIT dataUpdated();
+
+  RCLCPP_INFO(setup_step_.getLogger(), "Loading Setup Assistant Complete");
+  return true;  // success!
 }
 
 RobotSelectionWidget::~RobotSelectionWidget()

@@ -94,8 +94,12 @@ public:
 private Q_SLOTS:
   void onChooseRobotButtonClicked();
 
+  void loadDefinedURDFClick();
+
 private:
   RobotSelection setup_step_;
+
+  bool loadDefinedFile();
 };
 
 }  // namespace robot_description::core_plugins
