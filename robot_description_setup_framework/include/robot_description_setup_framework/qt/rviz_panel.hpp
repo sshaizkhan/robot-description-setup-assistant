@@ -46,6 +46,7 @@
 
 // MoveIt includes
 #include <moveit/robot_state_rviz_plugin/robot_state_display.h>
+#include <moveit_setup_framework/data_warehouse.hpp>
 
 // Qt includes
 #include <QWidget>
@@ -60,13 +61,14 @@
 namespace robot_description::setup_framework
 {
 static const std::string ROBOT_DESCRIPTION = "robot_description";
-static const std::string ROBOT_STATE = "robot_state";
+static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 
 class RVizPanel : public QWidget, public rviz_common::WindowManagerInterface
 {
   Q_OBJECT
 public:
-  RVizPanel(QWidget* parent, const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction);
+  RVizPanel(QWidget* parent, const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction,
+            const moveit_setup::DataWarehousePtr& config_data);
 
   ~RVizPanel() override;
 
@@ -144,5 +146,7 @@ protected:
   rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr node_abstraction_;
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<rclcpp::Logger> logger_;
+
+  moveit_setup::DataWarehousePtr config_data_;
 };
 }  // namespace robot_description::setup_framework

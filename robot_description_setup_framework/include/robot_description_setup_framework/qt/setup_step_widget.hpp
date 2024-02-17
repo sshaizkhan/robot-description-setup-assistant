@@ -56,11 +56,13 @@ public:
    * @param rviz_panel Pointer to the shared rviz panel
    * @param config_data All the data
    */
-  void initialize(const rclcpp::Node::SharedPtr& parent_node, QWidget* parent_widget, RVizPanel* rviz_panel)
+  void initialize(const rclcpp::Node::SharedPtr& parent_node, QWidget* parent_widget, RVizPanel* rviz_panel,
+                  const moveit_setup::DataWarehousePtr& config_data)
   {
-    getSetupStep().initialize(parent_node);
+    getSetupStep().initialize(parent_node, config_data);
     setParent(parent_widget);
     rviz_panel_ = rviz_panel;
+    debug_ = config_data->debug;
     onInit();
   }
 
@@ -111,5 +113,6 @@ Q_SIGNALS:
 
 protected:
   RVizPanel* rviz_panel_;
+  bool debug_;
 };
 }  // namespace robot_description::setup_framework
