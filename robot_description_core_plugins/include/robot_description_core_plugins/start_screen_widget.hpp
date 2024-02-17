@@ -35,13 +35,20 @@
 /* Modified from original code by Dave Coleman */
 
 #pragma once
+// ROS2 includes
+#include <rclcpp/rclcpp.hpp>
 
+// rdsa includes
 #include <robot_description_setup_framework/qt/helper_widgets.hpp>
 #include <robot_description_setup_framework/qt/setup_step_widget.hpp>
+#include <robot_description_setup_framework/utilities.hpp>
+#ifndef Q_MOC_RUN
+#include <robot_description_core_plugins/start_screen.hpp>
+#endif
 
+// Qt includes
 #include <QWidget>
 #include <QFrame>
-
 #include <QApplication>
 #include <QFileDialog>
 #include <QFont>
@@ -55,14 +62,6 @@
 #include <QTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
-
-#include <rclcpp/rclcpp.hpp>
-
-#ifndef Q_MOC_RUN
-#include <robot_description_core_plugins/start_screen.hpp>
-#endif
-
-// C
 
 class QLabel;
 class QProgressBar;
