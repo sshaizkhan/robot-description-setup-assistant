@@ -41,12 +41,17 @@ namespace robot_description::setup_assistant
 
 SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
     const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node, QWidget* parent,
-    const boost::program_options::variables_map& /*args*/)
+    const boost::program_options::variables_map& args)
   : QWidget(parent)
   , node_abstraction_(node)
   , node_(node_abstraction_.lock()->get_raw_node())
   , widget_loader_("robot_description_setup_framework", "robot_description::setup_framework::SetupStepWidget")
 {
+  config_data_ = std::make_shared<moveit_setup::DataWarehouse>(node_);
+
+  if (args.count("debug"))
+    config_data_->debug = true;
+
   // Setting the window icon
   auto icon_path = getSharePath("robot_description_setup_assistant") / "resources/icons/rds_logo.png";
   this->setWindowIcon(QIcon(icon_path.c_str()));
@@ -65,14 +70,14 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   setup_steps.push_back("robot_description::core_plugins::RobotSelectionWidget");
   // setup_steps = node_->get_parameter("setup_steps").as_string_array();
 
-  rviz_panel_ = new robot_description::setup_framework::RVizPanel(this, node_abstraction_);
+  rviz_panel_ = new robot_description::setup_framework::RVizPanel(this, node_abstraction_, config_data_);
   main_content_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   rviz_panel_->hide();
 
   for (const std::string& setup_step : setup_steps)
   {
     auto widget = widget_loader_.createSharedInstance(setup_step);
-    widget->initialize(node_, this, rviz_panel_);
+    widget->initialize(node_, this, rviz_panel_, config_data_);
 
     connect(widget.get(), SIGNAL(dataUpdated()), this, SLOT(onDataUpdate()));
     connect(widget.get(), SIGNAL(advanceRequest()), this, SLOT(onAdvanceRequest()));
@@ -89,6 +94,16 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   nav_name_list_.push_back("End-Effector Tool");
   nav_name_list_.push_back("Base (Optional)");
   nav_name_list_.push_back("Author Info");
+
+  // Pass command arg values to start screen and show appropriate part of screen
+  if (args.count("urdf_path"))
+  {
+    config_data_->preloadWithURDFPath(args["urdf_path"].as<std::filesystem::path>());
+  }
+  if (args.count("config_pkg"))
+  {
+    config_data_->preloadWithFullConfig(args["config_pkg"].as<std::string>());
+  }
 
   // nav_name_list_ = { "Home", "Arm Selection", "End-Effector Tool", "Base (Optional)", "Author Info" };
 

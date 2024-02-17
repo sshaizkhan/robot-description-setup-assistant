@@ -35,16 +35,20 @@
 /* Modified from original code by David V. Lu */
 
 #include "robot_description_setup_framework/qt/rviz_panel.hpp"
+#include <moveit_setup_framework/data/srdf_config.hpp>
+#include <moveit_setup_framework/data/urdf_config.hpp>
 #include <rclcpp/logger.hpp>
 
 namespace robot_description::setup_framework
 {
 RVizPanel::RVizPanel(QWidget* parent,
-                     const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction)
+                     const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction,
+                     const moveit_setup::DataWarehousePtr& config_data)
   : QWidget(parent)
   , parent_(parent)
   , node_abstraction_(node_abstraction)
   , node_(node_abstraction_.lock()->get_raw_node())
+  , config_data_(config_data)
 {
   logger_ = std::make_shared<rclcpp::Logger>(node_->get_logger().get_child("RVizPanel"));
 }
@@ -76,7 +80,7 @@ void RVizPanel::initialize()
   updateFixedFrame();
 
   // Set the topic on which the moveit_msgs::msg::PlanningScene messages are received
-  robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(ROBOT_STATE));
+  robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(MOVEIT_ROBOT_STATE));
 
   // Set robot description
   robot_state_display_->subProp("Robot Description")->setValue(QString::fromStdString(ROBOT_DESCRIPTION));
@@ -117,8 +121,16 @@ RVizPanel::~RVizPanel()
 
 moveit::core::RobotModelPtr RVizPanel::getRobotModel() const
 {
-  // figure out what to do here
-  return nullptr;
+  auto urdf = config_data_->get<moveit_setup::URDFConfig>("urdf");
+
+  if (!urdf->isConfigured())
+  {
+    return nullptr;
+  }
+
+  auto srdf = config_data_->get<moveit_setup::SRDFConfig>("srdf");
+
+  return srdf->getRobotModel();
 }
 
 void RVizPanel::updateFixedFrame()

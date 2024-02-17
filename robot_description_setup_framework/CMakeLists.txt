@@ -13,6 +13,7 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(moveit_ros_planning REQUIRED)
 find_package(moveit_ros_visualization REQUIRED)
+find_package(moveit_setup_framework REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
@@ -48,6 +49,7 @@ ament_target_dependencies(${PROJECT_NAME}
   moveit_core
   moveit_ros_planning
   moveit_ros_visualization
+  moveit_setup_framework
   pluginlib
   Qt5Core
   Qt5Widgets
@@ -84,6 +86,7 @@ ament_export_dependencies(Qt5Core)
 ament_export_dependencies(moveit_core)
 ament_export_dependencies(moveit_ros_planning)
 ament_export_dependencies(moveit_ros_visualization)
+ament_export_dependencies(moveit_setup_framework)
 ament_export_dependencies(Qt5Widgets)
 ament_export_dependencies(rviz_common)
 ament_export_dependencies(rviz_rendering)

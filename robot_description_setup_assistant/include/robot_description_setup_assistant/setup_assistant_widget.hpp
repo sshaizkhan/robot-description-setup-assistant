@@ -114,6 +114,8 @@ private:
   pluginlib::ClassLoader<robot_description::setup_framework::SetupStepWidget> widget_loader_;
   std::vector<std::shared_ptr<setup_framework::SetupStepWidget>> steps_;
 
+  moveit_setup::DataWarehousePtr config_data_;
+
   /// Contains all the configuration data for the setup assistant
   // DataWarehousePtr config_data_;
 };

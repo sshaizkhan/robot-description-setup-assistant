@@ -16,6 +16,7 @@ find_package(ament_index_cpp REQUIRED)
 # find_package(moveit_setup_framework REQUIRED)
 find_package(robot_description_setup_framework REQUIRED)
 find_package(moveit_ros_visualization REQUIRED)
+find_package(moveit_setup_framework REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -56,6 +57,7 @@ ament_target_dependencies(
   rviz_rendering
   robot_description_setup_framework
   moveit_ros_visualization
+  moveit_setup_framework
 )
 
 if(BUILD_TESTING)
@@ -84,6 +86,7 @@ ament_export_dependencies(rclcpp)
 ament_export_dependencies(Qt5Core)
 ament_export_dependencies(Qt5Widgets)
 ament_export_dependencies(moveit_ros_visualization)
+ament_export_dependencies(moveit_setup_framework)
 ament_export_dependencies(robot_description_setup_framework)
 ament_export_dependencies(rviz_common)
 ament_export_dependencies(rviz_rendering)

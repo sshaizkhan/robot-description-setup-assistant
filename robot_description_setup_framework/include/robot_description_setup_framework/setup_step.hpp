@@ -36,6 +36,7 @@
 
 #pragma once
 #include <rclcpp/node.hpp>
+#include <moveit_setup_framework/data_warehouse.hpp>
 
 namespace robot_description
 {
@@ -56,9 +57,10 @@ public:
    * @brief Called after construction to initialize the step
    * @param parent_node Shared pointer to the parent node
    */
-  void initialize(const rclcpp::Node::SharedPtr& parent_node)
+  void initialize(const rclcpp::Node::SharedPtr& parent_node, const moveit_setup::DataWarehousePtr& config_data)
   {
     parent_node_ = parent_node;
+    config_data_ = config_data;
     logger_ = std::make_shared<rclcpp::Logger>(parent_node->get_logger().get_child(getName()));
     onInit();
   }
@@ -92,6 +94,7 @@ public:
   }
 
 protected:
+  moveit_setup::DataWarehousePtr config_data_;
   rclcpp::Node::SharedPtr parent_node_;
   std::shared_ptr<rclcpp::Logger> logger_;
 };
