@@ -35,10 +35,16 @@
 /*Modified from the origianl code by David V. Lu*/
 
 #pragma once
-#include <robot_description_setup_framework/setup_step.hpp>
+// ROS2 includes
+#include <rclcpp/rclcpp.hpp>
+
+// Moveit includes
 #include <moveit_setup_framework/data/package_settings_config.hpp>
 #include <moveit_setup_framework/data/srdf_config.hpp>
 #include <moveit_setup_framework/data/urdf_config.hpp>
+
+// rdsa includes
+#include <robot_description_setup_framework/setup_step.hpp>
 
 namespace robot_description::core_plugins
 {
