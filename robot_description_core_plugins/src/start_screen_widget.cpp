@@ -35,7 +35,6 @@
 /* Modified from original code by Dave Coleman */
 
 #include "robot_description_core_plugins/start_screen_widget.hpp"
-#include "robot_description_setup_framework/utilities.hpp"
 
 namespace robot_description::core_plugins
 {
