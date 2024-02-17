@@ -32,9 +32,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 /*Author: Shahwaz Khan*/
+/*Modified from the origianl code by David V. Lu*/
 
 #pragma once
 #include <robot_description_setup_framework/setup_step.hpp>
+#include <moveit_setup_framework/data/package_settings_config.hpp>
+#include <moveit_setup_framework/data/srdf_config.hpp>
+#include <moveit_setup_framework/data/urdf_config.hpp>
 
 namespace robot_description::core_plugins
 {
@@ -52,5 +56,20 @@ public:
   {
     return true;  // always ready, no dependencies
   }
+  std::filesystem::path getURDFPath();
+  std::string getXacroArgs();
+
+  std::filesystem::path getPackagePath();
+
+  bool isXacroFile();
+
+  void loadURDFFile(const std::filesystem::path& urdf_file_path, const std::string& xacro_args);
+
+  void loadExisting(const std::filesystem::path& package_path);
+
+protected:
+  std::shared_ptr<moveit_setup::PackageSettingsConfig> package_settings_;
+  std::shared_ptr<moveit_setup::SRDFConfig> srdf_config_;
+  std::shared_ptr<moveit_setup::URDFConfig> urdf_config_;
 };
 }  // namespace robot_description::core_plugins
