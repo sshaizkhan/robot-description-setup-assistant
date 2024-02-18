@@ -47,7 +47,7 @@ void RobotSelectionWidget::onInit()
   setup_framework::HeaderWidget* header_widget = new setup_framework::HeaderWidget(
       "Robot Selection",
       "Select the robot you would like to configure. This page allows you to select the robot for the robot "
-      "description package that cane be coupled with end-effector to create a working robotic arm with tool ",
+      "description package that can be coupled with end-effector to create a working robotic arm with tool ",
       this);
 
   main_layout->addWidget(header_widget);
