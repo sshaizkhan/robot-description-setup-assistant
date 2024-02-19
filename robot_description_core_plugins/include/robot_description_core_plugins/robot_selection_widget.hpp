@@ -37,6 +37,7 @@
 #pragma once
 
 // ROS2 includes
+#include <qboxlayout.h>
 #include <rclcpp/rclcpp.hpp>
 
 // rdsa includes
@@ -78,6 +79,12 @@ class RobotSelectionWidget : public setup_framework::SetupStepWidget
   Q_OBJECT
 public:
   void onInit() override;
+
+  void setupHeaderWidget(QVBoxLayout* layout);
+
+  std::filesystem::path getRobotImagePath(const std::string& robot_name);
+
+  void addRobotSelectionButtons(const std::array<std::filesystem::path, 9>& image_paths);
 
   // void focusGiven() override;
 

@@ -36,21 +36,13 @@
 
 #include "robot_description_core_plugins/robot_selection_widget.hpp"
 
-
 namespace robot_description::core_plugins
 {
 void RobotSelectionWidget::onInit()
 {
   QVBoxLayout* main_layout = new QVBoxLayout(this);
 
-  // Top Level Label
-  setup_framework::HeaderWidget* header_widget = new setup_framework::HeaderWidget(
-      "Robot Selection",
-      "Select the robot you would like to configure. This page allows you to select the robot for the robot "
-      "description package that can be coupled with end-effector to create a working robotic arm with tool ",
-      this);
-
-  main_layout->addWidget(header_widget);
+  setupHeaderWidget(main_layout);
 
   scroll_area_ = new QScrollArea(this);
   // set size of scroll area
@@ -58,62 +50,58 @@ void RobotSelectionWidget::onInit()
   scroll_area_widget_contents_ = new QWidget(scroll_area_);
   scroll_area_grid_layout_ = new QGridLayout(scroll_area_widget_contents_);
 
-  auto image_path = getSharePath("robot_description_setup_assistant") / "resources/icons/rds_logo.png";
+  const std::array<std::filesystem::path, 9> image_paths = { getRobotImagePath("ur3"),   getRobotImagePath("ur3e"),
+                                                             getRobotImagePath("ur5"),   getRobotImagePath("ur5e"),
+                                                             getRobotImagePath("ur10"),  getRobotImagePath("ur10e"),
+                                                             getRobotImagePath("ur16e"), getRobotImagePath("ur20"),
+                                                             getRobotImagePath("ur30") };
 
-  for (int i = 0; i < 10; ++i)
-  {  // assuming you want to add 10 images
-    QPushButton* image_button = new QPushButton(scroll_area_widget_contents_);
-    image_button->setIcon(QIcon(image_path.string().c_str()));  // replace with actual image path
-    image_button->setIconSize(QSize(100, 100));                 // set a proper size for the images
-    image_button->setFlat(true);
-    connect(image_button, SIGNAL(clicked()), this, SLOT(loadDefinedURDFClick()));
-
-    scroll_area_grid_layout_->addWidget(image_button, i / 5, i % 5);  // adjust the grid dimensions as necessary
-  }
+  addRobotSelectionButtons(image_paths);
 
   scroll_area_widget_contents_->setLayout(scroll_area_grid_layout_);
-  // set sizepolicy to set the size of the widget
-  scroll_area_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
+  scroll_area_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   scroll_area_->setWidget(scroll_area_widget_contents_);
   main_layout->addWidget(scroll_area_);
+}
 
-  // Add images to grid layout
-  // int row = 0;
-  // int col = 0;
+void RobotSelectionWidget::setupHeaderWidget(QVBoxLayout* layout)
+{
+  auto header_widget = new setup_framework::HeaderWidget(
+      "Robot Selection",
+      "Select the robot you would like to configure. This page allows you to select the robot for the robot "
+      "description package that can be coupled with end-effector to create a working robotic arm with tool",
+      this);
+  layout->addWidget(header_widget);
+}
 
-  // // Load all robot images
-  // for (const std::string& robot_name : robot_names_)
-  // {
-  //   // Load image
-  //   QLabel* image_label = new QLabel(this);
-  //   image_label->setPixmap(QPixmap(robot_description_setup_framework::getRobotImage(robot_name).c_str()));
-  //   image_label->setScaledContents(true);
-  //   image_label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+std::filesystem::path RobotSelectionWidget::getRobotImagePath(const std::string& robotName)
+{
+  return getSharePath("robot_description_setup_assistant") / "resources/graphics/universal_robots" /
+         (robotName + ".png");
+}
 
-  //   // Add to grid
-  //   scroll_area_grid_layout_->addWidget(image_label, row, col);
+void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesystem::path, 9>& image_paths)
+{
+  const int desired_width = 150;
+  const int desired_height = 150;
 
-  //   // Add button
-  //   QPushButton* button = new QPushButton(QString::fromStdString(robot_name), this);
-  //   button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-  //   connect(button, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
-  //   scroll_area_grid_layout_->addWidget(button, row + 1, col);
+  for (size_t i = 0; i < image_paths.size(); ++i)
+  {
+    QPushButton* image_button = new QPushButton(scroll_area_widget_contents_);
 
-  //   // Increment row and col
-  //   col++;
-  //   if (col > 2)
-  //   {
-  //     col = 0;
-  //     row += 2;
-  //   }
-  // }
+    QPixmap pixmap(QString::fromStdString(image_paths[i].string()));
+    QPixmap scaled_pixmap = pixmap.scaled(desired_width, desired_height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-  // // Set layout
-  // scroll_area_widget_contents_->setLayout(scroll_area_grid_layout_);
-  // scroll_area_->setWidget(scroll_area_widget_contents_);
-  // scroll_area_->setWidgetResizable(true);
-  // main_layout->addWidget(scroll_area_);
+    image_button->setIcon(QIcon(scaled_pixmap));
+    image_button->setIconSize(QSize(desired_width, desired_height));
+    image_button->setFlat(true);
+    connect(image_button, SIGNAL(clicked()), this, SLOT(loadDefinedURDFClick()));
+
+    int row = i / 5;
+    int column = i % 5;
+    scroll_area_grid_layout_->addWidget(image_button, row, column);
+  }
 }
 
 void RobotSelectionWidget::onChooseRobotButtonClicked()
