@@ -105,12 +105,20 @@ public:
 private Q_SLOTS:
   void onChooseRobotButtonClicked();
 
-  void loadDefinedURDFClick();
+  void loadDefinedURDFClick(const QString& xacro_args);
 
 private:
   RobotSelection setup_step_;
 
-  bool loadDefinedFile();
+  bool loadDefinedFile(const QString& xacro_args);
+
+  std::unordered_map<std::string, QString> robot_args_ = {
+    { "ur3", "name:=ur3_robot ur_type:=ur3" },       { "ur3e", "name:=ur3e_robot ur_type:=ur3e" },
+    { "ur5", "name:=ur5_robot ur_type:=ur5" },       { "ur5e", "name:=ur5e_robot ur_type:=ur5e" },
+    { "ur10", "name:=ur10_robot ur_type:=ur10" },    { "ur10e", "name:=ur10e_robot ur_type:=ur10e" },
+    { "ur16e", "name:=ur16e_robot ur_type:=ur16e" }, { "ur20", "name:=ur20_robot ur_type:=ur20" },
+    { "ur30", "name:=ur30_robot ur_type:=ur30" }
+  };
 };
 
 }  // namespace robot_description::core_plugins
