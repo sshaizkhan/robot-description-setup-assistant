@@ -1,0 +1,4 @@
+# ReadURDF.srv
+XacroArgs[] xacro_args  # The arguments to the Xacro file
+---
+string urdf_path  # The URDF Xacro file contents as response
