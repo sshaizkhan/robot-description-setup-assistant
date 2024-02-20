@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 
   // Start ROS Node
   auto client = std::make_unique<rviz_common::ros_integration::RosClientAbstraction>();
-  auto node = client->init(argc, argv, "moveit_setup_assistant", false);
+  auto node = client->init(argc, argv, "robot_description_setup_assistant", false);
 
   // Create Qt Application
   QApplication qt_app(argc, argv);
