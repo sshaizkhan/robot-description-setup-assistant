@@ -86,21 +86,31 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
   const int desired_width = 150;
   const int desired_height = 150;
 
-  for (size_t i = 0; i < image_paths.size(); ++i)
+  for (const auto& path : image_paths)
   {
-    QPushButton* image_button = new QPushButton(scroll_area_widget_contents_);
+    {
+      QPushButton* image_button = new QPushButton(scroll_area_widget_contents_);
 
-    QPixmap pixmap(QString::fromStdString(image_paths[i].string()));
-    QPixmap scaled_pixmap = pixmap.scaled(desired_width, desired_height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      QPixmap pixmap(QString::fromStdString(path.string()));
+      QPixmap scaled_pixmap =
+          pixmap.scaled(desired_width, desired_height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    image_button->setIcon(QIcon(scaled_pixmap));
-    image_button->setIconSize(QSize(desired_width, desired_height));
-    image_button->setFlat(true);
-    connect(image_button, SIGNAL(clicked()), this, SLOT(loadDefinedURDFClick()));
+      std::string model_name = path.stem().string();
 
-    int row = i / 5;
-    int column = i % 5;
-    scroll_area_grid_layout_->addWidget(image_button, row, column);
+      image_button->setIcon(QIcon(scaled_pixmap));
+      image_button->setIconSize(QSize(desired_width, desired_height));
+      image_button->setFlat(true);
+
+      connect(image_button, &QPushButton::clicked, this, [this, model_name]() {
+        QString args = robot_args_[model_name];
+        loadDefinedURDFClick(args);
+      });
+
+      int index = std::distance(image_paths.begin(), std::find(image_paths.begin(), image_paths.end(), path));
+      int row = index / 5;
+      int column = index % 5;
+      scroll_area_grid_layout_->addWidget(image_button, row, column);
+    }
   }
 }
 
@@ -111,11 +121,11 @@ void RobotSelectionWidget::onChooseRobotButtonClicked()
   QMessageBox::information(this, "Robot Selection", "UR5");
 }
 
-void RobotSelectionWidget::loadDefinedURDFClick()
+void RobotSelectionWidget::loadDefinedURDFClick(const QString& xacro_args)
 {
   RCLCPP_INFO_STREAM(setup_step_.getLogger(), "Loading defined URDF file");
 
-  auto result = loadDefinedFile();
+  auto result = loadDefinedFile(xacro_args);
 
   if (result)
   {
@@ -127,10 +137,10 @@ void RobotSelectionWidget::loadDefinedURDFClick()
   }
 }
 
-bool RobotSelectionWidget::loadDefinedFile()
+bool RobotSelectionWidget::loadDefinedFile(const QString& xacro_args)
 {
   // define hardcoded path to URDF file
-  std::filesystem::path urdf_path = getSharePath("moveit_resources_ur_description") / "urdf/model.urdf";
+  std::filesystem::path urdf_path = getSharePath("ur_description") / "urdf/ur.urdf.xacro";
 
   if (urdf_path.empty())
   {
@@ -147,7 +157,7 @@ bool RobotSelectionWidget::loadDefinedFile()
   }
   try
   {
-    setup_step_.loadURDFFile(urdf_path, "");
+    setup_step_.loadURDFFile(urdf_path, xacro_args.toStdString());
   }
   catch (const std::runtime_error& e)
   {
