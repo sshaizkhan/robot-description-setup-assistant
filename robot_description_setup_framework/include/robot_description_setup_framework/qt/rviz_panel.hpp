@@ -74,6 +74,12 @@ public:
   RVizPanel(QWidget* parent, const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction,
             const moveit_setup::DataWarehousePtr& config_data);
 
+  // move constructor, move assignment, copy constructor, and copy assignment operators are deleted
+  RVizPanel(const RVizPanel&) = delete;
+  RVizPanel& operator=(const RVizPanel&) = delete;
+  RVizPanel(RVizPanel&&) = delete;
+  RVizPanel& operator=(RVizPanel&&) = delete;
+
   ~RVizPanel() override;
 
   bool isReadyForInitialization() const
