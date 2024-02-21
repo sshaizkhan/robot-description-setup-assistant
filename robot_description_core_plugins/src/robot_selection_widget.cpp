@@ -167,7 +167,6 @@ bool RobotSelectionWidget::loadDefinedFile(const QString& xacro_args)
 
   Q_EMIT dataUpdated();
 
-  RCLCPP_INFO(setup_step_.getLogger(), "Loading Setup Assistant Complete");
   return true;  // success!
 }
 
