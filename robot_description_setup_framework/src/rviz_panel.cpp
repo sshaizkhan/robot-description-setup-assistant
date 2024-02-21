@@ -86,7 +86,7 @@ void RVizPanel::initialize()
   robot_state_display_->setVisible(true);
   // Zoom into robot
   rviz_common::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
-  view->subProp("Distance")->setValue(4.0f);
+  view->subProp("Distance")->setValue(2.0f);
 
   // Add Rviz to Planning Groups Widget
   QVBoxLayout* rviz_layout = new QVBoxLayout();
