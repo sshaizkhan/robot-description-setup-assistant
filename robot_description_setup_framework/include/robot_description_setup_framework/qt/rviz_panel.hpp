@@ -150,9 +150,9 @@ protected:
   moveit::core::RobotModelPtr getRobotModel() const;
 
   QWidget* parent_;
-  rviz_common::RenderPanel* rviz_render_panel_{ nullptr };
-  rviz_common::VisualizationManager* rviz_manager_{ nullptr };
-  moveit_rviz_plugin::RobotStateDisplay* robot_state_display_{ nullptr };
+  std::unique_ptr<rviz_common::RenderPanel> rviz_render_panel_;
+  std::unique_ptr<rviz_common::VisualizationManager> rviz_manager_;
+  std::unique_ptr<moveit_rviz_plugin::RobotStateDisplay> robot_state_display_;
   rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr node_abstraction_;
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<rclcpp::Logger> logger_;

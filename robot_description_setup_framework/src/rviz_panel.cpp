@@ -59,7 +59,7 @@ void RVizPanel::initialize()
   // Initialize rviz_render_panel_ if not already done
   if (!isRvizRenderPanelInitialized_)
   {
-    rviz_render_panel_ = new rviz_common::RenderPanel();
+    rviz_render_panel_ = std::make_unique<rviz_common::RenderPanel>();
     rviz_render_panel_->setMinimumWidth(200);
     rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     QApplication::processEvents();
@@ -70,9 +70,10 @@ void RVizPanel::initialize()
   // Initialize rviz_manager_ if not already done
   if (!isRvizManagerInitialized_)
   {
-    rviz_manager_ =
-        new rviz_common::VisualizationManager(rviz_render_panel_, node_abstraction_, this, node_->get_clock());
-    rviz_render_panel_->initialize(rviz_manager_);
+    rviz_manager_ = std::make_unique<rviz_common::VisualizationManager>(rviz_render_panel_.get(), node_abstraction_,
+                                                                        this, node_->get_clock());
+
+    rviz_render_panel_->initialize(rviz_manager_.get());
     rviz_manager_->initialize();
     rviz_manager_->startUpdate();
 
@@ -84,9 +85,9 @@ void RVizPanel::initialize()
   // Initialize or update robot_state_display_
   if (initialize_call_count == 2 && !isRobotStateDisplayInitialized_)
   {
-    robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
+    robot_state_display_ = std::make_unique<moveit_rviz_plugin::RobotStateDisplay>();
     robot_state_display_->setName("Robot State");
-    rviz_manager_->addDisplay(robot_state_display_, true);
+    rviz_manager_->addDisplay(robot_state_display_.get(), true);
 
     updateFixedFrame();
 
@@ -98,7 +99,7 @@ void RVizPanel::initialize()
     view->subProp("Distance")->setValue(2.0f);
 
     QVBoxLayout* rviz_layout = new QVBoxLayout();
-    rviz_layout->addWidget(rviz_render_panel_);
+    rviz_layout->addWidget(rviz_render_panel_.get());
     setLayout(rviz_layout);
 
     auto btn_layout = new QHBoxLayout();
@@ -120,28 +121,14 @@ void RVizPanel::initialize()
   // On subsequent calls, recreate robot_state_display_ to update the model
   else if (initialize_call_count > 2)
   {
-    delete robot_state_display_;  // Delete the old instance
-    robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
-
-    robot_state_display_->setName("Robot State");
-    rviz_manager_->addDisplay(robot_state_display_, true);
-
     updateFixedFrame();
-
-    robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(MOVEIT_ROBOT_STATE));
-    robot_state_display_->subProp("Robot Description")->setValue(QString::fromStdString(ROBOT_DESCRIPTION));
-    robot_state_display_->setVisible(true);
   }
 }
 
 RVizPanel::~RVizPanel()
 {
-  if (rviz_manager_ != nullptr)
-    rviz_manager_->removeAllDisplays();
-  if (rviz_render_panel_ != nullptr)
-    delete rviz_render_panel_;
-  if (rviz_manager_ != nullptr)
-    delete rviz_manager_;
+  rviz_manager_.reset();
+  rviz_render_panel_.reset();
 }
 
 moveit::core::RobotModelPtr RVizPanel::getRobotModel() const
