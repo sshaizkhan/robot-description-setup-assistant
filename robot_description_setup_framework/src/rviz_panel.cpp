@@ -129,6 +129,7 @@ RVizPanel::~RVizPanel()
 {
   rviz_manager_.reset();
   rviz_render_panel_.reset();
+  robot_state_display_.reset();
 }
 
 moveit::core::RobotModelPtr RVizPanel::getRobotModel() const
