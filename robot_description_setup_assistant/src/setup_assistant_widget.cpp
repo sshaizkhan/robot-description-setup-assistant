@@ -156,12 +156,11 @@ void SetupRobotDescriptionAssistantWidget::onDataUpdate()
     navs_view_->setEnabled(index, ready);
   }
 
-  if (rviz_panel_->isReadyForInitialization())
-  {
+
     rviz_panel_->initialize();
     // Replace logo with Rviz screen
     rviz_panel_->show();
-  }
+  
 }
 
 void SetupRobotDescriptionAssistantWidget::navigationClicked(const QModelIndex& index)
