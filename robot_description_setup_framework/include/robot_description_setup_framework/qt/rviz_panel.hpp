@@ -151,6 +151,10 @@ protected:
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<rclcpp::Logger> logger_;
 
+  bool isRvizRenderPanelInitialized_ = false;
+  bool isRvizManagerInitialized_ = false;
+  bool isRobotStateDisplayInitialized_ = false;
+
   moveit_setup::DataWarehousePtr config_data_;
 };
 }  // namespace robot_description::setup_framework
