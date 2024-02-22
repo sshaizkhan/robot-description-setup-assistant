@@ -53,76 +53,53 @@ RVizPanel::RVizPanel(QWidget* parent,
 
 void RVizPanel::initialize()
 {
-  static int initialize_call_count = 0;
-  initialize_call_count++;
-
-  // Initialize rviz_render_panel_ if not already done
-  if (!isRvizRenderPanelInitialized_)
-  {
-    rviz_render_panel_ = std::make_unique<rviz_common::RenderPanel>();
-    rviz_render_panel_->setMinimumWidth(200);
-    rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    QApplication::processEvents();
-    rviz_render_panel_->getRenderWindow()->initialize();
-    isRvizRenderPanelInitialized_ = true;
-  }
+  // Initialize rviz_render_panel_
+  rviz_render_panel_ = std::make_unique<rviz_common::RenderPanel>();
+  rviz_render_panel_->setMinimumWidth(200);
+  rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  QApplication::processEvents();
+  rviz_render_panel_->getRenderWindow()->initialize();
 
   // Initialize rviz_manager_ if not already done
-  if (!isRvizManagerInitialized_)
-  {
-    rviz_manager_ = std::make_unique<rviz_common::VisualizationManager>(rviz_render_panel_.get(), node_abstraction_,
-                                                                        this, node_->get_clock());
-
-    rviz_render_panel_->initialize(rviz_manager_.get());
-    rviz_manager_->initialize();
-    rviz_manager_->startUpdate();
-
-    auto tm = rviz_manager_->getToolManager();
-    tm->addTool("rviz_default_plugins/MoveCamera");
-    isRvizManagerInitialized_ = true;
-  }
+  rviz_manager_ = std::make_unique<rviz_common::VisualizationManager>(rviz_render_panel_.get(), node_abstraction_, this,
+                                                                      node_->get_clock());
+  rviz_render_panel_->initialize(rviz_manager_.get());
+  rviz_manager_->initialize();
+  rviz_manager_->startUpdate();
+  auto tm = rviz_manager_->getToolManager();
+  tm->addTool("rviz_default_plugins/MoveCamera");
 
   // Initialize or update robot_state_display_
-  if (initialize_call_count == 2 && !isRobotStateDisplayInitialized_)
-  {
-    robot_state_display_ = std::make_unique<moveit_rviz_plugin::RobotStateDisplay>();
-    robot_state_display_->setName("Robot State");
-    rviz_manager_->addDisplay(robot_state_display_.get(), true);
+  robot_state_display_ = std::make_unique<moveit_rviz_plugin::RobotStateDisplay>();
+  robot_state_display_->setName("Robot State");
+  rviz_manager_->addDisplay(robot_state_display_.get(), true);
 
-    updateFixedFrame();
+  updateFixedFrame();
 
-    robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(MOVEIT_ROBOT_STATE));
-    robot_state_display_->subProp("Robot Description")->setValue(QString::fromStdString(ROBOT_DESCRIPTION));
-    robot_state_display_->setVisible(true);
+  robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(MOVEIT_ROBOT_STATE));
+  robot_state_display_->subProp("Robot Description")->setValue(QString::fromStdString(ROBOT_DESCRIPTION));
+  robot_state_display_->setVisible(true);
 
-    rviz_common::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
-    view->subProp("Distance")->setValue(2.0f);
+  rviz_common::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
+  view->subProp("Distance")->setValue(2.0f);
 
-    QVBoxLayout* rviz_layout = new QVBoxLayout();
-    rviz_layout->addWidget(rviz_render_panel_.get());
-    setLayout(rviz_layout);
+  QVBoxLayout* rviz_layout = new QVBoxLayout();
+  rviz_layout->addWidget(rviz_render_panel_.get());
+  setLayout(rviz_layout);
 
-    auto btn_layout = new QHBoxLayout();
-    rviz_layout->addLayout(btn_layout);
+  auto btn_layout = new QHBoxLayout();
+  rviz_layout->addLayout(btn_layout);
 
-    QCheckBox* btn;
-    btn_layout->addWidget(btn = new QCheckBox("visual"), 0);
-    btn->setChecked(true);
-    connect(btn, &QCheckBox::toggled,
-            [this](bool checked) { robot_state_display_->subProp("Visual Enabled")->setValue(checked); });
+  QCheckBox* btn;
+  btn_layout->addWidget(btn = new QCheckBox("visual"), 0);
+  btn->setChecked(true);
+  connect(btn, &QCheckBox::toggled,
+          [this](bool checked) { robot_state_display_->subProp("Visual Enabled")->setValue(checked); });
 
-    btn_layout->addWidget(btn = new QCheckBox("collision"), 1);
-    btn->setChecked(false);
-    connect(btn, &QCheckBox::toggled,
-            [this](bool checked) { robot_state_display_->subProp("Collision Enabled")->setValue(checked); });
-
-    isRobotStateDisplayInitialized_ = true;
-  }
-  // On subsequent calls, recreate robot_state_display_ to update the model
-  else if (initialize_call_count > 2)
-  {
-    updateFixedFrame();
-  }
+  btn_layout->addWidget(btn = new QCheckBox("collision"), 1);
+  btn->setChecked(false);
+  connect(btn, &QCheckBox::toggled,
+          [this](bool checked) { robot_state_display_->subProp("Collision Enabled")->setValue(checked); });
 }
 
 RVizPanel::~RVizPanel()
