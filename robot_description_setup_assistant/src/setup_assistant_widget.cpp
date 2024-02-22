@@ -156,11 +156,18 @@ void SetupRobotDescriptionAssistantWidget::onDataUpdate()
     navs_view_->setEnabled(index, ready);
   }
 
-
+  if (rviz_panel_->isReadyForInitialization())
+  {
+    RCLCPP_INFO(node_->get_logger(), "RViz panel is ready for initialization");
     rviz_panel_->initialize();
     // Replace logo with Rviz screen
     rviz_panel_->show();
-  
+  }
+  else if (rviz_panel_->isRobotModelLoaded())
+  {
+    RCLCPP_INFO(node_->get_logger(), "Robot model is loaded. Updating fixed frame if new model is loaded.");
+    rviz_panel_->updateFixedFrame();
+  }
 }
 
 void SetupRobotDescriptionAssistantWidget::navigationClicked(const QModelIndex& index)

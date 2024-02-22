@@ -82,9 +82,17 @@ public:
 
   ~RVizPanel() override;
 
-  bool isReadyForInitialization() const
+  bool isReadyForInitialization()
   {
-    return rviz_render_panel_ == nullptr && getRobotModel() != nullptr;
+    if (getRobotModel() != nullptr)
+      model_loaded_ = true;
+
+    return rviz_render_panel_ == nullptr && model_loaded_;
+  }
+
+  bool isRobotModelLoaded() const
+  {
+    return model_loaded_;
   }
 
   void initialize();
@@ -157,9 +165,7 @@ protected:
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<rclcpp::Logger> logger_;
 
-  bool isRvizRenderPanelInitialized_ = false;
-  bool isRvizManagerInitialized_ = false;
-  bool isRobotStateDisplayInitialized_ = false;
+  bool model_loaded_{ false };
 
   moveit_setup::DataWarehousePtr config_data_;
 };
