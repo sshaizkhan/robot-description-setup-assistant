@@ -90,6 +90,7 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
   {
     {
       QPushButton* image_button = new QPushButton(scroll_area_widget_contents_);
+      QLabel* robot_label = new QLabel(scroll_area_widget_contents_);
 
       QPixmap pixmap(QString::fromStdString(path.string()));
       QPixmap scaled_pixmap =
@@ -101,6 +102,17 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
       image_button->setIconSize(QSize(desired_width, desired_height));
       image_button->setFlat(true);
 
+      // Font settings
+      QFont font = robot_label->font();
+      font.setBold(true);
+      font.setPointSize(font.pointSize() + 2);  // Increase font size
+      robot_label->setFont(font);
+
+      // Label text and style
+      robot_label->setText(QString::fromStdString(model_name));
+      robot_label->setAlignment(Qt::AlignCenter);                                       // Center alignment
+      robot_label->setStyleSheet("QLabel { border: 2px solid black; padding: 2px; }");  // Black border box
+
       connect(image_button, &QPushButton::clicked, this, [this, model_name]() {
         QString args = robot_args_[model_name];
         loadDefinedURDFClick(args);
@@ -109,7 +121,12 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
       int index = std::distance(image_paths.begin(), std::find(image_paths.begin(), image_paths.end(), path));
       int row = index / 5;
       int column = index % 5;
-      scroll_area_grid_layout_->addWidget(image_button, row, column);
+
+      QVBoxLayout* button_layout = new QVBoxLayout();
+      button_layout->addWidget(image_button);
+      button_layout->addWidget(robot_label, 0, Qt::AlignHCenter);  // Centered with respect to the button
+
+      scroll_area_grid_layout_->addLayout(button_layout, row, column);
     }
   }
 }
