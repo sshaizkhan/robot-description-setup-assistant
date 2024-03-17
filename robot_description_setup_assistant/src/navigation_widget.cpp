@@ -55,7 +55,7 @@ NavigationWidget::NavigationWidget(QWidget* parent) : QListView(parent)
 
   // Harcoded width and height
   setMaximumHeight(160);
-  setMinimumWidth(150);
+  setMaximumWidth(200);
   setMinimumHeight(300);
 
   verticalScrollBar()->setPageStep(3);
@@ -83,10 +83,10 @@ void NavigationWidget::setNavs(const QList<QString>& navs)
 
 void NavigationWidget::setEnabled(const int& index, bool enabled)
 {
-  if (enabled)
+  if (enabled) {
     model_->item(index)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled |
                                   Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
-  else
+  } else
     model_->item(index)->setFlags(Qt::NoItemFlags);
 }
 
@@ -157,11 +157,11 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
   painter->setFont(text_font);
 
   // Font color
-  if (is_selected)
+  if (is_selected) {
     painter->setPen(palette.color(QPalette::HighlightedText));
-  else if (!option.state.testFlag(QStyle::State_Enabled))
+  } else if (!option.state.testFlag(QStyle::State_Enabled)) {
     painter->setPen(palette.color(QPalette::Dark));
-  else
+  } else
     painter->setPen(palette.color(QPalette::ButtonText));
 
   painter->drawText(text_rect, Qt::AlignLeft | Qt::AlignVCenter, nav_name);
