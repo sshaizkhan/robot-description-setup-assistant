@@ -56,6 +56,7 @@ NavigationWidget::NavigationWidget(QWidget* parent) : QListView(parent)
   // Harcoded width and height
   setMaximumHeight(160);
   setMaximumWidth(200);
+  setMinimumWidth(200);
   setMinimumHeight(300);
 
   verticalScrollBar()->setPageStep(3);
