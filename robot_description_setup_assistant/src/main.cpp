@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 
   // Load QT Widget
   robot_description::setup_assistant::SetupRobotDescriptionAssistantWidget setup_assistant_widget(node, nullptr, vm);
-  setup_assistant_widget.setMinimumWidth(1090);
+  setup_assistant_widget.setMinimumWidth(1290);
   setup_assistant_widget.setMinimumHeight(600);
 
   setup_assistant_widget.show();
