@@ -55,7 +55,7 @@ void RVizPanel::initialize()
 {
   // Initialize rviz_render_panel_
   rviz_render_panel_ = std::make_unique<rviz_common::RenderPanel>();
-  rviz_render_panel_->setMinimumWidth(200);
+  rviz_render_panel_->setMinimumWidth(300);
   rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   QApplication::processEvents();
   rviz_render_panel_->getRenderWindow()->initialize();
