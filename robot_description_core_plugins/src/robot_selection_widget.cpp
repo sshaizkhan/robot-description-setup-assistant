@@ -42,11 +42,22 @@ void RobotSelectionWidget::onInit()
 {
   QVBoxLayout* main_layout = new QVBoxLayout(this);
 
+  search_label_ = new QLabel("Search for the Arm:", this);
+
+  search_bar_ = new QLineEdit(this);
+  search_bar_->setMaximumSize(700, 30);
+  search_bar_->setMinimumSize(500, 30);
+  connect(search_bar_, &QLineEdit::textChanged, this, &RobotSelectionWidget::filterRobotSelection);
+
   setupHeaderWidget(main_layout);
+
+  main_layout->addWidget(search_label_);
+  main_layout->addWidget(search_bar_);
 
   scroll_area_ = new QScrollArea(this);
   // set size of scroll area
-  scroll_area_->setMinimumSize(480, 350);
+  scroll_area_->setMaximumSize(700, 500);
+  scroll_area_->setStyleSheet(
   scroll_area_widget_contents_ = new QWidget(scroll_area_);
   scroll_area_grid_layout_ = new QGridLayout(scroll_area_widget_contents_);
 
@@ -102,6 +113,8 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
       image_button->setIconSize(QSize(desired_width, desired_height));
       image_button->setFlat(true);
 
+      robot_elements_[model_name] = RobotButton{ image_button, robot_label };
+
       // Font settings
       QFont font = robot_label->font();
       font.setBold(true);
@@ -110,6 +123,7 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
 
       // Label text and style
       robot_label->setText(QString::fromStdString(model_name));
+      robot_label->setFixedSize(60, 30);                                                // Fixed height (30 pixels)
       robot_label->setAlignment(Qt::AlignCenter);                                       // Center alignment
       robot_label->setStyleSheet("QLabel { border: 2px solid black; padding: 2px; }");  // Black border box
 
@@ -128,6 +142,17 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
 
       scroll_area_grid_layout_->addLayout(button_layout, row, column);
     }
+  }
+}
+
+void RobotSelectionWidget::filterRobotSelection(const QString& text)
+{
+  for (auto& [model_name, robot_element] : robot_elements_)
+  {
+    // Check if the model name contains the text from the search bar
+    bool is_match = QString::fromStdString(model_name).contains(text, Qt::CaseInsensitive);
+    robot_element.button->setVisible(is_match);  // Show/Hide the button
+    robot_element.label->setVisible(is_match);   // Show/Hide the label
   }
 }
 
