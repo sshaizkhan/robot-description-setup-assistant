@@ -45,8 +45,8 @@ void RobotSelectionWidget::onInit()
   search_label_ = new QLabel("Search for the Arm:", this);
 
   search_bar_ = new QLineEdit(this);
-  search_bar_->setMaximumSize(700, 30);
-  search_bar_->setMinimumSize(500, 30);
+  search_bar_->setMaximumSize(720, 30);
+  search_bar_->setMinimumSize(720, 30);
   search_bar_->setStyleSheet("QLineEdit {"
                              "  border: 2px solid gray;"
                              "  border-radius: 10px;"
@@ -64,47 +64,13 @@ void RobotSelectionWidget::onInit()
 
   scroll_area_ = new QScrollArea(this);
   // set size of scroll area
-  scroll_area_->setMaximumSize(700, 500);
-  scroll_area_->setStyleSheet(
-      // Vertical ScrollBar Style
-      "QScrollBar:vertical {"
-      "  border: 1px solid #999999;"
-      "  background:white;"
-      "  width:10px;"
-      "  margin: 0px 0px 0px 0px;"
-      "}"
-      "QScrollBar::handle:vertical {"
-      "  min-height: 0px;"
-      "  border: 1px solid gray;"
-      "  border-radius: 4px;"
-      "  background-color: lightgray;"
-      "}"
-      "QScrollBar::add-line:vertical {"
-      "  height: 0px;"
-      "}"
-      "QScrollBar::sub-line:vertical {"
-      "  height: 0px;"
-      "}"
-
-      // Horizontal ScrollBar Style
-      "QScrollBar:horizontal {"
-      "  border: 1px solid #999999;"
-      "  background:white;"
-      "  height:10px;"
-      "  margin: 0px 0px 0px 0px;"
-      "}"
-      "QScrollBar::handle:horizontal {"
-      "  min-width: 0px;"
-      "  border: 1px solid gray;"
-      "  border-radius: 4px;"
-      "  background-color: lightgray;"
-      "}"
-      "QScrollBar::add-line:horizontal {"
-      "  width: 0px;"
-      "}"
-      "QScrollBar::sub-line:horizontal {"
-      "  width: 0px;"
-      "}");
+  scroll_area_->setMaximumSize(720, 500);
+  scroll_area_->setStyleSheet("QScrollArea {"
+                              "  border: 2px solid gray;"
+                              "  border-radius: 10px;"
+                              "  padding: 0 8px;"
+                              "  selection-background-color: darkgray;"
+                              "}");
 
   scroll_area_widget_contents_ = new QWidget(scroll_area_);
   scroll_area_grid_layout_ = new QGridLayout(scroll_area_widget_contents_);
@@ -181,8 +147,8 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
       });
 
       int index = std::distance(image_paths.begin(), std::find(image_paths.begin(), image_paths.end(), path));
-      int row = index / 5;
-      int column = index % 5;
+      int row = index / 4;
+      int column = index % 4;
 
       QVBoxLayout* button_layout = new QVBoxLayout();
       button_layout->addWidget(image_button);
