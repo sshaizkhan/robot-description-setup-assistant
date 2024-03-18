@@ -93,6 +93,12 @@ public:
     return setup_step_;
   }
 
+  struct RobotButton
+  {
+    QPushButton* button;
+    QLabel* label;
+  };
+
   // Qt components
   QImage* robot_image_;
   QScrollArea* scroll_area_;
@@ -107,8 +113,14 @@ private Q_SLOTS:
 
   void loadDefinedURDFClick(const QString& xacro_args);
 
+  void filterRobotSelection(const QString& text);
+
 private:
   RobotSelection setup_step_;
+
+  QLabel* search_label_;
+  QLineEdit* search_bar_;
+  std::map<std::string, RobotButton> robot_elements_;
 
   bool loadDefinedFile(const QString& xacro_args);
 
