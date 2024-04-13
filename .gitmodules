@@ -1,0 +1,6 @@
+[submodule "deps/kuka_robot_descriptions"]
+	path = deps/kuka_robot_descriptions
+	url = https://github.com/sshaizkhan/kuka_robot_descriptions.git
+[submodule "deps/ur5_description"]
+	path = deps/ur5_description
+	url = https://github.com/UniversalRobots/Universal_Robots_ROS2_Description.git
