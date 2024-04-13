@@ -56,4 +56,4 @@ CATKIN_IGNORE
 #ignored for now
 
 # resources/config
-robot_description_setup_assistant/generated_xacro/*
+r
