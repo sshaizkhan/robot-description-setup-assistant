@@ -1,0 +1,64 @@
+{
+  "build": {
+    "debug": {
+      "event-handlers": [
+        "console_cohesion+"
+      ],
+      "merge-install": True,
+      "symlink-install": True,
+      "install-base": "/home/bot/rds_ws/install",
+      "build-base": "/home/bot/rds_ws/build-debug",
+      "log-base": "/home/bot/rds_ws/colcon-log",
+      "cmake-args": [
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "--no-warn-unused-cli"
+      ],
+      "ament-cmake-args": [
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "--no-warn-unused-cli"
+      ]
+    },
+    "release": {
+      "event-handlers": [
+        "console_cohesion+"
+      ],
+      "merge-install": True,
+      "symlink-install": True,
+      "install-base": "/home/bot/rds_ws/install",
+      "build-base": "/home/bot/rds_ws/build-release",
+      "log-base": "/home/bot/rds_ws/colcon-log",
+      "cmake-args": [
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "--no-warn-unused-cli"
+      ],
+      "ament-cmake-args": [
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "--no-warn-unused-cli"
+      ]
+    },
+    "dev": {
+      "event-handlers": [
+        "console_cohesion+"
+      ],
+      "merge-install": True,
+      "symlink-install": True,
+      "install-base": "/home/bot/rds_ws/install",
+      "build-base": "/home/bot/rds_ws/build-dev",
+      "log-base": "/home/bot/rds_ws/colcon-log",
+      "cmake-args": [
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DBUILD_SHARED_LIBS=OFF",
+        "--no-warn-unused-cli"
+      ],
+      "ament-cmake-args": [
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DBUILD_SHARED_LIBS=OFF",
+        "--no-warn-unused-cli"
+      ]
+    }
+  }
+}

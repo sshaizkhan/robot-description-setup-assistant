@@ -1,0 +1,88 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "debug-build-packages-select",
+      "type": "shell",
+      "command": "/home/bot/rds_ws/src/robot-description-setup-assistant/.devcontainer/build.bash",
+      "args": [
+        "${input:package}",
+        "debug",
+        "true"
+      ],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "runOptions": {
+        "reevaluateOnRerun": false
+      }
+    },
+    {
+      "label": "debug-build-packages-up-to",
+      "type": "shell",
+      "command": "/home/bot/rds_ws/src/robot-description-setup-assistant/.devcontainer/build.bash",
+      "args": [
+        "${input:package}",
+        "debug",
+        "false"
+      ],
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "runOptions": {
+        "reevaluateOnRerun": false
+      }
+    },
+    {
+      "label": "debug-build-app-all",
+      "type": "shell",
+      "command": "cd ~/rds_ws/src/robot-description-setup-assistant && colcon build --mixin debug",
+      "presentation": {
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "launch-terminator",
+      "type": "shell",
+      "command": "terminator -u --title robot-description-setup-assistant",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "type": "pickString",
+      "id": "package",
+      "description": "The package to select",
+      "options": [
+        "robot_description_setup_assistant",
+        "robot_description_common",
+        "robot_description_core_plugins",
+        "robot_description_setup_framework",
+        "kuka_robot_descriptions"
+      ],
+      "default": "ros2_mapping"
+    }
+  ]
+}

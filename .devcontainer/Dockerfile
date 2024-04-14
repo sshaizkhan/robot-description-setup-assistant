@@ -1,0 +1,68 @@
+FROM osrf/ros:humble-desktop-full
+
+# Setting up packages for devops
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated \
+lsb-release \
+net-tools \
+iputils-ping \
+apt-utils \
+build-essential \
+psmisc \
+vim-gtk \
+scons \
+bison \
+flex \
+git \
+wget \
+sudo \
+gnupg \
+keyboard-configuration \
+ && rm -rf /var/lib/apt/lists/*
+
+ARG USERNAME=bot
+ARG PASSWORD=""
+ARG DISTRO=Linux
+
+ENV USER_NAME=$USERNAME
+ENV PASSWORD=$PASSWORD
+
+RUN adduser --ingroup sudo --disabled-password --gecos "" --shell /bin/bash --home /home/$USER_NAME $USER_NAME
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN if [ ! -z "$PASSWORD" ]; then echo $USER_NAME:$PASSWORD | chpasswd; fi
+ENV HOME /home/$USER_NAME
+USER $USER_NAME
+
+RUN rosdep update
+RUN sudo apt update
+
+RUN sudo apt install python3-colcon-common-extensions
+RUN sudo apt install python3-colcon-mixin
+RUN sudo apt-get install -y mesa-utils
+RUN sudo apt install python3-vcstool
+RUN sudo apt-get install -y python3-pip
+
+# Cyclone dds for Humble
+RUN sudo apt install -y ros-$ROS_DISTRO-rmw-cyclonedds-cpp
+RUN export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+# Install Moveit2
+RUN sudo apt install -y ros-$ROS_DISTRO-moveit
+
+# Install Bash completion
+RUN sudo apt install -y bash-completion
+
+
+# Install Gazebo Sim - Harmonic
+# RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+# RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+# RUN apt-get update
+# RUN apt-get install gz-harmonic
+
+RUN if [ "$DISTRO" = "WSL" ]; then \
+        sudo apt-get update && sudo apt-get install -y vainfo && \
+        echo "export LIBVA_DRIVER_NAME=d3d12" >> $HOME/.bashrc && \
+        echo "export LD_LIBRARY_PATH=/usr/lib/wsl/lib" >> $HOME/.bashrc; \
+    fi
+
+
+CMD [ "bash" ]

@@ -1,0 +1,15 @@
+CompileFlags:
+ #Treat code as C++, use C++17 standard, enable more warnings.
+  Add: [-xc++, -std=c++17, -Wall, -Wno-missing-prototypes]
+  # Remove extra warnings specified in compile commands.
+  # Single value is also acceptable, same as "Remove: [-mabi]"
+  Remove: [-mabm, -mavx256-split-unaligned-load, -mavx256-split-unaligned-store]
+  CompilationDatabase: "/home/bot/rds_ws/build-debug"
+Diagnostics:
+  UnusedIncludes: Strict
+InlayHints:
+  Designators: Yes
+  Enabled: No
+  ParameterNames: Yes
+Hover:
+  ShowAKA: Yes
