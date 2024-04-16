@@ -113,6 +113,11 @@ if ! shopt -oq posix; then
   fi
 fi
 
+if [ "$DISTRO" = "WSL" ]; then
+    export LIBVA_DRIVER_NAME=d3d12
+    export LD_LIBRARY_PATH=/usr/lib/wsl/lib
+fi
+
 #bash completion
 if [ -f /etc/profile.d/bash_completion.sh ]; then
     echo "Sourcing: /etc/profile.d/bash_completion.sh"
