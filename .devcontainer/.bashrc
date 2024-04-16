@@ -140,8 +140,8 @@ fi
 # Add Python3 paths
 export PATH=$PATH:~/.local/bin/
 export PYTHONPATH=$PYTHONPATH:~/install/lib/python3.7/site-packages
-export RMW_IMPLEMENTATION=""
 export TURTLEBOT3_MODEL=waffle
+export RMW_IMPLEMENTATION=""
 
-# Set all the env variables defined in devcontainer.env
-# export $(cat /aio_palletizing_app/src/devcontainer.env | sed '/#/d')
+export LIBVA_DRIVER_NAME=d3d12
+export LD_LIBRARY_PATH=/usr/lib/wsl/lib
