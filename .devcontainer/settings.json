@@ -10,7 +10,7 @@
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "[cpp]": {
-    "editor.defaultFormatter": "ms-vscode.cpptools"
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "C_Cpp.clang_format_path": "/usr/bin/clang-format-14",
   "C_Cpp.clang_format_style": "file",
