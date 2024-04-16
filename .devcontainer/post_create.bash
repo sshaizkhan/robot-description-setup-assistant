@@ -43,10 +43,3 @@ if [ "$DISTRO" = "WSL" ]; then
     sudo chmod 666 /dev/dri/card0
     sudo chmod 666 /dev/dri/renderD128
 fi
-# Check if $DISTRO=WSL then export LIBVA_DRIVER_NAME=d3d12 and LD_LIBRARY_PATH=/usr/lib/wsl/lib to .bashrc
-# This is required for running Gazebo in WSL
-
-if [ "$DISTRO" = "WSL" ]; then
-    echo "export LIBVA_DRIVER_NAME=d3d12" >> /home/bot/.bashrc
-    echo "export LD_LIBRARY_PATH=/usr/lib/wsl/lib" >> /home/bot/.bashrc
-fi
