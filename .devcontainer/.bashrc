@@ -142,6 +142,3 @@ export PATH=$PATH:~/.local/bin/
 export PYTHONPATH=$PYTHONPATH:~/install/lib/python3.7/site-packages
 export TURTLEBOT3_MODEL=waffle
 export RMW_IMPLEMENTATION=""
-
-export LIBVA_DRIVER_NAME=d3d12
-export LD_LIBRARY_PATH=/usr/lib/wsl/lib
