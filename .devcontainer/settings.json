@@ -1,52 +1,51 @@
 {
-  "plantuml.render": "PlantUMLServer",
-  "plantuml.server": "http://localhost:32753",
-  "markdown.preview.scrollEditorWithPreview": true,
-  "markdown.preview.scrollPreviewWithEditor": true,
-  "editor.formatOnPaste": false,
-  "editor.formatOnSave": false,
-  "editor.tabSize": 2,
-  "editor.renderWhitespace": "boundary",
-  "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true,
-  "[cpp]": {
-    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
-  },
-  "C_Cpp.clang_format_path": "/usr/bin/clang-format-14",
-  "C_Cpp.clang_format_style": "file",
-  "python.defaultInterpreterPath": "/usr/bin/python3",
+	"plantuml.render": "PlantUMLServer",
+	"plantuml.server": "http://localhost:32753",
+	"markdown.preview.scrollEditorWithPreview": true,
+	"markdown.preview.scrollPreviewWithEditor": true,
+	"editor.formatOnPaste": false,
+	"editor.formatOnSave": false,
+	"editor.tabSize": 2,
+	"editor.renderWhitespace": "boundary",
+	"files.trimTrailingWhitespace": true,
+	"files.insertFinalNewline": true,
+	"[cpp]": {
+		"editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+	},
+	"C_Cpp.clang_format_path": "/usr/bin/clang-format-14",
+	"C_Cpp.clang_format_style": "file",
+	"python.defaultInterpreterPath": "/usr/bin/python3",
   "python.analysis.extraPaths": [
 
   ],
-  "python.linting.pylintEnabled": false,
-  "python.languageServer": "Pylance",
-  "python.formatting.provider": "black",
-  "search.exclude": {
-    "**/build*": true,
-    "**/install": true,
-    "**/log": true,
-    "**/logs": true,
-    "**/colcon-log": true
-  },
-  "files.exclude": {
-    "**/.bash_logout": true,
-    "**/.cache": true,
-    "**/.config": true,
-    "**/.dbus": true,
-    "**/.gitconfig": true,
-    "**/.gnupg": true,
-    "**/.local": true,
-    "**/.profile": true,
-    "**/.ssh": true,
-    "**/.vs-liveshare-keychain": true,
-    "**/.vscode-server": false,
-    "**/.yarnrc": true,
-    "**/node_modules": true,
-    "**/yarn.lock": true
-  },
-  "remote.restoreForwardedPorts": false,
-  "terminal.integrated.scrollback": 100000000,
-  "remote.forwardOnOpen": false,
-  "remote.autoForwardPorts": false,
-  "clangd.path": "/home/bot/.vscode-server/data/User/globalStorage/llvm-vs-code-extensions.vscode-clangd/install/17.0.3/clangd_17.0.3/bin/clangd"
+	"python.linting.pylintEnabled": false,
+	"python.languageServer": "Pylance",
+	"python.formatting.provider": "black",
+	"search.exclude": {
+		"**/build*": true,
+		"**/install": true,
+		"**/log": true,
+		"**/logs": true,
+		"**/colcon-log": true
+	},
+	"files.exclude": {
+		"**/.bash_logout": true,
+		"**/.cache": true,
+		"**/.config": true,
+		"**/.dbus": true,
+		"**/.gitconfig": true,
+		"**/.gnupg": true,
+		"**/.local": true,
+		"**/.profile": true,
+		"**/.ssh": true,
+		"**/.vs-liveshare-keychain": true,
+		"**/.vscode-server": false,
+		"**/.yarnrc": true,
+		"**/node_modules": true,
+		"**/yarn.lock": true
+	},
+	"remote.restoreForwardedPorts": false,
+	"terminal.integrated.scrollback": 100000000,
+	"remote.forwardOnOpen": false,
+	"remote.autoForwardPorts": false
 }
