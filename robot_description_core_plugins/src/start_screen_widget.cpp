@@ -58,7 +58,7 @@ void StartScreenWidget::onInit()
   right_image_ = new QImage();
   right_image_label_ = new QLabel(this);
 
-  auto image_path =
+  std::filesystem::path image_path =
       getSharePath("robot_description_setup_assistant") / "resources/graphics/robot_description_setup_assistant.png";
 
   if (right_image_->load(image_path.string().c_str()))

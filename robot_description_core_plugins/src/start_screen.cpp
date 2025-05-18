@@ -36,6 +36,7 @@
 /* Modified from original code by David Lu!! */
 
 #include "robot_description_core_plugins/start_screen.hpp"
+#include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 
@@ -43,7 +44,7 @@ namespace robot_description::core_plugins
 {
 void StartScreen::onInit()
 {
-  auto logger = getLogger();
+  rclcpp::Logger logger = getLogger();
   RCLCPP_INFO(logger, "Starting the robot description setup assistant...");
 }
 

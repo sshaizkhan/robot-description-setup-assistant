@@ -60,11 +60,10 @@ bool extractPackageNameFromPath(const std::filesystem::path& path, std::string& 
       // Default package name to folder name
       package_name = sub_path.filename().string();
       tinyxml2::XMLDocument package_xml_file;
-      auto is_open = package_xml_file.LoadFile((sub_path / "package.xml").c_str());
+      tinyxml2::XMLError is_open = package_xml_file.LoadFile((sub_path / "package.xml").c_str());
       if (is_open == tinyxml2::XML_SUCCESS)
       {
-        auto name_potential =
-            package_xml_file.FirstChildElement("package")->FirstChildElement("name")->FirstChild()->ToText()->Value();
+        const char* name_potential = package_xml_file.FirstChildElement("package")->FirstChildElement("name")->FirstChild()->ToText()->Value();
         if (name_potential)
         {
           // Change package name if we have non-empty potential, else it defaults
@@ -82,7 +81,7 @@ bool extractPackageNameFromPath(const std::filesystem::path& path, std::string& 
 
 bool hasRequiredAttributes(const tinyxml2::XMLElement& e, const std::vector<XMLAttribute>& attributes)
 {
-  for (const auto& attr : attributes)
+  for (const XMLAttribute& attr : attributes)
   {
     if (!attr.required)
       continue;  // attribute not required
@@ -110,7 +109,7 @@ tinyxml2::XMLElement* uniqueInsert(tinyxml2::XMLDocument& doc, tinyxml2::XMLElem
   }
 
   // set (not-yet existing) attributes
-  for (const auto& attr : attributes)
+  for (const XMLAttribute& attr : attributes)
   {
     if (!result->Attribute(attr.name))
       result->SetAttribute(attr.name, attr.value);

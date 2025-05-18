@@ -35,6 +35,7 @@
 /* Modified from original code by Dave Coleman */
 
 #include "robot_description_core_plugins/robot_selection_widget.hpp"
+#include <filesystem>
 
 namespace robot_description::core_plugins
 {
@@ -92,7 +93,7 @@ void RobotSelectionWidget::onInit()
 
 void RobotSelectionWidget::setupHeaderWidget(QVBoxLayout* layout)
 {
-  auto header_widget = new setup_framework::HeaderWidget(
+  setup_framework::HeaderWidget * header_widget = new setup_framework::HeaderWidget(
       "Robot Selection",
       "Select the robot you would like to configure. This page allows you to select the robot for the robot "
       "description package that can be coupled with end-effector to create a working robotic arm with tool",
@@ -111,7 +112,7 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
   const int desired_width = 150;
   const int desired_height = 150;
 
-  for (const auto& path : image_paths)
+  for (const std::filesystem::path& path : image_paths)
   {
     {
       QPushButton* image_button = new QPushButton(scroll_area_widget_contents_);
@@ -161,12 +162,12 @@ void RobotSelectionWidget::addRobotSelectionButtons(const std::array<std::filesy
 
 void RobotSelectionWidget::filterRobotSelection(const QString& text)
 {
-  for (auto& [model_name, robot_element] : robot_elements_)
+  for (std::map<std::string, RobotButton>::iterator it = robot_elements_.begin(); it != robot_elements_.end(); ++it)
   {
     // Check if the model name contains the text from the search bar
-    bool is_match = QString::fromStdString(model_name).contains(text, Qt::CaseInsensitive);
-    robot_element.button->setVisible(is_match);  // Show/Hide the button
-    robot_element.label->setVisible(is_match);   // Show/Hide the label
+    bool is_match = QString::fromStdString(it->first).contains(text, Qt::CaseInsensitive);
+    it->second.button->setVisible(is_match);  // Show/Hide the button
+    it->second.label->setVisible(is_match);   // Show/Hide the label
   }
 }
 
@@ -181,7 +182,7 @@ void RobotSelectionWidget::loadDefinedURDFClick(const QString& xacro_args)
 {
   RCLCPP_INFO_STREAM(setup_step_.getLogger(), "Loading defined URDF file");
 
-  auto result = loadDefinedFile(xacro_args);
+  bool result = loadDefinedFile(xacro_args);
 
   if (result)
   {

@@ -35,6 +35,11 @@
 /* Modified from original code by David V. Lu */
 
 #include "robot_description_setup_framework/qt/rviz_panel.hpp"
+#include <memory>
+#include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit_setup_framework/data/srdf_config.hpp>
+#include <moveit_setup_framework/data/urdf_config.hpp>
+#include <qboxlayout.h>
 #include <rviz_rendering/render_window.hpp>
 
 namespace robot_description::setup_framework
@@ -66,7 +71,7 @@ void RVizPanel::initialize()
   rviz_render_panel_->initialize(rviz_manager_.get());
   rviz_manager_->initialize();
   rviz_manager_->startUpdate();
-  auto tm = rviz_manager_->getToolManager();
+  rviz_common::ToolManager* tm = rviz_manager_->getToolManager();
   tm->addTool("rviz_default_plugins/MoveCamera");
 
   // Initialize or update robot_state_display_
@@ -87,7 +92,7 @@ void RVizPanel::initialize()
   rviz_layout->addWidget(rviz_render_panel_.get());
   setLayout(rviz_layout);
 
-  auto btn_layout = new QHBoxLayout();
+  QBoxLayout* btn_layout = new QHBoxLayout();
   rviz_layout->addLayout(btn_layout);
 
   QCheckBox* btn;
@@ -111,21 +116,21 @@ RVizPanel::~RVizPanel()
 
 moveit::core::RobotModelPtr RVizPanel::getRobotModel() const
 {
-  auto urdf = config_data_->get<moveit_setup::URDFConfig>("urdf");
+  std::shared_ptr<moveit_setup::URDFConfig> urdf = config_data_->get<moveit_setup::URDFConfig>("urdf");
 
   if (!urdf->isConfigured())
   {
     return nullptr;
   }
 
-  auto srdf = config_data_->get<moveit_setup::SRDFConfig>("srdf");
+  std::shared_ptr<moveit_setup::SRDFConfig> srdf = config_data_->get<moveit_setup::SRDFConfig>("srdf");
 
   return srdf->getRobotModel();
 }
 
 void RVizPanel::updateFixedFrame()
 {
-  auto rm = getRobotModel();
+  moveit::core::RobotModelPtr rm = getRobotModel();
   if (rm && rviz_manager_ && robot_state_display_)
   {
     std::string frame = rm->getModelFrame();
@@ -137,7 +142,7 @@ void RVizPanel::updateFixedFrame()
 
 void RVizPanel::highlightLinkEvent(const std::string& link_name, const QColor& color)
 {
-  auto rm = getRobotModel();
+  moveit::core::RobotModelPtr rm = getRobotModel();
   if (!rm)
     return;
   const moveit::core::LinkModel* lm = rm->getLinkModel(link_name);
@@ -147,7 +152,7 @@ void RVizPanel::highlightLinkEvent(const std::string& link_name, const QColor& c
 
 void RVizPanel::highlightGroupEvent(const std::string& group_name)
 {
-  auto rm = getRobotModel();
+  moveit::core::RobotModelPtr rm = getRobotModel();
   if (!rm)
     return;
   // Highlight the selected planning group by looping through the links
@@ -167,7 +172,7 @@ void RVizPanel::highlightGroupEvent(const std::string& group_name)
 
 void RVizPanel::unhighlightAllEvent()
 {
-  auto rm = getRobotModel();
+  moveit::core::RobotModelPtr rm = getRobotModel();
   if (!rm)
     return;
   // Get the names of the all links robot

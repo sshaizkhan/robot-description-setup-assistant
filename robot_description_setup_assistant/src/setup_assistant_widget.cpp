@@ -35,6 +35,8 @@
 /*Modified from the origianl code by Dave Coleman*/
 
 #include "robot_description_setup_assistant/setup_assistant_widget.hpp"
+#include <memory>
+#include <robot_description_setup_framework/qt/setup_step_widget.hpp>
 
 namespace robot_description::setup_assistant
 {
@@ -53,7 +55,7 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
     config_data_->debug = true;
 
   // Setting the window icon
-  auto icon_path = getSharePath("robot_description_setup_assistant") / "resources/icons/rds_logo.png";
+  std::filesystem::path icon_path = getSharePath("robot_description_setup_assistant") / "resources/icons/rds_logo.png";
   this->setWindowIcon(QIcon(icon_path.c_str()));
 
   // Basic widget container
@@ -76,7 +78,7 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
 
   for (const std::string& setup_step : setup_steps)
   {
-    auto widget = widget_loader_.createSharedInstance(setup_step);
+    std::shared_ptr<robot_description::setup_framework::SetupStepWidget> widget = widget_loader_.createSharedInstance(setup_step);
     widget->initialize(node_, this, rviz_panel_, config_data_);
 
     connect(widget.get(), SIGNAL(dataUpdated()), this, SLOT(onDataUpdate()));
@@ -189,7 +191,7 @@ void SetupRobotDescriptionAssistantWidget::moveToScreen(const int index)
     // Send the focus lost command to the screen widget
     if (current_index_ >= 0)
     {
-      auto ssw = steps_[current_index_];
+      std::shared_ptr<setup_framework::SetupStepWidget> ssw = steps_[current_index_];
       if (!ssw->focusLost())
       {
         navs_view_->setSelected(current_index_);
