@@ -101,7 +101,7 @@ public:
   // setup_framework::LoadPathArgsWidget* urdf_file_;
   setup_framework::AddInfoWidget* add_info_widget_;
   QPushButton* btn_load_;
-  QLabel* next_label_;
+  QPushButton* btn_proceed_; // Button to proceed to Robot Selection page
   QProgressBar* progress_bar_;
   QImage* right_image_;
   QLabel* right_image_label_;
@@ -115,6 +115,8 @@ private Q_SLOTS:
   // Slot Event Handlers
 
   void showNewOptions();
+
+  void onProceedButtonClicked();
 
   void showExistingOptions();
 

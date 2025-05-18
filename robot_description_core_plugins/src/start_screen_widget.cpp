@@ -110,6 +110,36 @@ void StartScreenWidget::onInit()
   // urdf_file_->setArguments("");
   left_layout->addWidget(add_info_widget_);
 
+  QHBoxLayout* proceed_button_layout = new QHBoxLayout();
+  proceed_button_layout->setAlignment(Qt::AlignRight); // Align to right
+
+  btn_proceed_ = new QPushButton("Proceed to Arm Selection", this);
+  btn_proceed_->setMinimumWidth(180);
+  btn_proceed_->setMinimumHeight(40);
+  btn_proceed_->hide(); // Initially hidden
+  btn_proceed_->setStyleSheet("QPushButton {"
+                            "  background-color: #4CAF50;"  // Green background
+                            "  color: white;"               // White text
+                            "  border-radius: 6px;"         // Rounded corners
+                            "  padding: 8px 16px;"          // Padding
+                            "  font-weight: bold;"          // Bold text
+                            "}"
+                            "QPushButton:hover {"
+                            "  background-color: #45a049;"  // Darker green on hover
+                            "}");
+  connect(btn_proceed_, SIGNAL(clicked()), this, SLOT(onProceedButtonClicked()));
+
+  QLayout* info_layout = add_info_widget_->layout();
+  if (info_layout) {
+    // Create button container with right alignment
+    QHBoxLayout* button_layout = new QHBoxLayout();
+    button_layout->addStretch(); // Push button to the right
+    button_layout->addWidget(btn_proceed_);
+    
+    // Add the button layout to the AddInfoWidget's layout
+    dynamic_cast<QVBoxLayout*>(info_layout)->addLayout(button_layout);
+  }
+
   // Load setting box
   QHBoxLayout* load_files_layout = new QHBoxLayout();
 
@@ -128,35 +158,26 @@ void StartScreenWidget::onInit()
   load_files_layout->addWidget(btn_load_);
   load_files_layout->setAlignment(btn_load_, Qt::AlignRight);
   connect(btn_load_, SIGNAL(clicked()), this, SLOT(loadFilesClicked()));
-
-  // Next step instructions
-  next_label_ = new QLabel(this);
-  QFont next_label_font(QFont().defaultFamily(), 11, QFont::Bold);
-  next_label_->setFont(next_label_font);
-  next_label_->setText("Now you can proceed to the Arm Selection Page.");
-  next_label_->hide();
-
+  
   // Final Layout
   layout->setAlignment(Qt::AlignTop);
   hlayout->setAlignment(Qt::AlignTop);
   left_layout->setAlignment(Qt::AlignTop);
   right_layout->setAlignment(Qt::AlignTop);
-
+  
   // Stretch
   left_layout->setSpacing(10);
-
+  
   // Attach Layouts
   hlayout->addLayout(left_layout);
   hlayout->addLayout(right_layout);
   layout->addLayout(hlayout);
-
+  
   // Vertical Spacer
   layout->addItem(new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
-
-  // Attach bottom layout
-  layout->addWidget(next_label_);
+  
   // Align in bottom and in center
-  layout->setAlignment(next_label_, Qt::AlignBottom | Qt::AlignHCenter);
+  layout->setAlignment(btn_proceed_, Qt::AlignBottom | Qt::AlignHCenter);
 
   layout->addLayout(load_files_layout);
 
@@ -208,10 +229,15 @@ void StartScreenWidget::showNewOptions()
   QApplication::processEvents();
 
   right_image_label_->hide();
-
-  next_label_->show();
+  btn_proceed_->show(); // Show the proceed button
 
   RCLCPP_INFO(setup_step_.getLogger(), "Loading Setup Assistant Complete");
+}
+
+void StartScreenWidget::onProceedButtonClicked()
+{
+  RCLCPP_INFO(setup_step_.getLogger(), "Proceeding to Robot Selection page");
+  Q_EMIT advanceRequest();
 }
 
 void StartScreenWidget::showExistingOptions()
