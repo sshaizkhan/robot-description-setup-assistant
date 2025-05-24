@@ -71,16 +71,18 @@ int main(int argc, char** argv)
   setlocale(LC_NUMERIC, "C");
 
   // Load QT Widget
-  robot_description::setup_assistant::SetupRobotDescriptionAssistantWidget setup_assistant_widget(node, nullptr, vm);
-  setup_assistant_widget.setMinimumWidth(1290);
-  setup_assistant_widget.setMinimumHeight(600);
+  std::unique_ptr<robot_description::setup_assistant::SetupRobotDescriptionAssistantWidget> setup_assistant_widget = std::make_unique<robot_description::setup_assistant::SetupRobotDescriptionAssistantWidget>(node, nullptr, vm);  setup_assistant_widget->setMinimumWidth(1290);
+  setup_assistant_widget->setMinimumHeight(600);
 
-  setup_assistant_widget.show();
+  setup_assistant_widget->show();
 
   // Create main window
 
   signal(SIGINT, siginthandler);
   const int result = qt_app.exec();
+  setup_assistant_widget.reset();
   rclcpp::shutdown();
+  node.reset();
+  client.reset();
   return result;
 }
