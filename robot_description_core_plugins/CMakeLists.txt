@@ -23,6 +23,7 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 # Instruct CMake to run moc automatically when needed.
 # set(CMAKE_AUTOMOC ON)
@@ -39,6 +40,7 @@ add_library(${PROJECT_NAME}
   src/start_screen_widget.cpp
   src/robot_selection.cpp
   src/robot_selection_widget.cpp
+  src/robot_config_manager.cpp
   ${MOC_FILES}
 )
 

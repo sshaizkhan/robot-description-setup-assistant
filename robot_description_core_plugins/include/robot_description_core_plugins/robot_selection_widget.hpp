@@ -49,6 +49,7 @@
 
 #ifndef Q_MOC_RUN
 #include <robot_description_core_plugins/robot_selection.hpp>
+#include <robot_description_core_plugins/robot_config_manager.hpp>
 #endif
 
 // Qt includes
@@ -84,7 +85,7 @@ public:
 
   std::filesystem::path getRobotImagePath(const std::string& robot_name);
 
-  void addRobotSelectionButtons(const std::array<std::filesystem::path, 9>& image_paths);
+  void addRobotSelectionButtons();
 
   // void focusGiven() override;
 
@@ -111,7 +112,7 @@ public:
 private Q_SLOTS:
   void onChooseRobotButtonClicked();
 
-  void loadDefinedURDFClick(const QString& xacro_args);
+  void loadDefinedURDFClick(const RobotConfig& robot_config);
 
   void filterRobotSelection(const QString& text);
 
@@ -122,15 +123,8 @@ private:
   QLineEdit* search_bar_;
   std::map<std::string, RobotButton> robot_elements_;
 
-  bool loadDefinedFile(const QString& xacro_args);
-
-  std::unordered_map<std::string, QString> robot_args_ = {
-    { "ur3", "name:=ur3_robot ur_type:=ur3" },       { "ur3e", "name:=ur3e_robot ur_type:=ur3e" },
-    { "ur5", "name:=ur5_robot ur_type:=ur5" },       { "ur5e", "name:=ur5e_robot ur_type:=ur5e" },
-    { "ur10", "name:=ur10_robot ur_type:=ur10" },    { "ur10e", "name:=ur10e_robot ur_type:=ur10e" },
-    { "ur16e", "name:=ur16e_robot ur_type:=ur16e" }, { "ur20", "name:=ur20_robot ur_type:=ur20" },
-    { "ur30", "name:=ur30_robot ur_type:=ur30" }
-  };
+  bool loadDefinedFile(const RobotConfig& robot_config);
+  std::vector<RobotConfig> available_robots_;
 };
 
 }  // namespace robot_description::core_plugins

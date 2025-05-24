@@ -1,0 +1,27 @@
+robots:
+  ur3:
+    display_name: "UR3"
+    description: "Universal Robots UR3 - Compact 6-axis robot"
+    image_path: "resources/graphics/universal_robots/ur3.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3_robot ur_type:=ur3"
+    category: "universal_robots"
+    
+  ur3e:
+    display_name: "UR3e"
+    description: "Universal Robots UR3e - Enhanced compact robot"
+    image_path: "resources/graphics/universal_robots/ur3e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3e_robot ur_type:=ur3e"
+    category: "universal_robots"
+    
+  ur5:
+    display_name: "UR5"
+    description: "Universal Robots UR5 - Medium payload robot"
+    image_path: "resources/graphics/universal_robots/ur5.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur5_robot ur_type:=ur5"
+    category: "universal_robots"

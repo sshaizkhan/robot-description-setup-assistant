@@ -83,6 +83,7 @@ install(DIRECTORY include/
 ament_export_include_directories(include)
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY resources DESTINATION share/${PROJECT_NAME})
+install (DIRECTORY config DESTINATION share/${PROJECT_NAME})
 ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 
