@@ -79,3 +79,73 @@ robots:
     urdf_path: "urdf/ur.urdf.xacro"
     xacro_args: "name:=ur30_robot ur_type:=ur30"
     category: "universal_robots"
+
+  kr6_r700_sixx:
+    display_name: "KUKA R700 Sixx"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr6_r700_sixx kuka_type:=kr6_r700_sixx"
+    category: "kuka_robots"
+
+  kr6_r900_sixx:
+    display_name: "KUKA R900 Sixx"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr6_r900_sixx kuka_type:=kr6_r900_sixx"
+    category: "kuka_robots"
+
+  kr10_r1100_2:
+    display_name: "KUKA R1100-2 Sixx"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr10_r1100_2 kuka_type:=kr10_r1100_2"
+    category: "kuka_robots"
+
+  kr16_r2010_2:
+    display_name: "KUKA R2010-2 Sixx"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr16_r2010_2 kuka_type:=kr16_r2010_2"
+    category: "kuka_robots"
+
+  kr210_r2700_2:
+    display_name: "KUKA R2700-2"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr210_r2700_2 kuka_type:=kr210_r2700_2"
+    category: "kuka_robots"
+
+  kr210_r3100_2:
+    display_name: "KUKA R3100-2"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr210_r3100_2 kuka_type:=kr210_r3100_2"
+    category: "kuka_robots"
+
+  kr560_r3100_2:
+    display_name: "KUKA 560 R3100-2"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr560_r3100_2 kuka_type:=kr560_r3100_2"
+    category: "kuka_robots"
+
+  lbr_iisy3_r760:
+    display_name: "KUKA IISY3 R760"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=lbr_iisy3_r760 kuka_type:=lbr_iisy3_r760"
+    category: "kuka_robots"
+
+  lbr_iisy11_r1300:
+    display_name: "KUKA IISY11 R1300"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=lbr_iisy11_r1300 kuka_type:=lbr_iisy11_r1300"
+    category: "kuka_robots"
+
+  lbr_iisy15_r930:
+    display_name: "KUKA IISY15 R930"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=lbr_iisy15_r930 kuka_type:=lbr_iisy15_r930"
+    category: "kuka_robots"
