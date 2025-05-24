@@ -25,3 +25,57 @@ robots:
     urdf_path: "urdf/ur.urdf.xacro"
     xacro_args: "name:=ur5_robot ur_type:=ur5"
     category: "universal_robots"
+
+  ur5e:
+    display_name: "UR5e"
+    description: "Universal Robots UR5e - Medium payload robot"
+    image_path: "resources/graphics/universal_robots/ur5e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur5e_robot ur_type:=ur5e"
+    category: "universal_robots"
+
+  ur10:
+    display_name: "UR10"
+    description: "Universal Robots UR10 - Medium payload robot"
+    image_path: "resources/graphics/universal_robots/ur10.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur10_robot ur_type:=ur10"
+    category: "universal_robots"
+
+  ur10e:
+    display_name: "UR10e"
+    description: "Universal Robots UR10e - Medium payload robot"
+    image_path: "resources/graphics/universal_robots/ur10e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur10e_robot ur_type:=ur10e"
+    category: "universal_robots"
+
+  ur16e:
+    display_name: "UR16e"
+    description: "Universal Robots UR16e - Medium payload robot"
+    image_path: "resources/graphics/universal_robots/ur16e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur16e_robot ur_type:=ur16e"
+    category: "universal_robots"
+
+  ur20:
+    display_name: "UR20"
+    description: "Universal Robots UR20 - Medium payload robot"
+    image_path: "resources/graphics/universal_robots/ur20.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur20_robot ur_type:=ur20"
+    category: "universal_robots"
+
+  ur30:
+    display_name: "UR30"
+    description: "Universal Robots UR30 - Medium payload robot"
+    image_path: "resources/graphics/universal_robots/ur30.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur30_robot ur_type:=ur30"
+    category: "universal_robots"
