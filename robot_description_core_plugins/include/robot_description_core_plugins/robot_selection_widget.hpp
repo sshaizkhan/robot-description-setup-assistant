@@ -37,7 +37,6 @@
 #pragma once
 
 // ROS2 includes
-#include <qboxlayout.h>
 #include <rclcpp/rclcpp.hpp>
 
 // rdsa includes
@@ -49,6 +48,9 @@
 
 #ifndef Q_MOC_RUN
 #include <robot_description_core_plugins/robot_selection.hpp>
+#include <robot_description_core_plugins/robot_config_manager.hpp>
+#include <robot_description_core_plugins/filter_widget.hpp>
+#include <robot_description_core_plugins/robot_specification_widget.hpp>
 #endif
 
 // Qt includes
@@ -68,6 +70,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QScrollArea>
+#include <QSplitter>
+#include <QBoxLayout>
 
 class QLabel;
 class QPushButton;
@@ -77,60 +81,62 @@ namespace robot_description::core_plugins
 class RobotSelectionWidget : public setup_framework::SetupStepWidget
 {
   Q_OBJECT
+  
 public:
   void onInit() override;
-
-  void setupHeaderWidget(QVBoxLayout* layout);
-
-  std::filesystem::path getRobotImagePath(const std::string& robot_name);
-
-  void addRobotSelectionButtons(const std::array<std::filesystem::path, 9>& image_paths);
-
-  // void focusGiven() override;
-
+  
   SetupStep& getSetupStep() override
   {
     return setup_step_;
   }
 
-  struct RobotButton
-  {
-    QPushButton* button;
-    QLabel* label;
-  };
-
-  // Qt components
-  QImage* robot_image_;
-  QScrollArea* scroll_area_;
-  QWidget* scroll_area_widget_contents_;
-  QGridLayout* scroll_area_grid_layout_;
-  QPushButton* robot_image_button_;
-
-  ~RobotSelectionWidget() override;
-
 private Q_SLOTS:
-  void onChooseRobotButtonClicked();
-
-  void loadDefinedURDFClick(const QString& xacro_args);
-
-  void filterRobotSelection(const QString& text);
+  void onFilterChanged(const RobotFilter& filter);
+  void onRobotSelected(const RobotConfig& robot);
+  void onConfigurationsReloaded();
+  void onConfigurationError(const QString& error);
+  void onRobotListUpdated();
 
 private:
+  void setupLayout();
+  void setupConnections();
+  void updateRobotDisplay();
+  void updateRobotDisplay(const std::vector<RobotConfig>& robots);
+  void clearRobotGrid();
+  void createRobotButton(const RobotConfig& robot, int index);
+  void loadDefinedURDFClick(const RobotConfig& robot_config);
+  bool loadDefinedFile(const RobotConfig& robot_config);
+  void showRobotValidationDialog(const std::vector<std::string>& missing_packages);
+  
+  // Layout components
+  QHBoxLayout* main_layout_;
+  QSplitter* main_splitter_;
+  
+  // Left panel - Filtering
+  FilterWidget* filter_widget_;
+  
+  // Center panel - Robot grid
+  QWidget* robot_grid_widget_;
+  QVBoxLayout* robot_grid_layout_;
+  QScrollArea* robot_scroll_area_;
+  QWidget* robot_scroll_content_;
+  QGridLayout* robot_grid_;
+  QLabel* robot_count_label_;
+  
+  // Right panel - Specifications
+  RobotSpecificationWidget* spec_widget_;
+  
+  // Internal state
   RobotSelection setup_step_;
-
-  QLabel* search_label_;
-  QLineEdit* search_bar_;
-  std::map<std::string, RobotButton> robot_elements_;
-
-  bool loadDefinedFile(const QString& xacro_args);
-
-  std::unordered_map<std::string, QString> robot_args_ = {
-    { "ur3", "name:=ur3_robot ur_type:=ur3" },       { "ur3e", "name:=ur3e_robot ur_type:=ur3e" },
-    { "ur5", "name:=ur5_robot ur_type:=ur5" },       { "ur5e", "name:=ur5e_robot ur_type:=ur5e" },
-    { "ur10", "name:=ur10_robot ur_type:=ur10" },    { "ur10e", "name:=ur10e_robot ur_type:=ur10e" },
-    { "ur16e", "name:=ur16e_robot ur_type:=ur16e" }, { "ur20", "name:=ur20_robot ur_type:=ur20" },
-    { "ur30", "name:=ur30_robot ur_type:=ur30" }
-  };
+  std::vector<RobotConfig> available_robots_;
+  std::vector<RobotConfig> filtered_robots_;
+  RobotConfig selected_robot_;
+  
+  // Grid layout parameters
+  static const int ROBOTS_PER_ROW = 3;
+  static const int ROBOT_BUTTON_WIDTH = 180;
+  static const int ROBOT_BUTTON_HEIGHT = 200;
 };
 
-}  // namespace robot_description::core_plugins
+} // namespace robot_description::core_plugins
+

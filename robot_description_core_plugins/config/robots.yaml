@@ -1,0 +1,104 @@
+config_info:
+  version: "2.0"
+  description: "Enhanced Robot Configurations with Advanced Features"
+  last_updated: "2025-01-01"
+
+categories:
+  universal_robots:
+    display_name: "Universal Robots"
+    description: "Collaborative industrial robots from Universal Robots"
+    manufacturer: "Universal Robots"
+    website: "https://www.universal-robots.com"
+    
+  franka:
+    display_name: "Franka Emika"
+    description: "Research and sensitive manipulation robots"
+    manufacturer: "Franka Emika"
+    website: "https://www.franka.de"
+
+robots:
+  ur3:
+    display_name: "UR3"
+    description: "Compact 6-axis collaborative robot ideal for light assembly tasks"
+    image_path: "resources/graphics/universal_robots/ur3.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3_robot ur_type:=ur3"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 3.0
+      reach_mm: 500
+      weight_kg: 11.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "small", "light_payload", "compact"]
+
+  ur3e:
+    display_name: "UR3e"
+    description: "Compact 6-axis collaborative robot ideal for light assembly tasks"
+    image_path: "resources/graphics/universal_robots/ur3e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3e_robot ur_type:=ur3e"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 3.0
+      reach_mm: 500
+      weight_kg: 11.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "small", "light_payload", "compact"]
+    
+  ur5:
+    display_name: "UR5"
+    description: "Medium payload collaborative robot for versatile automation"
+    image_path: "resources/graphics/universal_robots/ur5.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur5_robot ur_type:=ur5"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 5.0
+      reach_mm: 850
+      weight_kg: 18.4
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    tags: ["collaborative", "medium", "versatile", "popular"]

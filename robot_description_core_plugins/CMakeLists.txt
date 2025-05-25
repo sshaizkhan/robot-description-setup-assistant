@@ -23,6 +23,9 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAMLCPP yaml-cpp)
 
 # Instruct CMake to run moc automatically when needed.
 # set(CMAKE_AUTOMOC ON)
@@ -32,6 +35,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 qt5_wrap_cpp(MOC_FILES
   include/robot_description_core_plugins/start_screen_widget.hpp
   include/robot_description_core_plugins/robot_selection_widget.hpp
+  include/robot_description_core_plugins/robot_config_manager.hpp        # NEW
+  include/robot_description_core_plugins/robot_specification_widget.hpp # NEW
+  include/robot_description_core_plugins/filter_widget.hpp              # NEW
 )
 
 add_library(${PROJECT_NAME}
@@ -39,6 +45,9 @@ add_library(${PROJECT_NAME}
   src/start_screen_widget.cpp
   src/robot_selection.cpp
   src/robot_selection_widget.cpp
+  src/robot_config_manager.cpp          # NEW
+  src/robot_specification_widget.cpp    # NEW
+  src/filter_widget.cpp                 # NEW
   ${MOC_FILES}
 )
 
@@ -58,11 +67,35 @@ ament_target_dependencies(
   robot_description_setup_framework
   moveit_ros_visualization
   moveit_setup_framework
+  yaml-cpp
 )
 
+# Optional: Build test executable
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+  
+  # Test executable for advanced features
+  add_executable(test_advanced_features
+    test/test_advanced_features.cpp
+    ${MOC_FILES}
+  )
+  
+  target_include_directories(test_advanced_features PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  )
+  
+  target_link_libraries(test_advanced_features ${PROJECT_NAME})
+  
+  ament_target_dependencies(test_advanced_features
+    rclcpp
+    Qt5Core
+    Qt5Widgets
+  )
+
+  install(TARGETS test_advanced_features
+    DESTINATION lib/test_advanced_features
+)
 endif()
 
 install(FILES robot_description_setup_framework_plugins.xml
@@ -80,6 +113,10 @@ install(
   INCLUDES
   DESTINATION include
 )
+install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY test DESTINATION share/${PROJECT_NAME})
+
+
 
 ament_export_include_directories(include)
 ament_export_dependencies(rclcpp)
