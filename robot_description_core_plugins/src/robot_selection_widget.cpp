@@ -233,7 +233,7 @@ void RobotSelectionWidget::setupLayout()
   // Create main splitter for resizable panels
   main_splitter_ = new QSplitter(Qt::Horizontal, this);
   main_splitter_->setChildrenCollapsible(false);
-  
+
   // LEFT PANEL: Filter widget
   filter_widget_ = new FilterWidget();
   filter_widget_->setMinimumWidth(250);
@@ -261,7 +261,7 @@ void RobotSelectionWidget::setupLayout()
   robot_scroll_area_->setWidgetResizable(true);
   robot_scroll_area_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   robot_scroll_area_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-  
+
   robot_scroll_content_ = new QWidget();
   robot_grid_ = new QGridLayout(robot_scroll_content_);
   robot_grid_->setSpacing(15);
@@ -811,11 +811,6 @@ void RobotSelectionWidget::loadDefinedURDFClick(const RobotConfig& robot_config)
   
   if (result) {
     RCLCPP_INFO_STREAM(setup_step_.getLogger(), "URDF file loaded successfully");
-    
-    // Show success message
-    QMessageBox::information(this, "Robot Loaded", 
-                           QString("Successfully loaded %1!\n\nYou can now proceed to the next step.")
-                           .arg(QString::fromStdString(robot_config.display_name)));
   } else {
     RCLCPP_ERROR_STREAM(setup_step_.getLogger(), "Failed to load URDF file");
   }
