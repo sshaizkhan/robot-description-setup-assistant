@@ -42,6 +42,26 @@
 
 namespace robot_description::setup_framework
 {
+
+// Interface for widgets that can integrate with RViz
+class RVizIntegratedWidget
+{
+public:
+  virtual ~RVizIntegratedWidget() = default;
+  
+  /**
+   * @brief Called when RViz panel is available for integration
+   * @param rviz_panel Pointer to the RViz panel to integrate
+   */
+  virtual void setRVizPanel(RVizPanel* rviz_panel) = 0;
+  
+  /**
+   * @brief Return true if this widget needs RViz panel integration
+   * @return true if widget needs RViz, false otherwise
+   */
+  virtual bool needsRVizPanel() const = 0;
+};
+
 /**
  * @brief The GUI code for one SetupStep
  */
@@ -64,6 +84,13 @@ public:
     rviz_panel_ = rviz_panel;
     debug_ = config_data->debug;
     onInit();
+
+    RVizIntegratedWidget* rviz_widget = dynamic_cast<RVizIntegratedWidget*>(this);
+    if (rviz_widget && rviz_widget->needsRVizPanel() && rviz_panel) {
+      RCLCPP_INFO(rclcpp::get_logger("SetupStepWidget"), "Auto-integrating RViz panel for widget: %s", getSetupStep().getName().c_str());
+      rviz_widget->setRVizPanel(rviz_panel);
+    }
+
   }
 
   virtual void onInit()
