@@ -163,7 +163,7 @@ void SetupRobotDescriptionAssistantWidget::onDataUpdate()
     RCLCPP_INFO(node_->get_logger(), "RViz panel is ready for initialization");
     rviz_panel_->initialize();
     // Replace logo with Rviz screen
-    rviz_panel_->show();
+    // rviz_panel_->show();
   }
   else if (rviz_panel_->isRobotModelLoaded())
   {

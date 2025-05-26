@@ -72,18 +72,94 @@
 #include <QScrollArea>
 #include <QSplitter>
 #include <QBoxLayout>
+#include <QStackedWidget>
+#include <QCheckBox>
+#include <QGroupBox> 
 
 class QLabel;
 class QPushButton;
 
 namespace robot_description::core_plugins
 {
-class RobotSelectionWidget : public setup_framework::SetupStepWidget
+
+class ClickableRobotWidget : public QWidget
+{
+  Q_OBJECT
+  
+public:
+  explicit ClickableRobotWidget(const RobotConfig& robot, QWidget* parent = nullptr)
+    : QWidget(parent), robot_config_(robot)
+  {
+    setFixedSize(220, 240);
+    setStyleSheet(
+      "ClickableRobotWidget { "
+      "  border: 1px solid #ddd; "
+      "  border-radius: 8px; "
+      "  background: white; "
+      "  margin: 2px; "
+      "} "
+      "ClickableRobotWidget:hover { "
+      "  border: 2px solid #4CAF50; "
+      "  background: #f9f9f9; "
+      "}"
+    );
+    
+    // Enable mouse tracking for hover effects
+    setAttribute(Qt::WA_Hover, true);
+    setCursor(Qt::PointingHandCursor);
+  }
+  
+  const RobotConfig& getRobotConfig() const { return robot_config_; }
+
+Q_SIGNALS:
+  void robotClicked(const RobotConfig& robot);
+
+protected:
+  void mousePressEvent(QMouseEvent* event) override
+  {
+    Q_UNUSED(event)
+    Q_EMIT robotClicked(robot_config_);
+  }
+  
+  void enterEvent(QEvent* event) override
+  {
+    setStyleSheet(
+      "ClickableRobotWidget { "
+      "  border: 2px solid #4CAF50; "
+      "  border-radius: 8px; "
+      "  background: #f9f9f9; "
+      "  margin: 2px; "
+      "}"
+    );
+    QWidget::enterEvent(event);
+  }
+  
+  void leaveEvent(QEvent* event) override
+  {
+    setStyleSheet(
+      "ClickableRobotWidget { "
+      "  border: 1px solid #ddd; "
+      "  border-radius: 8px; "
+      "  background: white; "
+      "  margin: 2px; "
+      "}"
+    );
+    QWidget::leaveEvent(event);
+  }
+
+private:
+  RobotConfig robot_config_;
+};
+
+
+class RobotSelectionWidget : public setup_framework::SetupStepWidget, public setup_framework::RVizIntegratedWidget
 {
   Q_OBJECT
   
 public:
   void onInit() override;
+  void setRVizPanel(setup_framework::RVizPanel* rviz_panel) override;
+  bool needsRVizPanel() const override { return true; }  // This widget needs RViz
   
   SetupStep& getSetupStep() override
   {
@@ -97,6 +173,9 @@ private Q_SLOTS:
   void onConfigurationError(const QString& error);
   void onRobotListUpdated();
 
+  void onShowVisualizationToggled(bool show_viz);
+  void onShowInformationToggled(bool show_info);
+
 private:
   void setupLayout();
   void setupConnections();
@@ -107,6 +186,13 @@ private:
   void loadDefinedURDFClick(const RobotConfig& robot_config);
   bool loadDefinedFile(const RobotConfig& robot_config);
   void showRobotValidationDialog(const std::vector<std::string>& missing_packages);
+
+  void setupRightPanel();
+  void updateRightPanelVisibility();
+  void updateToggleButtonStyles();
+  void updateVisualizationForSelectedRobot();
+  void integrateRVizPanel();  // Handle RViz integration
+  void createRVizPlaceholder();  // Create placeholder when RViz not available
   
   // Layout components
   QHBoxLayout* main_layout_;
@@ -122,10 +208,18 @@ private:
   QWidget* robot_scroll_content_;
   QGridLayout* robot_grid_;
   QLabel* robot_count_label_;
+
+  // Right panel - NEW: Improved with toggle
+  QWidget* right_panel_widget_;
+  QVBoxLayout* right_panel_layout_;
+  QGroupBox* display_options_group_;
+  QCheckBox* show_visualization_check_;
+  QCheckBox* show_information_check_;
+  QStackedWidget* content_stack_;
   
   // Right panel - Specifications
   RobotSpecificationWidget* spec_widget_;
-  
+
   // Internal state
   RobotSelection setup_step_;
   std::vector<RobotConfig> available_robots_;
@@ -133,9 +227,9 @@ private:
   RobotConfig selected_robot_;
   
   // Grid layout parameters
-  static const int ROBOTS_PER_ROW = 3;
-  static const int ROBOT_BUTTON_WIDTH = 180;
-  static const int ROBOT_BUTTON_HEIGHT = 200;
+  static const int ROBOTS_PER_ROW = 2;
+  static const int ROBOT_BUTTON_WIDTH = 220;
+  static const int ROBOT_BUTTON_HEIGHT = 240;
 };
 
 } // namespace robot_description::core_plugins
