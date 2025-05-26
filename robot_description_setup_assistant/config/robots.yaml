@@ -195,13 +195,13 @@ robots:
     
     tags: ["collaborative", "heavy_payload", "industrial", "popular"]
   
-  ur16:
-    display_name: "UR16"
+  ur16e:
+    display_name: "UR16e"
     description: "High payload collaborative robot for heavy-duty tasks"
-    image_path: "resources/graphics/universal_robots/ur16.png"
+    image_path: "resources/graphics/universal_robots/ur16e.png"
     urdf_package: "ur_description"
     urdf_path: "urdf/ur.urdf.xacro"
-    xacro_args: "name:=ur16_robot ur_type:=ur16"
+    xacro_args: "name:=ur16e_robot ur_type:=ur16e"
     category: "universal_robots"
     
     specifications:
