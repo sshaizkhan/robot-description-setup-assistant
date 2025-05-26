@@ -417,6 +417,9 @@ void RobotSelectionWidget::updateRobotDisplay(const std::vector<RobotConfig>& ro
 void RobotSelectionWidget::clearRobotGrid()
 {
   // Remove all widgets from grid
+  robot_buttons_.clear();
+  
+  // Remove all widgets from grid
   QLayoutItem* item;
   while ((item = robot_grid_->takeAt(0)) != nullptr) {
     if (item->widget()) {
@@ -430,19 +433,9 @@ void RobotSelectionWidget::createRobotButton(const RobotConfig& robot, int index
 {
   // Create container widget for robot button and info
   ClickableRobotWidget* robot_container = new ClickableRobotWidget(robot);
+  // ClickableRobotWidgetWithPalette* robot_container = new ClickableRobotWidgetWithPalette(robot);
+
   robot_container->setFixedSize(ROBOT_BUTTON_WIDTH, ROBOT_BUTTON_HEIGHT);
-  robot_container->setStyleSheet(
-    "QWidget { "
-    "  border: 1px solid #ddd; "
-    "  border-radius: 8px; "
-    "  background: white; "
-    "  margin: 2px; "
-    "} "
-    "QWidget:hover { "
-    "  border: 2px solid #4CAF50; "
-    "  background: #f9f9f9; "
-    "}"
-  );
   
   QVBoxLayout* container_layout = new QVBoxLayout(robot_container);
   container_layout->setContentsMargins(10, 10, 10, 10);
@@ -452,7 +445,10 @@ void RobotSelectionWidget::createRobotButton(const RobotConfig& robot, int index
   QPushButton* image_button = new QPushButton();
   image_button->setFixedSize(180, 120);
   image_button->setFlat(true);
-  
+  image_button->setStyleSheet("");
+  image_button->setAutoFillBackground(false);
+  // image_button->setStyleSheet("QPushButton { border: none; background: transparent; }");
+
   // Load robot image
   if (std::filesystem::exists(robot.image_path)) {
     QPixmap pixmap(QString::fromStdString(robot.image_path.string()));
@@ -462,11 +458,11 @@ void RobotSelectionWidget::createRobotButton(const RobotConfig& robot, int index
       image_button->setIconSize(QSize(140, 100));
     } else {
       image_button->setText("No Image");
-      image_button->setStyleSheet("QPushButton { border: 1px dashed #999; color: #999; }");
+      // image_button->setStyleSheet("QPushButton { border: 1px dashed #999; color: #999; }");
     }
   } else {
     image_button->setText("Image\nNot Found");
-    image_button->setStyleSheet("QPushButton { border: 1px dashed #999; color: #999; }");
+    // image_button->setStyleSheet("QPushButton { border: 1px dashed #999; color: #999; }");
   }
   
   container_layout->addWidget(image_button, 0, Qt::AlignCenter);
@@ -474,20 +470,11 @@ void RobotSelectionWidget::createRobotButton(const RobotConfig& robot, int index
   // Robot name label
   QLabel* name_label = new QLabel(QString::fromStdString(robot.display_name));
   name_label->setAlignment(Qt::AlignCenter);
-  name_label->setStyleSheet(
-    "QLabel { "
-    "  font-weight: bold; "
-    "  font-size: 14px; "
-    "  color: #333; "
-    "  background: #f0f0f0; "
-    "  border: 1px solid #ccc; "
-    "  border-radius: 4px; "
-    "  padding: 4px 8px; "
-    "  margin: 2px 0px; "
-    "}"
-  );
   name_label->setWordWrap(true);
   name_label->setMinimumHeight(30);
+  name_label->setAutoFillBackground(false);
+  // Simple styling that won't conflict
+  name_label->setStyleSheet("QLabel { font-weight: bold; font-size: 15px; color: #333; padding: 6px; }");
   container_layout->addWidget(name_label);
   
   // Key specifications summary
@@ -524,15 +511,17 @@ void RobotSelectionWidget::createRobotButton(const RobotConfig& robot, int index
     status_label->setStyleSheet("QLabel { color: #ff9800; font-size: 10px; font-weight: bold; }");
   }
   status_label->setAlignment(Qt::AlignCenter);
+  status_label->setAutoFillBackground(false);
+
   container_layout->addWidget(status_label);
   
   // Connect button signals
   connect(image_button, &QPushButton::clicked, this, [this, robot]() {onRobotSelected(robot);});
   connect(robot_container, &ClickableRobotWidget::robotClicked, this, &RobotSelectionWidget::onRobotSelected);
 
-  // Add hover effects
-  robot_container->setAttribute(Qt::WA_Hover, true);
-  robot_container->installEventFilter(this);
+  // // Add hover effects
+  // robot_container->setAttribute(Qt::WA_Hover, true);
+  // robot_container->installEventFilter(this);
   
   // Add to grid
   int row = index / ROBOTS_PER_ROW;
@@ -570,29 +559,7 @@ void RobotSelectionWidget::updateVisualizationForSelectedRobot()
     return;
   }
   
-  RCLCPP_INFO(setup_step_.getLogger(), "Updating 3D visualization for robot: %s", selected_robot_.display_name.c_str());
-  
-  // Load robot URDF which will update RViz
-  if (loadDefinedFile(selected_robot_)) {
-    RCLCPP_INFO(setup_step_.getLogger(), "Robot URDF loaded successfully, updating RViz display");
-    
-    // Force RViz update
-    try {
-      rviz_panel_->updateFixedFrame();
-      RCLCPP_INFO(setup_step_.getLogger(), "RViz fixed frame updated");
-      
-      // Make sure RViz panel is visible and updated
-      rviz_panel_->show();
-      rviz_panel_->update();
-      rviz_panel_->repaint();
-      
-      RCLCPP_INFO(setup_step_.getLogger(), "RViz panel visibility and update forced");
-    } catch (const std::exception& e) {
-      RCLCPP_ERROR(setup_step_.getLogger(), "Error updating RViz: %s", e.what());
-    }
-  } else {
-    RCLCPP_ERROR(setup_step_.getLogger(), "Failed to load robot URDF for visualization");
-  }
+  loadAndUpdateVisualization(selected_robot_);
 }
 
 void RobotSelectionWidget::debugContentStack() const
@@ -727,13 +694,15 @@ void RobotSelectionWidget::onShowVisualizationToggled(bool show_viz)
     RCLCPP_INFO(setup_step_.getLogger(), "Made current widget visible and updated");
   }
   
-  // If there's a selected robot and RViz is available, update visualization
+  // IMPORTANT: Load URDF now that we're switching to visualization mode
   if (!selected_robot_.id.empty() && rviz_panel_) {
-    RCLCPP_INFO(setup_step_.getLogger(), "Updating visualization for selected robot: %s", selected_robot_.display_name.c_str());
-    updateVisualizationForSelectedRobot();
+    RCLCPP_INFO(setup_step_.getLogger(), "Loading URDF and updating visualization for robot: %s", 
+                selected_robot_.display_name.c_str());
+    loadAndUpdateVisualization(selected_robot_);
+  } else if (selected_robot_.id.empty()) {
+    RCLCPP_INFO(setup_step_.getLogger(), "No robot selected yet - visualization will load when robot is selected");
   } else {
-    RCLCPP_WARN(setup_step_.getLogger(), "Cannot update visualization - robot: %s, rviz_panel: %p", 
-                selected_robot_.id.c_str(), (void*)rviz_panel_);
+    RCLCPP_ERROR(setup_step_.getLogger(), "Cannot load visualization - RViz panel not available");
   }
   
   // Update visual feedback
@@ -745,6 +714,20 @@ void RobotSelectionWidget::onRobotSelected(const RobotConfig& robot)
   RCLCPP_INFO(setup_step_.getLogger(), "Robot selected: %s", robot.display_name.c_str());
   
   selected_robot_ = robot;
+
+  // Update visual selection state - clear previous selection
+  for (auto* button : robot_buttons_) {
+    button->setSelected(false);
+  }
+  
+  // Set current selection
+  for (auto* button : robot_buttons_) {
+    if (button->getRobotConfig().id == robot.id) {
+      button->setSelected(true);
+      RCLCPP_INFO(setup_step_.getLogger(), "Set robot button as selected: %s", robot.display_name.c_str());
+      break;
+    }
+  }
   
   // Update specification panel (always update, even if not currently visible)
   spec_widget_->setRobotConfig(robot);
@@ -761,13 +744,55 @@ void RobotSelectionWidget::onRobotSelected(const RobotConfig& robot)
     return;
   }
   
-  // Load the robot URDF - this will make it available for both info and visualization
-  loadDefinedURDFClick(robot);
-  
   // If we're in visualization mode, update the 3D view
   if (show_visualization_check_->isChecked() && rviz_panel_) {
-    RCLCPP_INFO(setup_step_.getLogger(), "Currently in visualization mode, updating 3D view");
-    updateVisualizationForSelectedRobot();
+    RCLCPP_INFO(setup_step_.getLogger(), "Currently in visualization mode, loading URDF for robot: %s", 
+                robot.display_name.c_str());
+    loadAndUpdateVisualization(robot);
+  } else {
+    RCLCPP_INFO(setup_step_.getLogger(), "Robot information updated, URDF not loaded (not in visualization mode)");
+  }
+}
+
+void RobotSelectionWidget::loadAndUpdateVisualization(const RobotConfig& robot)
+{
+  RCLCPP_INFO(setup_step_.getLogger(), "Loading URDF and updating visualization for robot: %s", 
+              robot.display_name.c_str());
+  
+  // Check package dependencies first
+  auto& config_manager = RobotConfigManager::getInstance();
+  auto missing_packages = config_manager.getMissingPackages(robot);
+  
+  if (!missing_packages.empty()) {
+    RCLCPP_WARN(setup_step_.getLogger(), "Robot has missing packages, showing validation dialog");
+    showRobotValidationDialog(missing_packages);
+    return;
+  }
+  
+  // Load the URDF file
+  if (loadDefinedFile(robot)) {
+    RCLCPP_INFO(setup_step_.getLogger(), "URDF loaded successfully, updating RViz visualization");
+    
+    // Update RViz visualization
+    if (rviz_panel_) {
+      try {
+        rviz_panel_->updateFixedFrame();
+        RCLCPP_INFO(setup_step_.getLogger(), "RViz fixed frame updated");
+        
+        // Make sure RViz panel is visible and updated
+        rviz_panel_->show();
+        rviz_panel_->update();
+        rviz_panel_->repaint();
+        
+        RCLCPP_INFO(setup_step_.getLogger(), "RViz panel visibility and update forced");
+      } catch (const std::exception& e) {
+        RCLCPP_ERROR(setup_step_.getLogger(), "Error updating RViz: %s", e.what());
+      }
+    } else {
+      RCLCPP_ERROR(setup_step_.getLogger(), "RViz panel not available for visualization update");
+    }
+  } else {
+    RCLCPP_ERROR(setup_step_.getLogger(), "Failed to load URDF for visualization");
   }
 }
 
@@ -780,13 +805,13 @@ void RobotSelectionWidget::showRobotValidationDialog(const std::vector<std::stri
   }
   
   QMessageBox msg_box(this);
-  msg_box.setWindowTitle("Missing Dependencies");
+  msg_box.setWindowTitle("Missing Dependencies for 3D Visualization");
   msg_box.setIcon(QMessageBox::Warning);
-  msg_box.setText(QString("The selected robot (%1) requires packages that are not installed:")
+  msg_box.setText(QString("The selected robot (%1) requires packages that are not installed for 3D visualization:")
                  .arg(QString::fromStdString(selected_robot_.display_name)));
   msg_box.setDetailedText(missing_list);
-  msg_box.setInformativeText("Do you want to continue anyway? The robot may not function properly.");
-  msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+  msg_box.setInformativeText("You can still view the robot information, but 3D visualization may not work properly. Do you want to continue anyway?");
+  msg_box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   msg_box.setDefaultButton(QMessageBox::No);
   
   QPushButton* install_button = msg_box.addButton("Install Packages", QMessageBox::ActionRole);
@@ -798,21 +823,19 @@ void RobotSelectionWidget::showRobotValidationDialog(const std::vector<std::stri
                            "Package installation feature will be implemented in a future update.\n"
                            "Please install the required packages manually using your package manager.");
   } else if (result == QMessageBox::Yes) {
-    loadDefinedURDFClick(selected_robot_);
-  }
-  // If No or Cancel, do nothing
-}
-
-void RobotSelectionWidget::loadDefinedURDFClick(const RobotConfig& robot_config)
-{
-  RCLCPP_INFO_STREAM(setup_step_.getLogger(), "Loading URDF for robot: " << robot_config.display_name);
-  
-  bool result = loadDefinedFile(robot_config);
-  
-  if (result) {
-    RCLCPP_INFO_STREAM(setup_step_.getLogger(), "URDF file loaded successfully");
+    RCLCPP_INFO(setup_step_.getLogger(), "User chose to continue with missing packages");
+    // Try to load anyway
+    if (loadDefinedFile(selected_robot_)) {
+      if (rviz_panel_) {
+        rviz_panel_->updateFixedFrame();
+      }
+    }
   } else {
-    RCLCPP_ERROR_STREAM(setup_step_.getLogger(), "Failed to load URDF file");
+    RCLCPP_INFO(setup_step_.getLogger(), "User cancelled due to missing packages");
+    // Switch back to information mode
+    show_visualization_check_->setChecked(false);
+    show_information_check_->setChecked(true);
+    content_stack_->setCurrentIndex(0);
   }
 }
 

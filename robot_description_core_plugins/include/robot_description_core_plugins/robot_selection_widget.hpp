@@ -74,7 +74,8 @@
 #include <QBoxLayout>
 #include <QStackedWidget>
 #include <QCheckBox>
-#include <QGroupBox> 
+#include <QGroupBox>
+#include <QPainter>
 
 class QLabel;
 class QPushButton;
@@ -88,28 +89,130 @@ class ClickableRobotWidget : public QWidget
   
 public:
   explicit ClickableRobotWidget(const RobotConfig& robot, QWidget* parent = nullptr)
-    : QWidget(parent), robot_config_(robot)
+    : QWidget(parent), robot_config_(robot), is_selected_(false), is_hovered_(false)
   {
-    setFixedSize(220, 240);
-    setStyleSheet(
-      "ClickableRobotWidget { "
-      "  border: 1px solid #ddd; "
-      "  border-radius: 8px; "
-      "  background: white; "
-      "  margin: 2px; "
-      "} "
-      "ClickableRobotWidget:hover { "
-      "  border: 2px solid #4CAF50; "
-      "  background: #f9f9f9; "
-      "}"
-    );
-    
-    // Enable mouse tracking for hover effects
+    setFixedSize(250, 260);
     setAttribute(Qt::WA_Hover, true);
+    setMouseTracking(true);
     setCursor(Qt::PointingHandCursor);
+    
+    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Created robot button with direct painting: %s", robot.display_name.c_str());
   }
   
   const RobotConfig& getRobotConfig() const { return robot_config_; }
+  
+  void setSelected(bool selected) 
+  {
+    if (is_selected_ != selected) {
+      is_selected_ = selected;
+      update(); // Trigger repaint
+      RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Robot %s selection: %s", 
+                  robot_config_.display_name.c_str(), selected ? "SELECTED" : "UNSELECTED");
+    }
+  }
+  
+  bool isSelected() const { return is_selected_; }
+
+Q_SIGNALS:
+  void robotClicked(const RobotConfig& robot);
+
+protected:
+  void mousePressEvent(QMouseEvent* event) override
+  {
+    Q_UNUSED(event)
+    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Robot clicked: %s", robot_config_.display_name.c_str());
+    Q_EMIT robotClicked(robot_config_);
+  }
+  
+  void enterEvent(QEvent* event) override
+  {
+    is_hovered_ = true;
+    update(); // Trigger repaint
+    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Mouse entered: %s", robot_config_.display_name.c_str());
+    QWidget::enterEvent(event);
+  }
+  
+  void leaveEvent(QEvent* event) override
+  {
+    is_hovered_ = false;
+    update(); // Trigger repaint
+    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Mouse left: %s", robot_config_.display_name.c_str());
+    QWidget::leaveEvent(event);
+  }
+  
+  void paintEvent(QPaintEvent* event) override
+  {
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    
+    // Determine colors based on state
+    QColor bgColor;
+    QColor borderColor;
+    int borderWidth;
+    
+    if (is_selected_) {
+      bgColor = QColor(227, 242, 253);      // Light blue background
+      borderColor = QColor(33, 150, 243);   // Blue border
+      borderWidth = 3;
+      RCLCPP_DEBUG(rclcpp::get_logger("RobotButton"), "Painting SELECTED state for: %s", robot_config_.display_name.c_str());
+    } else if (is_hovered_) {
+      bgColor = QColor(240, 248, 255);      // Very light blue background  
+      borderColor = QColor(76, 175, 80);    // Green border
+      borderWidth = 2;
+      RCLCPP_DEBUG(rclcpp::get_logger("RobotButton"), "Painting HOVER state for: %s", robot_config_.display_name.c_str());
+    } else {
+      bgColor = QColor(255, 255, 255);      // White background
+      borderColor = QColor(221, 221, 221);  // Gray border
+      borderWidth = 2;
+      RCLCPP_DEBUG(rclcpp::get_logger("RobotButton"), "Painting DEFAULT state for: %s", robot_config_.display_name.c_str());
+    }
+    
+    // Draw background with rounded corners
+    QRect drawRect = rect().adjusted(borderWidth/2, borderWidth/2, -borderWidth/2, -borderWidth/2);
+    
+    painter.setBrush(QBrush(bgColor));
+    painter.setPen(QPen(borderColor, borderWidth));
+    painter.drawRoundedRect(drawRect, 8, 8);
+    
+    // Call parent to paint children
+    QWidget::paintEvent(event);
+  }
+
+private:
+  RobotConfig robot_config_;
+  bool is_selected_;
+  bool is_hovered_;
+};
+
+class ClickableRobotWidgetWithPalette : public QWidget
+{
+  Q_OBJECT
+  
+public:
+  explicit ClickableRobotWidgetWithPalette(const RobotConfig& robot, QWidget* parent = nullptr)
+    : QWidget(parent), robot_config_(robot), is_selected_(false)
+  {
+    setFixedSize(250, 260);
+    setAutoFillBackground(true);
+    
+    // Set default palette
+    applyDefaultPalette();
+    
+    setAttribute(Qt::WA_Hover, true);
+    setCursor(Qt::PointingHandCursor);
+    
+    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Created robot button with QPalette: %s", robot.display_name.c_str());
+  }
+  
+  const RobotConfig& getRobotConfig() const { return robot_config_; }
+  
+  void setSelected(bool selected) 
+  {
+    is_selected_ = selected;
+    updatePalette();
+  }
+  
+  bool isSelected() const { return is_selected_; }
 
 Q_SIGNALS:
   void robotClicked(const RobotConfig& robot);
@@ -123,32 +226,87 @@ protected:
   
   void enterEvent(QEvent* event) override
   {
-    setStyleSheet(
-      "ClickableRobotWidget { "
-      "  border: 2px solid #4CAF50; "
-      "  border-radius: 8px; "
-      "  background: #f9f9f9; "
-      "  margin: 2px; "
-      "}"
-    );
+    if (!is_selected_) {
+      applyHoverPalette();
+    }
     QWidget::enterEvent(event);
   }
   
   void leaveEvent(QEvent* event) override
   {
-    setStyleSheet(
-      "ClickableRobotWidget { "
-      "  border: 1px solid #ddd; "
-      "  border-radius: 8px; "
-      "  background: white; "
-      "  margin: 2px; "
-      "}"
-    );
+    updatePalette();
     QWidget::leaveEvent(event);
+  }
+  
+  void paintEvent(QPaintEvent* event) override
+  {
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    
+    // Draw background
+    QColor bgColor;
+    QColor borderColor;
+    int borderWidth;
+    
+    if (is_selected_) {
+      bgColor = QColor(227, 242, 253);  // Light blue
+      borderColor = QColor(33, 150, 243);  // Blue
+      borderWidth = 3;
+    } else if (underMouse()) {
+      bgColor = QColor(240, 248, 255);  // Very light blue
+      borderColor = QColor(76, 175, 80);  // Green
+      borderWidth = 2;
+    } else {
+      bgColor = QColor(255, 255, 255);  // White
+      borderColor = QColor(221, 221, 221);  // Gray
+      borderWidth = 2;
+    }
+    
+    // Draw background with rounded corners
+    painter.setBrush(QBrush(bgColor));
+    painter.setPen(QPen(borderColor, borderWidth));
+    painter.drawRoundedRect(rect().adjusted(borderWidth/2, borderWidth/2, -borderWidth/2, -borderWidth/2), 8, 8);
+    
+    QWidget::paintEvent(event);
+  }
+
+private:
+  void applyDefaultPalette()
+  {
+    QPalette pal = palette();
+    pal.setColor(QPalette::Window, QColor(255, 255, 255));  // White background
+    setPalette(pal);
+    update();
+  }
+  
+  void applyHoverPalette()
+  {
+    QPalette pal = palette();
+    pal.setColor(QPalette::Window, QColor(240, 248, 255));  // Light blue
+    setPalette(pal);
+    update();
+  }
+  
+  void applySelectedPalette()
+  {
+    QPalette pal = palette();
+    pal.setColor(QPalette::Window, QColor(227, 242, 253));  // Blue
+    setPalette(pal);
+    update();
+  }
+  
+  void updatePalette()
+  {
+    if (is_selected_) {
+      applySelectedPalette();
+    } else {
+      applyDefaultPalette();
+    }
   }
 
 private:
   RobotConfig robot_config_;
+  bool is_selected_;
 };
 
 
@@ -188,6 +346,7 @@ private:
   void loadDefinedURDFClick(const RobotConfig& robot_config);
   bool loadDefinedFile(const RobotConfig& robot_config);
   void showRobotValidationDialog(const std::vector<std::string>& missing_packages);
+  void loadAndUpdateVisualization(const RobotConfig& robot);
 
   void setupRightPanel();
   void updateRightPanelVisibility();
@@ -230,6 +389,7 @@ private:
 
   bool ui_initialized_ = false;
   bool rviz_integrated_ = false;
+  std::vector<ClickableRobotWidget*> robot_buttons_;
   
   // Grid layout parameters
   static const int ROBOTS_PER_ROW = 2;
