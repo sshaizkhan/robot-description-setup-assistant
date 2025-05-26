@@ -158,8 +158,10 @@ class RobotSelectionWidget : public setup_framework::SetupStepWidget, public set
   
 public:
   void onInit() override;
+  void focusGiven() override;
   void setRVizPanel(setup_framework::RVizPanel* rviz_panel) override;
   bool needsRVizPanel() const override { return true; }  // This widget needs RViz
+  void debugContentStack() const;
   
   SetupStep& getSetupStep() override
   {
@@ -225,11 +227,15 @@ private:
   std::vector<RobotConfig> available_robots_;
   std::vector<RobotConfig> filtered_robots_;
   RobotConfig selected_robot_;
+
+  bool ui_initialized_ = false;
+  bool rviz_integrated_ = false;
   
   // Grid layout parameters
   static const int ROBOTS_PER_ROW = 2;
   static const int ROBOT_BUTTON_WIDTH = 220;
   static const int ROBOT_BUTTON_HEIGHT = 240;
+  
 };
 
 } // namespace robot_description::core_plugins

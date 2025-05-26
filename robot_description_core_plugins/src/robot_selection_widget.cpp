@@ -40,7 +40,7 @@ namespace robot_description::core_plugins
 {
 void RobotSelectionWidget::onInit()
 {
-  RCLCPP_INFO(setup_step_.getLogger(), "Initializing Enhanced Robot Selection Widget");
+  RCLCPP_INFO(setup_step_.getLogger(), "Initializing Robot Selection Widget");
   
   // Initialize the configuration system with multiple config files
   auto& config_manager = RobotConfigManager::getInstance();
@@ -59,84 +59,172 @@ void RobotSelectionWidget::onInit()
   filtered_robots_ = available_robots_;
 
   RCLCPP_INFO(setup_step_.getLogger(), "Loaded %zu robot configurations", available_robots_.size());
-  
-  // Setup UI
-  setupLayout();
-  setupConnections();
-  updateRobotDisplay();
+
+  // Setup UI only once
+  if (!ui_initialized_) {
+    setupLayout();
+    setupConnections();
+    updateRobotDisplay();
+  }
+
+  // If RViz panel is available and not yet integrated, integrate it
+  if (rviz_panel_ && !rviz_integrated_ && content_stack_) {
+    RCLCPP_INFO(setup_step_.getLogger(), "RViz panel available at onInit, integrating now");
+    integrateRVizPanel();
+  }
 }
 
 void RobotSelectionWidget::setRVizPanel(setup_framework::RVizPanel* rviz_panel)
 {
-  RCLCPP_INFO(setup_step_.getLogger(), "RViz panel provided via interface");
+  RCLCPP_INFO(setup_step_.getLogger(), "setRVizPanel called with panel: %p", (void*)rviz_panel);
   
-  // Integrate RViz panel into our UI
-  integrateRVizPanel();
+  if (!rviz_panel) {
+    RCLCPP_ERROR(setup_step_.getLogger(), "RViz panel is null!");
+    return;
+  }
+  
+  if (rviz_integrated_) {
+    RCLCPP_INFO(setup_step_.getLogger(), "RViz already integrated, skipping duplicate integration");
+    return;
+  }
+  
+  rviz_panel_ = rviz_panel;
+  RCLCPP_INFO(setup_step_.getLogger(), "RViz panel stored successfully");
+  
+  // Only integrate if content stack exists
+  if (content_stack_) {
+    RCLCPP_INFO(setup_step_.getLogger(), "Content stack available, integrating RViz panel");
+    integrateRVizPanel();
+  } else {
+    RCLCPP_WARN(setup_step_.getLogger(), "Content stack not available yet - will integrate later");
+  }
 }
 
 void RobotSelectionWidget::integrateRVizPanel()
 {
-  if (!rviz_panel_ || !content_stack_) {
-    RCLCPP_WARN(setup_step_.getLogger(), "RViz panel or content stack not available for integration");
-    createRVizPlaceholder();
+  if (!rviz_panel_) {
+    RCLCPP_ERROR(setup_step_.getLogger(), "RViz panel is null in integrateRVizPanel");
     return;
   }
   
-  RCLCPP_INFO(setup_step_.getLogger(), "Integrating RViz panel into widget");
-  
-  // Remove placeholder if it exists
-  if (content_stack_->count() > 1) {
-    QWidget* placeholder = content_stack_->widget(1);
-    content_stack_->removeWidget(placeholder);
-    placeholder->deleteLater();
+  if (!content_stack_) {
+    RCLCPP_ERROR(setup_step_.getLogger(), "Content stack is null in integrateRVizPanel");
+    return;
   }
   
-  // Add RViz panel to our stack
-  content_stack_->addWidget(rviz_panel_);
+  if (rviz_integrated_) {
+    RCLCPP_INFO(setup_step_.getLogger(), "RViz already integrated, verifying state");
+    debugContentStack();
+    return;
+  }
   
-  // Make sure RViz starts hidden - our toggle will control visibility
-  rviz_panel_->hide();
+  RCLCPP_INFO(setup_step_.getLogger(), "Starting RViz panel integration");
+  RCLCPP_INFO(setup_step_.getLogger(), "Content stack widget count before: %d", content_stack_->count());
   
-  RCLCPP_INFO(setup_step_.getLogger(), "RViz panel integrated successfully");
+  // Ensure we have exactly 2 widgets
+  if (content_stack_->count() < 2) {
+    RCLCPP_ERROR(setup_step_.getLogger(), "Content stack missing placeholder! Creating now.");
+    createRVizPlaceholder();
+  }
+  
+  // Remove placeholder at index 1
+  if (content_stack_->count() > 1) {
+    QWidget* old_widget = content_stack_->widget(1);
+    if (old_widget != rviz_panel_) {
+      content_stack_->removeWidget(old_widget);
+      old_widget->deleteLater();
+      RCLCPP_INFO(setup_step_.getLogger(), "Removed placeholder widget");
+    }
+  }
+  
+  // Add RViz panel
+  rviz_panel_->setParent(content_stack_);
+  rviz_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  
+  int index = content_stack_->addWidget(rviz_panel_);
+  RCLCPP_INFO(setup_step_.getLogger(), "Added RViz panel to content stack at index: %d", index);
+  RCLCPP_INFO(setup_step_.getLogger(), "Content stack widget count after: %d", content_stack_->count());
+  
+  // Enable visualization toggle
+  if (show_visualization_check_) {
+    show_visualization_check_->setEnabled(true);
+    show_visualization_check_->setText("Show 3D Visualization");
+    RCLCPP_INFO(setup_step_.getLogger(), "Enabled visualization checkbox");
+  }
+  
+  rviz_panel_->show();
+  rviz_panel_->setMinimumSize(300, 300);
+  
+  rviz_integrated_ = true;  // Mark as integrated
+  RCLCPP_INFO(setup_step_.getLogger(), "RViz panel integration completed and marked as persistent");
+  
+  debugContentStack();
+}
+
+void RobotSelectionWidget::focusGiven()
+{
+  RCLCPP_INFO(setup_step_.getLogger(), "focusGiven() called");
+  
+  // Debug current state
+  if (content_stack_) {
+    RCLCPP_INFO(setup_step_.getLogger(), "Content stack exists with %d widgets", content_stack_->count());
+    debugContentStack();
+    
+    // If RViz was integrated but content stack lost it, re-integrate
+    if (rviz_integrated_ && content_stack_->count() < 2 && rviz_panel_) {
+      RCLCPP_WARN(setup_step_.getLogger(), "RViz panel was lost! Re-integrating...");
+      rviz_integrated_ = false;  // Reset flag
+      integrateRVizPanel();
+    }
+  } else {
+    RCLCPP_ERROR(setup_step_.getLogger(), "Content stack is null in focusGiven!");
+  }
 }
 
 void RobotSelectionWidget::createRVizPlaceholder()
 {
   // Create placeholder widget if RViz integration fails
   QWidget* placeholder = new QWidget();
+  placeholder->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+  
   QVBoxLayout* layout = new QVBoxLayout(placeholder);
+  layout->setAlignment(Qt::AlignCenter);
   
   QLabel* title = new QLabel("3D Visualization");
-  title->setStyleSheet("QLabel { font-size: 14px; font-weight: bold; text-align: center; color: #666; }");
+  title->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; text-align: center; color: #666; margin-bottom: 10px; }");
   title->setAlignment(Qt::AlignCenter);
   layout->addWidget(title);
   
-  QLabel* message = new QLabel("RViz panel not available.\nRobot information is still accessible.");
-  message->setStyleSheet("QLabel { color: #999; text-align: center; }");
+  QLabel* message = new QLabel("RViz panel will appear here when available.\nSelect a robot to enable 3D visualization.");
+  message->setStyleSheet("QLabel { color: #999; text-align: center; line-height: 1.4; }");
   message->setAlignment(Qt::AlignCenter);
   message->setWordWrap(true);
   layout->addWidget(message);
   
   layout->addStretch();
   
-  // Add placeholder to stack
+  // Remove existing placeholder if any (in case this is called multiple times)
   if (content_stack_->count() > 1) {
-    QWidget* old_widget = content_stack_->widget(1);
-    content_stack_->removeWidget(old_widget);
-    old_widget->deleteLater();
+    QWidget* old_placeholder = content_stack_->widget(1);
+    content_stack_->removeWidget(old_placeholder);
+    old_placeholder->deleteLater();
   }
   
+  // Add new placeholder as second widget (index 1)
   content_stack_->addWidget(placeholder);
   
-  // Disable visualization toggle
-  if (show_visualization_check_) {
-    show_visualization_check_->setEnabled(false);
-    show_visualization_check_->setText("3D Visualization (Not Available)");
-  }
+  RCLCPP_DEBUG(setup_step_.getLogger(), "Created RViz placeholder widget");
 }
 
 void RobotSelectionWidget::setupLayout()
 {
+  if (ui_initialized_) {
+    RCLCPP_WARN(setup_step_.getLogger(), "setupLayout() called multiple times - ignoring");
+    return;
+  }
+  
+  RCLCPP_INFO(setup_step_.getLogger(), "Setting up UI layout (first time)");
+  
   // Main horizontal layout
   main_layout_ = new QHBoxLayout(this);
   main_layout_->setContentsMargins(10, 10, 10, 10);
@@ -182,52 +270,58 @@ void RobotSelectionWidget::setupLayout()
   robot_scroll_area_->setWidget(robot_scroll_content_);
   robot_grid_layout_->addWidget(robot_scroll_area_);
   
-  // FIXED: Reduce center panel size to make room for right panel
-  robot_grid_widget_->setMinimumWidth(480);  // Reduced from 500
-  robot_grid_widget_->setMaximumWidth(600);  // Added max width constraint
+  robot_grid_widget_->setMinimumWidth(480);
+  robot_grid_widget_->setMaximumWidth(600);
   main_splitter_->addWidget(robot_grid_widget_);
   
-  // RIGHT PANEL: Enhanced with toggle functionality - FIXED SIZING
+  // RIGHT PANEL: Setup once and protect from recreation
   setupRightPanel();
   main_splitter_->addWidget(right_panel_widget_);
   
-  // FIXED: Better splitter proportions to ensure right panel is visible
-  // Set sizes explicitly rather than just stretch factors
+  // Set splitter proportions
   QList<int> sizes;
   sizes << 280;  // Left panel (filter)
   sizes << 520;  // Center panel (robot grid) 
-  sizes << 400;  // Right panel (specs/rviz) - Increased size
+  sizes << 400;  // Right panel (specs/rviz)
   main_splitter_->setSizes(sizes);
   
-  // Also set stretch factors as backup
-  main_splitter_->setStretchFactor(0, 0);  // Don't stretch filter panel
-  main_splitter_->setStretchFactor(1, 1);  // Allow robot grid to stretch somewhat
-  main_splitter_->setStretchFactor(2, 0);  // Don't compress right panel
+  main_splitter_->setStretchFactor(0, 0);
+  main_splitter_->setStretchFactor(1, 1);
+  main_splitter_->setStretchFactor(2, 0);
   
   main_layout_->addWidget(main_splitter_);
+  
+  ui_initialized_ = true;
+  RCLCPP_INFO(setup_step_.getLogger(), "UI layout setup completed");
 }
 
 void RobotSelectionWidget::setupRightPanel()
 {
-  // Create right panel container - FIXED SIZING
+  if (right_panel_widget_) {
+    RCLCPP_WARN(setup_step_.getLogger(), "setupRightPanel() called multiple times - ignoring");
+    return;
+  }
+  
+  RCLCPP_INFO(setup_step_.getLogger(), "Setting up right panel (first time)");
+  
+  // Create right panel container
   right_panel_widget_ = new QWidget();
-  right_panel_widget_->setMinimumWidth(380);  // Increased from 350
-  right_panel_widget_->setMaximumWidth(480);  // Increased from 450
+  right_panel_widget_->setMinimumWidth(380);
+  right_panel_widget_->setMaximumWidth(480);
   right_panel_widget_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
   
   right_panel_layout_ = new QVBoxLayout(right_panel_widget_);
   right_panel_layout_->setContentsMargins(10, 10, 10, 10);
   right_panel_layout_->setSpacing(10);
   
-  // Display options group - FIXED SIZING
+  // Display options group
   display_options_group_ = new QGroupBox("Display Options");
-  display_options_group_->setMaximumHeight(100);  // Constrain height
+  display_options_group_->setMaximumHeight(100);
   display_options_group_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
   
   QVBoxLayout* options_layout = new QVBoxLayout(display_options_group_);
-  options_layout->setSpacing(5);  // Tighter spacing
+  options_layout->setSpacing(5);
   
-  // Toggle checkboxes
   show_information_check_ = new QCheckBox("Show Robot Information");
   show_information_check_->setChecked(true);
   
@@ -239,21 +333,23 @@ void RobotSelectionWidget::setupRightPanel()
   
   right_panel_layout_->addWidget(display_options_group_);
   
-  // Stacked widget for toggling content - ENSURE IT GETS SPACE
+  // Stacked widget for toggling content - ONLY CREATE ONCE
   content_stack_ = new QStackedWidget();
   content_stack_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
   
-  // Create specification widget
+  // ALWAYS add specification widget first (index 0)
   spec_widget_ = new RobotSpecificationWidget();
   content_stack_->addWidget(spec_widget_);
   
-  // Create initial placeholder - will be replaced if RViz integration works
-  // createRVizPlaceholder();
+  // ALWAYS add placeholder second (index 1)
+  createRVizPlaceholder();
   
   right_panel_layout_->addWidget(content_stack_);
   
   // Set initial state
-  content_stack_->setCurrentIndex(0); // Show information by default
+  content_stack_->setCurrentIndex(0);
+  
+  RCLCPP_INFO(setup_step_.getLogger(), "Right panel setup complete. Content stack widgets: %d", content_stack_->count());
 }
 
 void RobotSelectionWidget::setupConnections()
@@ -446,40 +542,83 @@ void RobotSelectionWidget::createRobotButton(const RobotConfig& robot, int index
 
 void RobotSelectionWidget::onShowInformationToggled(bool show_info)
 {
-  if (show_info) {
-    show_visualization_check_->setChecked(false);
-    content_stack_->setCurrentIndex(0); // Show specification widget
-    
-    RCLCPP_INFO(setup_step_.getLogger(), "Switching to information mode");
-    
-    // Hide RViz panel
-    if (rviz_panel_) {
-      rviz_panel_->hide();
-    }
-    
-  } else if (!show_visualization_check_->isChecked()) {
-    // If neither is checked, default to information
-    show_information_check_->setChecked(true);
+  if (!show_info) {
+    return; // Don't process if being unchecked
   }
   
-  updateRightPanelVisibility();
+  RCLCPP_INFO(setup_step_.getLogger(), "Switching to information mode");
+  
+  // Ensure mutual exclusion
+  show_visualization_check_->setChecked(false);
+  
+  // Switch to specification widget (index 0)
+  content_stack_->setCurrentIndex(0);
+  
+  // Update visual feedback
+  updateToggleButtonStyles();
 }
 
 void RobotSelectionWidget::updateVisualizationForSelectedRobot()
 {
-  if (selected_robot_.id.empty() || !rviz_panel_) {
+  if (selected_robot_.id.empty()) {
+    RCLCPP_WARN(setup_step_.getLogger(), "No robot selected for visualization update");
     return;
   }
   
-  RCLCPP_INFO(setup_step_.getLogger(), 
-              "Loading 3D visualization for robot: %s", 
-              selected_robot_.display_name.c_str());
+  if (!rviz_panel_) {
+    RCLCPP_ERROR(setup_step_.getLogger(), "RViz panel is null - cannot update visualization");
+    return;
+  }
+  
+  RCLCPP_INFO(setup_step_.getLogger(), "Updating 3D visualization for robot: %s", selected_robot_.display_name.c_str());
   
   // Load robot URDF which will update RViz
   if (loadDefinedFile(selected_robot_)) {
-    // Update RViz to show the robot
-    rviz_panel_->updateFixedFrame();
+    RCLCPP_INFO(setup_step_.getLogger(), "Robot URDF loaded successfully, updating RViz display");
+    
+    // Force RViz update
+    try {
+      rviz_panel_->updateFixedFrame();
+      RCLCPP_INFO(setup_step_.getLogger(), "RViz fixed frame updated");
+      
+      // Make sure RViz panel is visible and updated
+      rviz_panel_->show();
+      rviz_panel_->update();
+      rviz_panel_->repaint();
+      
+      RCLCPP_INFO(setup_step_.getLogger(), "RViz panel visibility and update forced");
+    } catch (const std::exception& e) {
+      RCLCPP_ERROR(setup_step_.getLogger(), "Error updating RViz: %s", e.what());
+    }
+  } else {
+    RCLCPP_ERROR(setup_step_.getLogger(), "Failed to load robot URDF for visualization");
   }
+}
+
+void RobotSelectionWidget::debugContentStack() const
+{
+  if (!content_stack_) {
+    RCLCPP_ERROR(setup_step_.getLogger(), "Content stack is null!");
+    return;
+  }
+  
+  RCLCPP_INFO(setup_step_.getLogger(), "=== Content Stack Debug Info ===");
+  RCLCPP_INFO(setup_step_.getLogger(), "Widget count: %d", content_stack_->count());
+  RCLCPP_INFO(setup_step_.getLogger(), "Current index: %d", content_stack_->currentIndex());
+  
+  for (int i = 0; i < content_stack_->count(); ++i) {
+    QWidget* widget = content_stack_->widget(i);
+    RCLCPP_INFO(setup_step_.getLogger(), "Widget %d: %p (visible: %s, size: %dx%d)", 
+                i, (void*)widget, widget->isVisible() ? "YES" : "NO",
+                widget->width(), widget->height());
+    
+    if (widget == rviz_panel_) {
+      RCLCPP_INFO(setup_step_.getLogger(), "  ^ This is the RViz panel");
+    } else if (widget == spec_widget_) {
+      RCLCPP_INFO(setup_step_.getLogger(), "  ^ This is the specification widget");
+    }
+  }
+  RCLCPP_INFO(setup_step_.getLogger(), "================================");
 }
 
 void RobotSelectionWidget::updateRightPanelVisibility()
@@ -551,30 +690,54 @@ void RobotSelectionWidget::updateToggleButtonStyles()
 
 void RobotSelectionWidget::onShowVisualizationToggled(bool show_viz)
 {
-  if (show_viz) {
-    show_information_check_->setChecked(false);
-    content_stack_->setCurrentIndex(1); // Show RViz widget
-    
-    RCLCPP_INFO(setup_step_.getLogger(), "Switching to 3D visualization mode");
-    
-    // Show RViz panel if available
-    if (rviz_panel_) {
-      rviz_panel_->show();
-      
-      // If there's a selected robot, make sure it's loaded in RViz
-      if (!selected_robot_.id.empty()) {
-        updateVisualizationForSelectedRobot();
-      }
-    } else {
-      RCLCPP_WARN(setup_step_.getLogger(), "RViz panel not available for visualization");
-    }
-    
-  } else if (!show_information_check_->isChecked()) {
-    // If neither is checked, default to information
-    show_information_check_->setChecked(true);
+  if (!show_viz) {
+    RCLCPP_DEBUG(setup_step_.getLogger(), "Visualization toggled OFF");
+    return; // Don't process if being unchecked
   }
   
-  updateRightPanelVisibility();
+  RCLCPP_INFO(setup_step_.getLogger(), "Switching to 3D visualization mode");
+  RCLCPP_INFO(setup_step_.getLogger(), "Content stack count: %d", content_stack_->count());
+  RCLCPP_INFO(setup_step_.getLogger(), "RViz panel available: %s", rviz_panel_ ? "YES" : "NO");
+  
+  // Check if we have at least 2 widgets in the stack
+  if (content_stack_->count() < 2) {
+    RCLCPP_ERROR(setup_step_.getLogger(), "Content stack doesn't have enough widgets (count: %d)", content_stack_->count());
+    show_visualization_check_->setChecked(false);
+    show_information_check_->setChecked(true);
+    return;
+  }
+  
+  // Ensure mutual exclusion
+  show_information_check_->setChecked(false);
+  
+  // Switch to visualization widget (index 1)
+  content_stack_->setCurrentIndex(1);
+  RCLCPP_INFO(setup_step_.getLogger(), "Set content stack to index 1");
+  
+  // Get the current widget and check what it is
+  QWidget* current_widget = content_stack_->currentWidget();
+  RCLCPP_INFO(setup_step_.getLogger(), "Current widget after switch: %p", (void*)current_widget);
+  RCLCPP_INFO(setup_step_.getLogger(), "Is current widget the RViz panel? %s", 
+              (current_widget == rviz_panel_) ? "YES" : "NO");
+  
+  if (current_widget) {
+    current_widget->show();
+    current_widget->setVisible(true);
+    current_widget->update();
+    RCLCPP_INFO(setup_step_.getLogger(), "Made current widget visible and updated");
+  }
+  
+  // If there's a selected robot and RViz is available, update visualization
+  if (!selected_robot_.id.empty() && rviz_panel_) {
+    RCLCPP_INFO(setup_step_.getLogger(), "Updating visualization for selected robot: %s", selected_robot_.display_name.c_str());
+    updateVisualizationForSelectedRobot();
+  } else {
+    RCLCPP_WARN(setup_step_.getLogger(), "Cannot update visualization - robot: %s, rviz_panel: %p", 
+                selected_robot_.id.c_str(), (void*)rviz_panel_);
+  }
+  
+  // Update visual feedback
+  updateToggleButtonStyles();
 }
 
 void RobotSelectionWidget::onRobotSelected(const RobotConfig& robot)
@@ -585,6 +748,9 @@ void RobotSelectionWidget::onRobotSelected(const RobotConfig& robot)
   
   // Update specification panel (always update, even if not currently visible)
   spec_widget_->setRobotConfig(robot);
+  
+  // Debug content stack state
+  debugContentStack();
   
   // Check package dependencies before loading
   auto& config_manager = RobotConfigManager::getInstance();
@@ -600,6 +766,7 @@ void RobotSelectionWidget::onRobotSelected(const RobotConfig& robot)
   
   // If we're in visualization mode, update the 3D view
   if (show_visualization_check_->isChecked() && rviz_panel_) {
+    RCLCPP_INFO(setup_step_.getLogger(), "Currently in visualization mode, updating 3D view");
     updateVisualizationForSelectedRobot();
   }
 }
