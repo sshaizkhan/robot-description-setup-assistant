@@ -114,7 +114,7 @@ void RobotSelectionWidget::integrateRVizPanel()
   
   if (rviz_integrated_) {
     RCLCPP_INFO(setup_step_.getLogger(), "RViz already integrated, verifying state");
-    debugContentStack();
+    // debugContentStack();
     return;
   }
   
@@ -158,7 +158,7 @@ void RobotSelectionWidget::integrateRVizPanel()
   rviz_integrated_ = true;  // Mark as integrated
   RCLCPP_INFO(setup_step_.getLogger(), "RViz panel integration completed and marked as persistent");
   
-  debugContentStack();
+  // debugContentStack();
 }
 
 void RobotSelectionWidget::focusGiven()
@@ -168,7 +168,7 @@ void RobotSelectionWidget::focusGiven()
   // Debug current state
   if (content_stack_) {
     RCLCPP_INFO(setup_step_.getLogger(), "Content stack exists with %d widgets", content_stack_->count());
-    debugContentStack();
+    // debugContentStack();
     
     // If RViz was integrated but content stack lost it, re-integrate
     if (rviz_integrated_ && content_stack_->count() < 2 && rviz_panel_) {
@@ -733,7 +733,7 @@ void RobotSelectionWidget::onRobotSelected(const RobotConfig& robot)
   spec_widget_->setRobotConfig(robot);
   
   // Debug content stack state
-  debugContentStack();
+  // debugContentStack();
   
   // Check package dependencies before loading
   auto& config_manager = RobotConfigManager::getInstance();

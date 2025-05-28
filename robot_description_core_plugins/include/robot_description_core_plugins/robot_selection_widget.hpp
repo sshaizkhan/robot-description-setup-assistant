@@ -120,7 +120,7 @@ protected:
   void mousePressEvent(QMouseEvent* event) override
   {
     Q_UNUSED(event)
-    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Robot clicked: %s", robot_config_.display_name.c_str());
+    // RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Robot clicked: %s", robot_config_.display_name.c_str());
     Q_EMIT robotClicked(robot_config_);
   }
   
@@ -128,7 +128,7 @@ protected:
   {
     is_hovered_ = true;
     update(); // Trigger repaint
-    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Mouse entered: %s", robot_config_.display_name.c_str());
+    // RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Mouse entered: %s", robot_config_.display_name.c_str());
     QWidget::enterEvent(event);
   }
   
@@ -136,7 +136,7 @@ protected:
   {
     is_hovered_ = false;
     update(); // Trigger repaint
-    RCLCPP_INFO(rclcpp::get_logger("RobotButton"), "Mouse left: %s", robot_config_.display_name.c_str());
+    // RCLCPP_(rclcpp::get_logger("RobotButton"), "Mouse left: %s", robot_config_.display_name.c_str());
     QWidget::leaveEvent(event);
   }
   
