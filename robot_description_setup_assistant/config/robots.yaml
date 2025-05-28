@@ -1,7 +1,7 @@
 config_info:
   version: "2.0"
-  description: "Enhanced Robot Configurations with Advanced Features"
-  last_updated: "2025-01-01"
+  description: "Robot Configurations with Advanced Features"
+  last_updated: "2025-05-26"
 
 categories:
   universal_robots:
@@ -382,35 +382,6 @@ robots:
       payload_kg: 16.0
       reach_mm: 1600
       weight_kg: 40.0
-      repeatability_mm: 0.05
-      max_speed_ms: 1.5
-      mounting: ["floor", "ceiling", "wall"]
-      safety_certified: true
-      collaborative: false
-    
-    required_packages:
-      - "kuka_robot_descriptions"
-    
-    optional_packages:
-      - "kuka_moveit_config"
-      - "kuka_gazebo"
-    
-    tags: ["industrial", "heavy_payload", "high_precision", "fast"]
-  
-  kr210_r2010_2:
-    display_name: "KUKA KR210 R2010-2"
-    description: "High payload industrial robot for heavy-duty tasks"
-    image_path: "resources/graphics/kuka/kr210_r2010_2.png"
-    urdf_package: "kuka_robot_descriptions"
-    urdf_path: "urdf/kuka.urdf.xacro"
-    xacro_args: "name:=kr210_r2010_2 kuka_type:=kr210_r2010_2"
-    category: "kuka"
-    
-    specifications:
-      degrees_of_freedom: 6
-      payload_kg: 210.0
-      reach_mm: 2000
-      weight_kg: 60.0
       repeatability_mm: 0.05
       max_speed_ms: 1.5
       mounting: ["floor", "ceiling", "wall"]
