@@ -315,6 +315,7 @@ class RobotSelectionWidget : public setup_framework::SetupStepWidget, public set
   Q_OBJECT
   
 public:
+  RobotSelectionWidget();
   void onInit() override;
   void focusGiven() override;
   void setRVizPanel(setup_framework::RVizPanel* rviz_panel) override;

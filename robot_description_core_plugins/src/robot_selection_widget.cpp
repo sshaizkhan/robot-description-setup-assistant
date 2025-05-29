@@ -38,6 +38,27 @@
 
 namespace robot_description::core_plugins
 {
+RobotSelectionWidget::RobotSelectionWidget() 
+  : main_layout_(nullptr)
+  , main_splitter_(nullptr)
+  , filter_widget_(nullptr)
+  , robot_grid_widget_(nullptr)
+  , robot_grid_layout_(nullptr)
+  , robot_scroll_area_(nullptr)
+  , robot_scroll_content_(nullptr)
+  , robot_grid_(nullptr)
+  , robot_count_label_(nullptr)
+  , right_panel_widget_(nullptr)
+  , right_panel_layout_(nullptr)
+  , display_options_group_(nullptr)
+  , show_visualization_check_(nullptr)
+  , show_information_check_(nullptr)
+  , content_stack_(nullptr)
+  , spec_widget_(nullptr)
+  , ui_initialized_(false)
+  , rviz_integrated_(false)
+{
+}
 void RobotSelectionWidget::onInit()
 {
   RCLCPP_INFO(setup_step_.getLogger(), "Initializing Robot Selection Widget");
