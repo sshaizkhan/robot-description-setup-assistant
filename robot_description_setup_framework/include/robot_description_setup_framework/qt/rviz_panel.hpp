@@ -160,7 +160,7 @@ protected:
   QWidget* parent_;
   std::unique_ptr<rviz_common::RenderPanel> rviz_render_panel_;
   std::unique_ptr<rviz_common::VisualizationManager> rviz_manager_;
-  std::unique_ptr<moveit_rviz_plugin::RobotStateDisplay> robot_state_display_;
+  moveit_rviz_plugin::RobotStateDisplay* robot_state_display_;
   rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr node_abstraction_;
   rclcpp::Node::SharedPtr node_;
   std::shared_ptr<rclcpp::Logger> logger_;
