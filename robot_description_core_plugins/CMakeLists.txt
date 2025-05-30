@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 
 # Find the robot_description_common package
 find_package(robot_description_common REQUIRED)
