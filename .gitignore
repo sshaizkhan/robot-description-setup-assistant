@@ -68,3 +68,5 @@ r
 
 # ignore any .clangd file
 *.clangd
+
+build.sh
