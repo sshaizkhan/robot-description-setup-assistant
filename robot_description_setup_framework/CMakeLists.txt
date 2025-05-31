@@ -45,6 +45,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 ament_target_dependencies(${PROJECT_NAME}
+  robot_description_common
   ament_index_cpp
   moveit_core
   moveit_ros_planning
@@ -60,6 +61,8 @@ ament_target_dependencies(${PROJECT_NAME}
   # srdfdom
   urdf
 )
+
+robot_description_use_macros(${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

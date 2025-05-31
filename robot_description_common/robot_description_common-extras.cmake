@@ -27,3 +27,17 @@
 #
 
 include ("${robot_description_common_DIR}/robot_description_package.cmake")
+
+# The macros are now available via include directories
+# Downstream packages can include them with:
+# #include <robot_description_common/macros/macros.hpp>
+
+# function to help with macro usage
+function(robot_description_use_macros target_name)
+  target_compile_features(${target_name} PRIVATE cxx_std_17)
+endfunction()
+
+# Convenient alias
+function(rds_use_macros target_name)
+  robot_description_use_macros(${target_name})
+endfunction()

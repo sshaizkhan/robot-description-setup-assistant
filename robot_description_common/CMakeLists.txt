@@ -15,16 +15,25 @@ project(robot_description_common VERSION ${PACKAGE_VERSION})
 
 find_package(ament_cmake REQUIRED)
 
+install(
+  DIRECTORY cmake
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY macros
+  DESTINATION include/${PROJECT_NAME}
+  FILES_MATCHING PATTERN "*.hpp"
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+ament_export_include_directories(include)
+
 ament_package(
   CONFIG_EXTRAS "robot_description_common-extras.cmake"
 )
 
-install(
-  DIRECTORY cmake
-  DESTINATION share/${PROJECT_NAME}
-)
