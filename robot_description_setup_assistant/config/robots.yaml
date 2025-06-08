@@ -492,7 +492,7 @@ robots:
     xacro_args: "name:=lbr_iisy3_r760 kuka_type:=lbr_iisy3_r760"
     category: "kuka"
     specifications:
-      degrees_of_freedom: 7
+      degrees_of_freedom: 6
       payload_kg: 3.0
       reach_mm: 800
       weight_kg: 15.0
@@ -518,7 +518,7 @@ robots:
     category: "kuka"
     
     specifications:
-      degrees_of_freedom: 7
+      degrees_of_freedom: 6
       payload_kg: 11.0
       reach_mm: 1300
       weight_kg: 20.0
@@ -547,7 +547,7 @@ robots:
     category: "kuka"
     
     specifications:
-      degrees_of_freedom: 7
+      degrees_of_freedom: 6
       payload_kg: 15.0
       reach_mm: 930
       weight_kg: 25.0
