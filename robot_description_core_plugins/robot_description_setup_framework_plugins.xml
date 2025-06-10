@@ -8,3 +8,8 @@
     <description>Load a Robot Selection Page</description>
   </class>
 </library>
+<library path="robot_description_core_plugins">
+  <class type="robot_description::core_plugins::EndEffectorSelectionWidget" base_class_type="robot_description::setup_framework::SetupStepWidget">
+    <description>End-Effector/Gripper Selection Page with 3D visualization and advanced filtering</description>
+  </class>
+</library>

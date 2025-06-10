@@ -35,9 +35,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 qt5_wrap_cpp(MOC_FILES
   include/robot_description_core_plugins/start_screen_widget.hpp
   include/robot_description_core_plugins/robot_selection_widget.hpp
-  include/robot_description_core_plugins/robot_config_manager.hpp        # NEW
-  include/robot_description_core_plugins/robot_specification_widget.hpp # NEW
-  include/robot_description_core_plugins/filter_widget.hpp              # NEW
+  include/robot_description_core_plugins/robot_config_manager.hpp
+  include/robot_description_core_plugins/robot_specification_widget.hpp
+  include/robot_description_core_plugins/filter_widget.hpp 
+  # End-Effector
+  include/robot_description_core_plugins/end_effector_config_manager.hpp
+  include/robot_description_core_plugins/end_effector_filter_widget.hpp
+  include/robot_description_core_plugins/end_effector_selection_widget.hpp
+  include/robot_description_core_plugins/end_effector_specification_widget.hpp
 )
 
 add_library(${PROJECT_NAME}
@@ -45,9 +50,15 @@ add_library(${PROJECT_NAME}
   src/start_screen_widget.cpp
   src/robot_selection.cpp
   src/robot_selection_widget.cpp
-  src/robot_config_manager.cpp          # NEW
-  src/robot_specification_widget.cpp    # NEW
-  src/filter_widget.cpp                 # NEW
+  src/robot_config_manager.cpp
+  src/robot_specification_widget.cpp
+  src/filter_widget.cpp
+  # End-Effector
+  src/end_effector_config_manager.cpp
+  src/end_effector_filter_widget.cpp
+  src/end_effector_selection_widget.cpp
+  src/end_effector_specification_widget.cpp
+  src/end_effector_selection.cpp
   ${MOC_FILES}
 )
 

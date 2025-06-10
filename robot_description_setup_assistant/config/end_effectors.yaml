@@ -1,0 +1,310 @@
+config_info:
+  version: "1.0"
+  description: "End-Effector Configurations for Robot Description Setup Assistant"
+  last_updated: "2025-01-15"
+
+categories:
+  two_finger_grippers:
+    display_name: "Two-Finger Grippers"
+    description: "Parallel jaw grippers with two opposing fingers"
+    typical_use_case: "General purpose grasping of objects"
+    
+  three_finger_grippers:
+    display_name: "Three-Finger Grippers"
+    description: "Adaptive grippers with three fingers for versatile grasping"
+    typical_use_case: "Complex object manipulation and adaptive grasping"
+    
+  suction_grippers:
+    display_name: "Suction/Vacuum Grippers"
+    description: "Vacuum-based end-effectors for flat surface handling"
+    typical_use_case: "Picking up flat objects, sheets, panels"
+    
+  magnetic_grippers:
+    display_name: "Magnetic Grippers"
+    description: "Electromagnetic or permanent magnet grippers"
+    typical_use_case: "Handling ferromagnetic materials"
+    
+  custom_tools:
+    display_name: "Custom Tools"
+    description: "Specialized tools and custom end-effectors"
+    typical_use_case: "Application-specific operations"
+
+end_effectors:
+  robotiq_2f_85:
+    display_name: "Robotiq 2F-85"
+    description: "2-finger adaptive robot gripper with 85mm stroke"
+    image_path: "resources/graphics/end_effectors/robotiq_2f_85.png"
+    urdf_package: "robotiq_85_description"
+    urdf_path: "urdf/robotiq_85_gripper.urdf.xacro"
+    category: "two_finger_grippers"
+    manufacturer: "Robotiq"
+    mounting_interface: "iso_9409_50"
+    
+    specifications:
+      max_opening_mm: 85.0
+      max_force_n: 235.0
+      max_speed_mms: 110.0
+      weight_kg: 0.925
+      payload_kg: 5.0
+      actuation_type: "electric"
+      interface_type: "modbus"
+      force_feedback: true
+      position_feedback: true
+      adaptive_grip: true
+      compatible_objects: ["small_parts", "cylinders", "irregular_shapes"]
+    
+    required_packages:
+      - "robotiq_85_description"
+      - "robotiq_85_msgs"
+    
+    optional_packages:
+      - "robotiq_gazebo"
+      - "robotiq_control"
+    
+    compatible_robot_brands: ["universal_robots", "kuka", "fanuc", "abb"]
+    
+    tags: ["adaptive", "electric", "modbus", "industrial"]
+
+  robotiq_2f_140:
+    display_name: "Robotiq 2F-140"
+    description: "2-finger adaptive robot gripper with 140mm stroke"
+    image_path: "resources/graphics/end_effectors/robotiq_2f_140.png"
+    urdf_package: "robotiq_description"
+    urdf_path: "urdf/robotiq_2f_140_gripper.urdf.xacro"
+    xacro_args: "name:=gripper"
+    category: "two_finger_grippers"
+    manufacturer: "Robotiq"
+    mounting_interface: "iso_9409_50"
+    
+    specifications:
+      max_opening_mm: 140.0
+      max_force_n: 235.0
+      max_speed_mms: 110.0
+      weight_kg: 1.0
+      payload_kg: 5.0
+      actuation_type: "electric"
+      interface_type: "modbus"
+      force_feedback: true
+      position_feedback: true
+      adaptive_grip: true
+      compatible_objects: ["medium_parts", "cylinders", "boxes"]
+    
+    required_packages:
+      - "robotiq_description"
+      - "robotiq_msgs"
+    
+    optional_packages:
+      - "robotiq_gazebo"
+      - "robotiq_control"
+    
+    compatible_robot_brands: ["universal_robots", "kuka", "fanuc", "abb"]
+    
+    tags: ["adaptive", "electric", "modbus", "industrial"]
+
+  robotiq_3f:
+    display_name: "Robotiq 3-Finger Gripper"
+    description: "3-finger adaptive robot gripper for versatile grasping"
+    image_path: "resources/graphics/end_effectors/robotiq_3f.png"
+    urdf_package: "robotiq_description"
+    urdf_path: "urdf/robotiq_3f_gripper.urdf.xacro"
+    xacro_args: "name:=gripper"
+    category: "three_finger_grippers"
+    manufacturer: "Robotiq"
+    mounting_interface: "iso_9409_50"
+    
+    specifications:
+      max_opening_mm: 155.0
+      max_force_n: 60.0
+      max_speed_mms: 90.0
+      weight_kg: 2.3
+      payload_kg: 10.0
+      actuation_type: "electric"
+      interface_type: "ethernet"
+      force_feedback: true
+      position_feedback: true
+      adaptive_grip: true
+      compatible_objects: ["spheres", "cylinders", "irregular_shapes", "fragile_objects"]
+    
+    required_packages:
+      - "robotiq_description"
+      - "robotiq_msgs"
+    
+    optional_packages:
+      - "robotiq_gazebo"
+      - "robotiq_control"
+    
+    compatible_robot_brands: ["universal_robots", "kuka", "fanuc", "abb"]
+    
+    tags: ["adaptive", "electric", "ethernet", "versatile"]
+
+  schunk_ego:
+    display_name: "Schunk EGO"
+    description: "Compact 2-finger parallel gripper"
+    image_path: "resources/graphics/end_effectors/schunk_ego.png"
+    urdf_package: "schunk_description"
+    urdf_path: "urdf/schunk_ego.urdf.xacro"
+    xacro_args: "name:=gripper"
+    category: "two_finger_grippers"
+    manufacturer: "Schunk"
+    mounting_interface: "iso_9409_50"
+    
+    specifications:
+      max_opening_mm: 50.0
+      max_force_n: 500.0
+      max_speed_mms: 150.0
+      weight_kg: 0.8
+      payload_kg: 3.0
+      actuation_type: "electric"
+      interface_type: "io"
+      force_feedback: false
+      position_feedback: true
+      adaptive_grip: false
+      compatible_objects: ["small_parts", "precise_components"]
+    
+    required_packages:
+      - "schunk_description"
+    
+    optional_packages:
+      - "schunk_gazebo"
+      - "schunk_control"
+    
+    compatible_robot_brands: ["universal_robots", "kuka", "abb"]
+    
+    tags: ["precise", "electric", "compact", "industrial"]
+
+  piab_vacuum_gripper:
+    display_name: "Piab Vacuum Gripper"
+    description: "Multi-cup vacuum gripper for flat surfaces"
+    image_path: "resources/graphics/end_effectors/piab_vacuum.png"
+    urdf_package: "piab_description"
+    urdf_path: "urdf/piab_vacuum_gripper.urdf.xacro"
+    xacro_args: "name:=gripper cups:=4"
+    category: "suction_grippers"
+    manufacturer: "Piab"
+    mounting_interface: "custom"
+    
+    specifications:
+      max_opening_mm: 0.0  # N/A for vacuum grippers
+      max_force_n: 400.0   # Suction force
+      max_speed_mms: 0.0   # N/A
+      weight_kg: 1.2
+      payload_kg: 25.0
+      actuation_type: "pneumatic"
+      interface_type: "io"
+      force_feedback: false
+      position_feedback: false
+      adaptive_grip: false
+      compatible_objects: ["flat_surfaces", "panels", "sheets", "boxes"]
+    
+    required_packages:
+      - "piab_description"
+    
+    optional_packages:
+      - "piab_gazebo"
+    
+    compatible_robot_brands: ["universal_robots", "kuka", "abb", "fanuc"]
+    
+    tags: ["vacuum", "pneumatic", "flat_surfaces", "high_payload"]
+
+  magnetic_gripper_basic:
+    display_name: "Basic Magnetic Gripper"
+    description: "Electromagnetic gripper for ferromagnetic materials"
+    image_path: "resources/graphics/end_effectors/magnetic_gripper.png"
+    urdf_package: "magnetic_gripper_description"
+    urdf_path: "urdf/magnetic_gripper.urdf.xacro"
+    xacro_args: "name:=gripper"
+    category: "magnetic_grippers"
+    manufacturer: "Generic"
+    mounting_interface: "custom"
+    
+    specifications:
+      max_opening_mm: 0.0  # N/A for magnetic grippers
+      max_force_n: 1000.0  # Magnetic holding force
+      max_speed_mms: 0.0   # N/A
+      weight_kg: 2.5
+      payload_kg: 50.0
+      actuation_type: "electric"
+      interface_type: "io"
+      force_feedback: false
+      position_feedback: false
+      adaptive_grip: false
+      compatible_objects: ["steel_parts", "iron_components", "magnetic_materials"]
+    
+    required_packages:
+      - "magnetic_gripper_description"
+    
+    optional_packages:
+      - "magnetic_gripper_gazebo"
+    
+    compatible_robot_brands: ["universal_robots", "kuka", "abb", "fanuc"]
+    
+    tags: ["magnetic", "electric", "heavy_duty", "ferromagnetic"]
+
+  custom_welding_torch:
+    display_name: "Welding Torch Tool"
+    description: "Custom welding torch end-effector"
+    image_path: "resources/graphics/end_effectors/welding_torch.png"
+    urdf_package: "custom_tools_description"
+    urdf_path: "urdf/welding_torch.urdf.xacro"
+    xacro_args: "name:=torch"
+    category: "custom_tools"
+    manufacturer: "Custom"
+    mounting_interface: "custom"
+    
+    specifications:
+      max_opening_mm: 0.0  # N/A
+      max_force_n: 0.0     # N/A
+      max_speed_mms: 0.0   # N/A
+      weight_kg: 1.8
+      payload_kg: 0.0
+      actuation_type: "none"
+      interface_type: "custom"
+      force_feedback: false
+      position_feedback: false
+      adaptive_grip: false
+      compatible_objects: ["welding_applications"]
+    
+    required_packages:
+      - "custom_tools_description"
+    
+    optional_packages:
+      - "welding_process_control"
+    
+    compatible_robot_brands: ["universal_robots", "kuka", "abb", "fanuc"]
+    
+    tags: ["welding", "custom", "industrial", "specialized"]
+
+  onrobot_rg2:
+    display_name: "OnRobot RG2"
+    description: "Compact electric 2-finger gripper"
+    image_path: "resources/graphics/end_effectors/onrobot_rg2.png"
+    urdf_package: "onrobot_description"
+    urdf_path: "urdf/onrobot_rg2.urdf.xacro"
+    xacro_args: "name:=gripper"
+    category: "two_finger_grippers"
+    manufacturer: "OnRobot"
+    mounting_interface: "universal"
+    
+    specifications:
+      max_opening_mm: 110.0
+      max_force_n: 40.0
+      max_speed_mms: 150.0
+      weight_kg: 0.78
+      payload_kg: 2.0
+      actuation_type: "electric"
+      interface_type: "modbus"
+      force_feedback: true
+      position_feedback: true
+      adaptive_grip: false
+      compatible_objects: ["small_parts", "electronics", "delicate_items"]
+    
+    required_packages:
+      - "onrobot_description"
+    
+    optional_packages:
+      - "onrobot_gazebo"
+      - "onrobot_control"
+    
+    compatible_robot_brands: ["universal_robots", "collaborative_robots"]
+    
+    tags: ["collaborative", "electric", "lightweight", "precise"]
