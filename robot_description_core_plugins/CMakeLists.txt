@@ -34,37 +34,38 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 qt5_wrap_cpp(MOC_FILES
   include/robot_description_core_plugins/start_screen_widget.hpp
-  include/robot_description_core_plugins/robot_selection_widget.hpp
-  include/robot_description_core_plugins/robot_config_manager.hpp
-  include/robot_description_core_plugins/robot_specification_widget.hpp
-  include/robot_description_core_plugins/filter_widget.hpp 
+  include/robot_description_core_plugins/robots/robot_selection_widget.hpp
+  include/robot_description_core_plugins/robots/robot_config_manager.hpp
+  include/robot_description_core_plugins/robots/robot_specification_widget.hpp
+  include/robot_description_core_plugins/robots/filter_widget.hpp 
   # End-Effector
-  include/robot_description_core_plugins/end_effector_config_manager.hpp
-  include/robot_description_core_plugins/end_effector_filter_widget.hpp
-  include/robot_description_core_plugins/end_effector_selection_widget.hpp
-  include/robot_description_core_plugins/end_effector_specification_widget.hpp
+  include/robot_description_core_plugins/end_effectors/end_effector_config_manager.hpp
+  include/robot_description_core_plugins/end_effectors/end_effector_filter_widget.hpp
+  include/robot_description_core_plugins/end_effectors/end_effector_selection_widget.hpp
+  include/robot_description_core_plugins/end_effectors/end_effector_specification_widget.hpp
 )
 
 add_library(${PROJECT_NAME}
   src/start_screen.cpp
   src/start_screen_widget.cpp
-  src/robot_selection.cpp
-  src/robot_selection_widget.cpp
-  src/robot_config_manager.cpp
-  src/robot_specification_widget.cpp
-  src/filter_widget.cpp
+  src/robots/robot_selection.cpp
+  src/robots/robot_selection_widget.cpp
+  src/robots/robot_config_manager.cpp
+  src/robots/robot_specification_widget.cpp
+  src/robots/filter_widget.cpp
   # End-Effector
-  src/end_effector_config_manager.cpp
-  src/end_effector_filter_widget.cpp
-  src/end_effector_selection_widget.cpp
-  src/end_effector_specification_widget.cpp
-  src/end_effector_selection.cpp
+  src/end_effectors/end_effector_config_manager.cpp
+  src/end_effectors/end_effector_filter_widget.cpp
+  src/end_effectors/end_effector_selection_widget.cpp
+  src/end_effectors/end_effector_specification_widget.cpp
+  src/end_effectors/end_effector_selection.cpp
   ${MOC_FILES}
 )
 
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include>
+)
 
 ament_target_dependencies(
   ${PROJECT_NAME}

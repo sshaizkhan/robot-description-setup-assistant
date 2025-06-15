@@ -35,7 +35,7 @@
 /* Author: Shahwaz Khan */
 /* Modified from original code by David V. Lu */
 
-#include "robot_description_core_plugins/robot_selection.hpp"
+#include "robot_description_core_plugins/robots/robot_selection.hpp"
 
 namespace robot_description::core_plugins
 {

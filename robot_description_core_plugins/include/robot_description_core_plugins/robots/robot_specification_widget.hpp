@@ -11,7 +11,7 @@
 #include <QGroupBox>
 #include <QPushButton>
 #include <QPixmap>
-#include "robot_description_core_plugins/robot_config_manager.hpp"
+#include "robot_config_manager.hpp"
 
 namespace robot_description::core_plugins
 {

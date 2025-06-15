@@ -1,4 +1,4 @@
-#include "robot_description_core_plugins/end_effector_filter_widget.hpp"
+#include "robot_description_core_plugins/end_effectors/end_effector_filter_widget.hpp"
 
 namespace robot_description::core_plugins
 {

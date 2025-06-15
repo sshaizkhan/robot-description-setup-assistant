@@ -12,7 +12,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
-#include "robot_description_core_plugins/robot_config_manager.hpp"
+#include "robot_config_manager.hpp"
 
 namespace robot_description::core_plugins
 {

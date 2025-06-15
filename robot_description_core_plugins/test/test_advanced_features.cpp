@@ -3,8 +3,8 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <rclcpp/rclcpp.hpp>
-#include "robot_description_core_plugins/robot_selection_widget.hpp"
-#include "robot_description_core_plugins/robot_config_manager.hpp"
+#include "robot_description_core_plugins/robots/robot_selection_widget.hpp"
+#include "robot_description_core_plugins/robots/robot_config_manager.hpp"
 
 int main(int argc, char** argv)
 {

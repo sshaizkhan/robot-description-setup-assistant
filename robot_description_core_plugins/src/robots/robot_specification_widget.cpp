@@ -1,4 +1,4 @@
-#include "robot_description_core_plugins/robot_specification_widget.hpp"
+#include "robot_description_core_plugins/robots/robot_specification_widget.hpp"
 #include <QApplication>
 #include <QStyle>
 #include <ament_index_cpp/get_package_prefix.hpp>

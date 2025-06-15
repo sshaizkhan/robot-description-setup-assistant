@@ -33,7 +33,7 @@
  *********************************************************************/
 /* Author: Shahwaz Khan */
 
-#include "robot_description_core_plugins/end_effector_selection_widget.hpp"
+#include "robot_description_core_plugins/end_effectors/end_effector_selection_widget.hpp"
 
 namespace robot_description::core_plugins
 {

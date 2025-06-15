@@ -1,4 +1,4 @@
-#include "robot_description_core_plugins/robot_config_manager.hpp"
+#include "robot_description_core_plugins/robots/robot_config_manager.hpp"
 #include "robot_description_setup_framework/utilities.hpp"
 #include <algorithm>
 #include <ament_index_cpp/get_package_prefix.hpp>

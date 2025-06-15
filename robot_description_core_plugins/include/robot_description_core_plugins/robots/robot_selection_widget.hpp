@@ -47,10 +47,10 @@
 #include <robot_description_setup_framework/setup_step.hpp>
 
 #ifndef Q_MOC_RUN
-#include <robot_description_core_plugins/robot_selection.hpp>
-#include <robot_description_core_plugins/robot_config_manager.hpp>
-#include <robot_description_core_plugins/filter_widget.hpp>
-#include <robot_description_core_plugins/robot_specification_widget.hpp>
+#include "robot_selection.hpp"
+#include "robot_config_manager.hpp"
+#include "filter_widget.hpp"
+#include "robot_specification_widget.hpp"
 #endif
 
 // Qt includes
