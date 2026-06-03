@@ -28,23 +28,16 @@
  *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
  *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE`
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 /*Author: Shahwaz Khan*/
-/*Modified from the origianl code by David V. Lu*/
 
 #pragma once
-// ROS2 includes
+#include <filesystem>
 #include <rclcpp/rclcpp.hpp>
-
-// Moveit includes
-#include <moveit_setup_framework/data/package_settings_config.hpp>
-#include <moveit_setup_framework/data/srdf_config.hpp>
-#include <moveit_setup_framework/data/urdf_config.hpp>
-
-// rdsa includes
 #include <robot_description_setup_framework/setup_step.hpp>
+#include <robot_description_setup_framework/urdf_loader.hpp>
 
 namespace robot_description::core_plugins
 {
@@ -56,26 +49,20 @@ public:
     return "Robot Selection";
   }
 
-  void onInit() override;
-
   bool isReady() const override
   {
     return true;  // always ready, no dependencies
   }
-  std::filesystem::path getURDFPath();
-  std::string getXacroArgs();
 
-  std::filesystem::path getPackagePath();
-
-  bool isXacroFile();
-
-  void loadURDFFile(const std::filesystem::path& urdf_file_path, const std::string& xacro_args);
-
-  void loadExisting(const std::filesystem::path& package_path);
-
-protected:
-  std::shared_ptr<moveit_setup::PackageSettingsConfig> package_settings_;
-  std::shared_ptr<moveit_setup::SRDFConfig> srdf_config_;
-  std::shared_ptr<moveit_setup::URDFConfig> urdf_config_;
+  // Run the loader, store the result in AppContext, and return it.
+  URDFModel loadRobot(const std::filesystem::path& urdf_path, const std::string& xacro_args)
+  {
+    URDFModel model = URDFLoader::load(urdf_path, xacro_args);
+    if (auto ctx = getContext())
+    {
+      ctx->current_urdf = model;
+    }
+    return model;
+  }
 };
 }  // namespace robot_description::core_plugins

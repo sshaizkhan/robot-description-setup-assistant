@@ -790,27 +790,12 @@ void RobotSelectionWidget::loadAndUpdateVisualization(const RobotConfig& robot)
     return;
   }
   
-  // Load the URDF file
+  // loadDefinedFile now performs both the URDF load and the RViz update.
   if (loadDefinedFile(robot)) {
-    RCLCPP_INFO(setup_step_.getLogger(), "URDF loaded successfully, updating RViz visualization");
-    
-    // Update RViz visualization
+    RCLCPP_INFO(setup_step_.getLogger(), "URDF loaded and visualization updated");
     if (rviz_panel_) {
-      try {
-        rviz_panel_->updateFixedFrame();
-        RCLCPP_INFO(setup_step_.getLogger(), "RViz fixed frame updated");
-        
-        // Make sure RViz panel is visible and updated
-        rviz_panel_->show();
-        rviz_panel_->update();
-        rviz_panel_->repaint();
-        
-        RCLCPP_INFO(setup_step_.getLogger(), "RViz panel visibility and update forced");
-      } catch (const std::exception& e) {
-        RCLCPP_ERROR(setup_step_.getLogger(), "Error updating RViz: %s", e.what());
-      }
-    } else {
-      RCLCPP_ERROR(setup_step_.getLogger(), "RViz panel not available for visualization update");
+      rviz_panel_->show();
+      rviz_panel_->update();
     }
   } else {
     RCLCPP_ERROR(setup_step_.getLogger(), "Failed to load URDF for visualization");
@@ -845,12 +830,7 @@ void RobotSelectionWidget::showRobotValidationDialog(const std::vector<std::stri
                            "Please install the required packages manually using your package manager.");
   } else if (result == QMessageBox::Yes) {
     RCLCPP_INFO(setup_step_.getLogger(), "User chose to continue with missing packages");
-    // Try to load anyway
-    if (loadDefinedFile(selected_robot_)) {
-      if (rviz_panel_) {
-        rviz_panel_->updateFixedFrame();
-      }
-    }
+    loadDefinedFile(selected_robot_);  // also updates RViz on success
   } else {
     RCLCPP_INFO(setup_step_.getLogger(), "User cancelled due to missing packages");
     // Switch back to information mode
@@ -890,16 +870,19 @@ bool RobotSelectionWidget::loadDefinedFile(const RobotConfig& robot_config)
   }
   
   try {
-    // Load the URDF file with xacro arguments
-    setup_step_.loadURDFFile(urdf_path, robot_config.xacro_args);
-    
+    // Load + introspect the URDF (runs xacro if needed), then render it.
+    URDFModel model = setup_step_.loadRobot(urdf_path, robot_config.xacro_args);
+    if (rviz_panel_) {
+      rviz_panel_->loadRobot(model);
+    }
+
     // Signal that data has been updated
     Q_EMIT dataUpdated();
-    
+
     return true;
-    
-  } catch (const std::runtime_error& e) {
-    QMessageBox::critical(this, "Error Loading URDF", 
+
+  } catch (const std::exception& e) {
+    QMessageBox::critical(this, "Error Loading URDF",
                          QString("Failed to load URDF file:\n%1\n\n"
                                 "Error details:\n%2")
                          .arg(QString::fromStdString(urdf_path.string()))

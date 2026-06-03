@@ -80,8 +80,8 @@ void StartScreenWidget::onInit()
       new setup_framework::HeaderWidget("Robot Description Setup Assistant",
                                         "These tools will assist you in creating a Robot Description Package with wide "
                                         "selection of Robotic Arm and end-effector tools. "
-                                        "The generated package can then later be used with MoveIt Setup Assistant to "
-                                        "generate a MoveIt Configuration Package.",
+                                        "The generated package can then be used directly in your ROS 2 robot "
+                                        "description workflow.",
                                         this);
   layout->addWidget(header_widget);
 

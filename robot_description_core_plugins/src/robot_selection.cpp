@@ -33,47 +33,11 @@
  *********************************************************************/
 
 /* Author: Shahwaz Khan */
-/* Modified from original code by David V. Lu */
 
 #include "robot_description_core_plugins/robot_selection.hpp"
 
+// All logic is header-inline now; this translation unit keeps the build target
+// stable and is a home for future non-inline methods.
 namespace robot_description::core_plugins
 {
-void RobotSelection::onInit()
-{
-  package_settings_ = config_data_->get<moveit_setup::PackageSettingsConfig>("package_settings");
-  srdf_config_ = config_data_->get<moveit_setup::SRDFConfig>("srdf");
-  urdf_config_ = config_data_->get<moveit_setup::URDFConfig>("urdf");
-}
-
-std::filesystem::path RobotSelection::getURDFPath()
-{
-  return urdf_config_->getURDFPath();
-}
-
-std::string RobotSelection::getXacroArgs()
-{
-  return urdf_config_->getXacroArgs();
-}
-
-std::filesystem::path RobotSelection::getPackagePath()
-{
-  return package_settings_->getPackagePath();
-}
-
-bool RobotSelection::isXacroFile()
-{
-  return urdf_config_->isXacroFile();
-}
-
-void RobotSelection::loadURDFFile(const std::filesystem::path& urdf_file_path, const std::string& xacro_args)
-{
-  urdf_config_->loadFromPath(urdf_file_path, xacro_args);
-  srdf_config_->updateRobotModel();
-}
-
-void RobotSelection::loadExisting(const std::filesystem::path& package_path)
-{
-  package_settings_->loadExisting(package_path);
-}
 }  // namespace robot_description::core_plugins
