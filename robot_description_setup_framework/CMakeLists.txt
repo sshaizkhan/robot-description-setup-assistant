@@ -36,6 +36,7 @@ qt5_wrap_cpp(MOC_FILES
 
 add_library(${PROJECT_NAME}
   src/utilities.cpp
+  src/process_utils.cpp
   src/helper_widgets.cpp
   src/rviz_panel.cpp
   ${MOC_FILES}
@@ -71,6 +72,11 @@ if(BUILD_TESTING)
   target_include_directories(test_app_context PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
   ament_target_dependencies(test_app_context rclcpp)
+
+  ament_add_gtest(test_process_utils test/test_process_utils.cpp)
+  target_include_directories(test_process_utils PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+  target_link_libraries(test_process_utils ${PROJECT_NAME})
 endif()
 
 install(DIRECTORY include/
