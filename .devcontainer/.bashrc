@@ -143,7 +143,18 @@ fi
 
 
 # Add Python3 paths
-export PATH=$PATH:~/.local/bin/
+# export PATH=$PATH:~/.local/bin/
+# ── PATH ─────────────────────────────────────────────────────────────────────
+export PATH="$HOME/.local/bin:$PATH"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
 export PYTHONPATH=$PYTHONPATH:~/install/lib/python3.7/site-packages
 export TURTLEBOT3_MODEL=waffle
 export RMW_IMPLEMENTATION=""
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
