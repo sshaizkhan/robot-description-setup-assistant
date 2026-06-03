@@ -16,7 +16,7 @@ def launch_setup(context, *args, **kwargs):
 
     if strtobool(debug):
         print("Running robot_description_setup_assistant with gdb")
-        prefix = ['terminator -x gdb -ex run --args']
+        prefix = ['gdb -ex run --args']
     else:
         print("Running robot_description_setup_assistant")
         prefix = []
