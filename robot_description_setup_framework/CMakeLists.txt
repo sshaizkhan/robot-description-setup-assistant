@@ -37,6 +37,7 @@ qt5_wrap_cpp(MOC_FILES
 add_library(${PROJECT_NAME}
   src/utilities.cpp
   src/process_utils.cpp
+  src/urdf_loader.cpp
   src/helper_widgets.cpp
   src/rviz_panel.cpp
   ${MOC_FILES}
@@ -77,6 +78,14 @@ if(BUILD_TESTING)
   target_include_directories(test_process_utils PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
   target_link_libraries(test_process_utils ${PROJECT_NAME})
+
+  ament_add_gtest(test_urdf_loader test/test_urdf_loader.cpp)
+  target_include_directories(test_urdf_loader PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+  target_compile_definitions(test_urdf_loader PRIVATE
+    FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures")
+  target_link_libraries(test_urdf_loader ${PROJECT_NAME})
+  ament_target_dependencies(test_urdf_loader urdf)
 endif()
 
 install(DIRECTORY include/
