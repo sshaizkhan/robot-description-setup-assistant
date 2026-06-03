@@ -36,67 +36,58 @@
 
 #pragma once
 
-// ROS2 includes
+#include <thread>
+#include <memory>
+
+#include <rclcpp/rclcpp.hpp>
 #include <rclcpp/logger.hpp>
 
-//  Rviz includes
 #include <rviz_common/render_panel.hpp>
 #include <rviz_common/window_manager_interface.hpp>
 #include <rviz_common/visualization_manager.hpp>
-#include <rviz_common/view_manager.hpp>
-#include <rviz_common/view_controller.hpp>
-#include <rviz_common/tool_manager.hpp>
+#include <rviz_common/display.hpp>
+#include <rviz_common/ros_integration/ros_node_abstraction_iface.hpp>
 
-// MoveIt includes
-#include <moveit/robot_state_rviz_plugin/robot_state_display.h>
-#include <moveit_setup_framework/data_warehouse.hpp>
-#include <moveit_setup_framework/data/srdf_config.hpp>
-#include <moveit_setup_framework/data/urdf_config.hpp>
+#include <robot_state_publisher/robot_state_publisher.hpp>
 
-// Qt includes
 #include <QWidget>
 #include <QCheckBox>
-#include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QApplication>
 
-// Rviz includes
+#include "robot_description_setup_framework/app_context.hpp"
+#include "robot_description_setup_framework/qt/joint_state_zero_publisher.hpp"
 
 namespace robot_description::setup_framework
 {
-static const std::string ROBOT_DESCRIPTION = "robot_description";
-static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
-
 class RVizPanel : public QWidget, public rviz_common::WindowManagerInterface
 {
   Q_OBJECT
 public:
-  RVizPanel(QWidget* parent, const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction,
-            const moveit_setup::DataWarehousePtr& config_data);
+  RVizPanel(QWidget* parent,
+            const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction,
+            const AppContextPtr& context);
 
-  // move constructor, move assignment, copy constructor, and copy assignment operators are deleted
   RVizPanel(const RVizPanel&) = delete;
   RVizPanel& operator=(const RVizPanel&) = delete;
   RVizPanel(RVizPanel&&) = delete;
   RVizPanel& operator=(RVizPanel&&) = delete;
-
   ~RVizPanel() override;
 
-  bool isReadyForInitialization()
+  bool isInitialized() const
   {
-    if (getRobotModel() != nullptr)
-      model_loaded_ = true;
-
-    return rviz_render_panel_ == nullptr && model_loaded_;
-  }
-
-  bool isRobotModelLoaded() const
-  {
-    return model_loaded_;
+    return rviz_render_panel_ != nullptr;
   }
 
   void initialize();
-  void updateFixedFrame();
+
+  /**
+   * @brief Render the given robot: publishes its URDF on /robot_description,
+   *        starts publishing zero joint states, and points the fixed frame at
+   *        the model root link.
+   */
+  void loadRobot(const URDFModel& model);
 
   QWidget* getParentWindow() override
   {
@@ -107,66 +98,27 @@ public:
                                         Qt::DockWidgetArea /*area*/ = Qt::LeftDockWidgetArea,
                                         bool /*floating*/ = true) override
   {
-    // Stub for now...just to define the WindowManagerInterface methods
     return nullptr;
   }
 
   void setStatus(const QString& /*message*/) override
   {
-    // Stub for now...just to define the WindowManagerInterface methods
   }
-
-public Q_SLOTS:
-  /**
-   * Highlight a link of the robot
-   *
-   * @param link_name name of link to highlight
-   */
-  void highlightLink(const std::string& link_name, const QColor& color)
-  {
-    Q_EMIT highlightLinkSignal(link_name, color);
-  }
-
-  /**
-   * Highlight a robot group
-   */
-  void highlightGroup(const std::string& group_name)
-  {
-    Q_EMIT highlightGroupSignal(group_name);
-  }
-
-  /**
-   * Unhighlight all links of a robot
-   */
-  void unhighlightAll()
-  {
-    Q_EMIT unhighlightAllSignal();
-  }
-
-Q_SIGNALS:
-  // Protected event handlers
-  void highlightLinkSignal(const std::string& link_name, const QColor& color);
-  void highlightGroupSignal(const std::string& group_name);
-  void unhighlightAllSignal();
-
-protected Q_SLOTS:
-  void highlightLinkEvent(const std::string& link_name, const QColor& color);
-  void highlightGroupEvent(const std::string& group_name);
-  void unhighlightAllEvent();
 
 protected:
-  moveit::core::RobotModelPtr getRobotModel() const;
-
   QWidget* parent_;
-  std::unique_ptr<rviz_common::RenderPanel> rviz_render_panel_;
-  std::unique_ptr<rviz_common::VisualizationManager> rviz_manager_;
-  moveit_rviz_plugin::RobotStateDisplay* robot_state_display_;
   rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr node_abstraction_;
   rclcpp::Node::SharedPtr node_;
+  AppContextPtr context_;
   std::shared_ptr<rclcpp::Logger> logger_;
 
-  bool model_loaded_{ false };
+  std::unique_ptr<rviz_common::RenderPanel> rviz_render_panel_;
+  std::unique_ptr<rviz_common::VisualizationManager> rviz_manager_;
+  rviz_common::Display* robot_model_display_ = nullptr;
 
-  moveit_setup::DataWarehousePtr config_data_;
+  std::shared_ptr<robot_state_publisher::RobotStatePublisher> rsp_node_;
+  std::shared_ptr<JointStateZeroPublisher> jsp_node_;
+  rclcpp::executors::SingleThreadedExecutor::SharedPtr exec_;
+  std::thread spin_thread_;
 };
 }  // namespace robot_description::setup_framework

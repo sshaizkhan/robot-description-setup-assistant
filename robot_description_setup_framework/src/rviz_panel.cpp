@@ -35,168 +35,139 @@
 /* Modified from original code by David V. Lu */
 
 #include "robot_description_setup_framework/qt/rviz_panel.hpp"
-#include <memory>
-#include <moveit/kinematics_base/kinematics_base.h>
-#include <moveit_setup_framework/data/srdf_config.hpp>
-#include <moveit_setup_framework/data/urdf_config.hpp>
-#include <qboxlayout.h>
+
 #include <rviz_rendering/render_window.hpp>
+#include <rviz_common/view_manager.hpp>
+#include <rviz_common/view_controller.hpp>
+#include <rviz_common/tool_manager.hpp>
 
 namespace robot_description::setup_framework
 {
+static const char* ROBOT_DESCRIPTION_TOPIC = "/robot_description";
+
 RVizPanel::RVizPanel(QWidget* parent,
                      const rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr& node_abstraction,
-                     const moveit_setup::DataWarehousePtr& config_data)
+                     const AppContextPtr& context)
   : QWidget(parent)
   , parent_(parent)
   , node_abstraction_(node_abstraction)
   , node_(node_abstraction_.lock()->get_raw_node())
-  , config_data_(config_data)
+  , context_(context)
 {
   logger_ = std::make_shared<rclcpp::Logger>(node_->get_logger().get_child("RVizPanel"));
 }
 
+RVizPanel::~RVizPanel()
+{
+  if (exec_)
+  {
+    exec_->cancel();
+  }
+  if (spin_thread_.joinable())
+  {
+    spin_thread_.join();
+  }
+  rviz_manager_.reset();
+  rviz_render_panel_.reset();
+}
+
 void RVizPanel::initialize()
 {
-  // Initialize rviz_render_panel_
+  // ---- RViz render panel + manager ----
   rviz_render_panel_ = std::make_unique<rviz_common::RenderPanel>();
   rviz_render_panel_->setMinimumWidth(300);
   rviz_render_panel_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   QApplication::processEvents();
   rviz_render_panel_->getRenderWindow()->initialize();
 
-  // Initialize rviz_manager_ if not already done
-  rviz_manager_ = std::make_unique<rviz_common::VisualizationManager>(rviz_render_panel_.get(), node_abstraction_, this,
-                                                                      node_->get_clock());
+  rviz_manager_ = std::make_unique<rviz_common::VisualizationManager>(rviz_render_panel_.get(), node_abstraction_,
+                                                                      this, node_->get_clock());
   rviz_render_panel_->initialize(rviz_manager_.get());
   rviz_manager_->initialize();
   rviz_manager_->startUpdate();
-  rviz_common::ToolManager* tm = rviz_manager_->getToolManager();
-  tm->addTool("rviz_default_plugins/MoveCamera");
+  rviz_manager_->getToolManager()->addTool("rviz_default_plugins/MoveCamera");
 
-  // Initialize or update robot_state_display_
-  robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
-  robot_state_display_->setName("Robot State");
-  rviz_manager_->addDisplay(robot_state_display_, true);
-
-  updateFixedFrame();
-
-  robot_state_display_->subProp("Robot State Topic")->setValue(QString::fromStdString(MOVEIT_ROBOT_STATE));
-  robot_state_display_->subProp("Robot Description")->setValue(QString::fromStdString(ROBOT_DESCRIPTION));
-  robot_state_display_->setVisible(true);
+  // ---- Stock RobotModel display, sourced from /robot_description topic ----
+  robot_model_display_ = rviz_manager_->createDisplay("rviz_default_plugins/RobotModel", "Robot", true);
+  if (robot_model_display_)
+  {
+    if (auto* p = robot_model_display_->subProp("Description Source"))
+    {
+      p->setValue("Topic");
+    }
+    if (auto* p = robot_model_display_->subProp("Description Topic"))
+    {
+      p->setValue(ROBOT_DESCRIPTION_TOPIC);
+    }
+  }
 
   rviz_common::ViewController* view = rviz_manager_->getViewManager()->getCurrent();
   view->subProp("Distance")->setValue(2.0f);
 
+  // ---- Layout ----
   QVBoxLayout* rviz_layout = new QVBoxLayout();
   rviz_layout->addWidget(rviz_render_panel_.get());
   setLayout(rviz_layout);
 
-  QBoxLayout* btn_layout = new QHBoxLayout();
+  QHBoxLayout* btn_layout = new QHBoxLayout();
   rviz_layout->addLayout(btn_layout);
 
-  QCheckBox* btn;
-  btn_layout->addWidget(btn = new QCheckBox("visual"), 0);
-  btn->setChecked(true);
-  connect(btn, &QCheckBox::toggled,
-          [this](bool checked) { robot_state_display_->subProp("Visual Enabled")->setValue(checked); });
+  QCheckBox* visual = new QCheckBox("visual");
+  visual->setChecked(true);
+  btn_layout->addWidget(visual);
+  connect(visual, &QCheckBox::toggled, [this](bool checked) {
+    if (robot_model_display_)
+    {
+      if (auto* p = robot_model_display_->subProp("Visual Enabled"))
+      {
+        p->setValue(checked);
+      }
+    }
+  });
 
-  btn_layout->addWidget(btn = new QCheckBox("collision"), 1);
-  btn->setChecked(false);
-  connect(btn, &QCheckBox::toggled,
-          [this](bool checked) { robot_state_display_->subProp("Collision Enabled")->setValue(checked); });
+  QCheckBox* collision = new QCheckBox("collision");
+  collision->setChecked(false);
+  btn_layout->addWidget(collision);
+  connect(collision, &QCheckBox::toggled, [this](bool checked) {
+    if (robot_model_display_)
+    {
+      if (auto* p = robot_model_display_->subProp("Collision Enabled"))
+      {
+        p->setValue(checked);
+      }
+    }
+  });
+
+  // ---- Embedded RSP + JSP nodes on a background executor ----
+  rclcpp::NodeOptions rsp_opts;
+  rsp_opts.append_parameter_override("robot_description", std::string("<robot name=\"empty\"/>"));
+  rsp_node_ = std::make_shared<robot_state_publisher::RobotStatePublisher>(rsp_opts);
+  jsp_node_ = std::make_shared<JointStateZeroPublisher>();
+
+  exec_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  exec_->add_node(rsp_node_);
+  exec_->add_node(jsp_node_);
+  spin_thread_ = std::thread([this]() { exec_->spin(); });
 }
 
-RVizPanel::~RVizPanel()
+void RVizPanel::loadRobot(const URDFModel& model)
 {
-  rviz_manager_.reset();
-  rviz_render_panel_.reset();
-}
-
-moveit::core::RobotModelPtr RVizPanel::getRobotModel() const
-{
-  std::shared_ptr<moveit_setup::URDFConfig> urdf = config_data_->get<moveit_setup::URDFConfig>("urdf");
-
-  if (!urdf->isConfigured())
+  if (!rsp_node_ || !jsp_node_)
   {
-    return nullptr;
-  }
-
-  std::shared_ptr<moveit_setup::SRDFConfig> srdf = config_data_->get<moveit_setup::SRDFConfig>("srdf");
-
-  return srdf->getRobotModel();
-}
-
-void RVizPanel::updateFixedFrame()
-{
-  moveit::core::RobotModelPtr rm = getRobotModel();
-  if (rm && rviz_manager_ && robot_state_display_)
-  {
-    std::string frame = rm->getModelFrame();
-    rviz_manager_->setFixedFrame(QString::fromStdString(frame));
-    robot_state_display_->reset();
-    robot_state_display_->setVisible(true);
-  }
-}
-
-void RVizPanel::highlightLinkEvent(const std::string& link_name, const QColor& color)
-{
-  moveit::core::RobotModelPtr rm = getRobotModel();
-  if (!rm)
-    return;
-  const moveit::core::LinkModel* lm = rm->getLinkModel(link_name);
-  if (!lm->getShapes().empty())  // skip links with no geometry
-    robot_state_display_->setLinkColor(link_name, color);
-}
-
-void RVizPanel::highlightGroupEvent(const std::string& group_name)
-{
-  moveit::core::RobotModelPtr rm = getRobotModel();
-  if (!rm)
-    return;
-  // Highlight the selected planning group by looping through the links
-  if (!rm->hasJointModelGroup(group_name))
-    return;
-
-  const moveit::core::JointModelGroup* joint_model_group = rm->getJointModelGroup(group_name);
-  if (joint_model_group)
-  {
-    const std::vector<const moveit::core::LinkModel*>& link_models = joint_model_group->getLinkModels();
-    // Iterate through the links
-    for (std::vector<const moveit::core::LinkModel*>::const_iterator link_it = link_models.begin();
-         link_it < link_models.end(); ++link_it)
-      highlightLink((*link_it)->getName(), QColor(255, 0, 0));
-  }
-}
-
-void RVizPanel::unhighlightAllEvent()
-{
-  moveit::core::RobotModelPtr rm = getRobotModel();
-  if (!rm)
-    return;
-  // Get the names of the all links robot
-  const std::vector<std::string>& links = rm->getLinkModelNamesWithCollisionGeometry();
-
-  // Quit if no links found
-  if (links.empty())
-  {
+    RCLCPP_ERROR(*logger_, "loadRobot called before initialize()");
     return;
   }
 
-  // check if rviz is ready
-  if (!rviz_manager_ || !robot_state_display_)
+  rsp_node_->set_parameter(rclcpp::Parameter("robot_description", model.xml));
+  jsp_node_->setJoints(model.movable_joints);
+
+  if (rviz_manager_ && !model.root_link.empty())
   {
-    return;
+    rviz_manager_->setFixedFrame(QString::fromStdString(model.root_link));
   }
-
-  // Iterate through the links
-  for (std::vector<std::string>::const_iterator link_it = links.begin(); link_it < links.end(); ++link_it)
+  if (robot_model_display_)
   {
-    if ((*link_it).empty())
-      continue;
-
-    robot_state_display_->unsetLinkColor(*link_it);
+    robot_model_display_->setEnabled(true);
   }
 }
-
 }  // namespace robot_description::setup_framework
