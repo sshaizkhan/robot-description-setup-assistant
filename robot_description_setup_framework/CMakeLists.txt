@@ -11,10 +11,8 @@ robot_description_package()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(ament_index_cpp REQUIRED)
-find_package(moveit_ros_planning REQUIRED)
-find_package(moveit_ros_visualization REQUIRED)
-find_package(moveit_setup_framework REQUIRED)
-find_package(moveit_core REQUIRED)
+find_package(robot_state_publisher REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -33,7 +31,6 @@ qt5_wrap_cpp(MOC_FILES
   include/robot_description_setup_framework/qt/helper_widgets.hpp
   include/robot_description_setup_framework/qt/rviz_panel.hpp
   include/robot_description_setup_framework/qt/setup_step_widget.hpp
-  include/robot_description_setup_framework/qt/joint_state_zero_publisher.hpp
 )
 
 add_library(${PROJECT_NAME}
@@ -51,10 +48,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 ament_target_dependencies(${PROJECT_NAME}
   ament_index_cpp
-  moveit_core
-  moveit_ros_planning
-  moveit_ros_visualization
-  moveit_setup_framework
+  robot_state_publisher
+  tf2_ros
   pluginlib
   Qt5Core
   Qt5Widgets
@@ -115,10 +110,8 @@ install(TARGETS ${PROJECT_NAME}
 ament_export_include_directories(include)
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(Qt5Core)
-ament_export_dependencies(moveit_core)
-ament_export_dependencies(moveit_ros_planning)
-ament_export_dependencies(moveit_ros_visualization)
-ament_export_dependencies(moveit_setup_framework)
+ament_export_dependencies(robot_state_publisher)
+ament_export_dependencies(tf2_ros)
 ament_export_dependencies(Qt5Widgets)
 ament_export_dependencies(rviz_common)
 ament_export_dependencies(rviz_rendering)

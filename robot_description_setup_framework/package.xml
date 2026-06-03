@@ -11,7 +11,8 @@
 
   <depend>ament_index_cpp</depend>
   <depend>robot_description_common</depend>
-  <depend>moveit_core</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>tf2_ros</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>rviz_common</depend>
