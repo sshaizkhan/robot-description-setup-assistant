@@ -140,7 +140,8 @@ void RVizPanel::initialize()
 
   // ---- Embedded RSP + JSP nodes on a background executor ----
   rclcpp::NodeOptions rsp_opts;
-  rsp_opts.append_parameter_override("robot_description", std::string("<robot name=\"empty\"/>"));
+  rsp_opts.append_parameter_override(
+      "robot_description", std::string("<robot name=\"empty\"><link name=\"base_link\"/></robot>"));
   rsp_node_ = std::make_shared<robot_state_publisher::RobotStatePublisher>(rsp_opts);
   jsp_node_ = std::make_shared<JointStateZeroPublisher>();
 
