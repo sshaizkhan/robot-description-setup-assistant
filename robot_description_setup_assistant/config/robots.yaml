@@ -1,0 +1,597 @@
+config_info:
+  version: "2.0"
+  description: "Robot Configurations with Advanced Features"
+  last_updated: "2025-05-26"
+
+categories:
+  universal_robots:
+    display_name: "Universal Robots"
+    description: "Collaborative industrial robots from Universal Robots"
+    manufacturer: "Universal Robots"
+    website: "https://www.universal-robots.com"
+    
+  franka:
+    display_name: "Franka Emika"
+    description: "Research and sensitive manipulation robots"
+    manufacturer: "Franka Emika"
+    website: "https://www.franka.de"
+  
+  kuka:
+    display_name: "KUKA Robots"
+    description: "Industrial robots for various applications"
+    manufacturer: "KUKA Robotics"
+    website: "https://www.kuka.com"
+
+robots:
+  ur3:
+    display_name: "UR3"
+    description: "Compact 6-axis collaborative robot ideal for light assembly tasks"
+    image_path: "resources/graphics/universal_robots/ur3.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3_robot ur_type:=ur3"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 3.0
+      reach_mm: 500
+      weight_kg: 11.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "small", "light_payload", "compact"]
+
+  ur3e:
+    display_name: "UR3e"
+    description: "Compact 6-axis collaborative robot ideal for light assembly tasks"
+    image_path: "resources/graphics/universal_robots/ur3e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3e_robot ur_type:=ur3e"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 3.0
+      reach_mm: 500
+      weight_kg: 11.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "small", "light_payload", "compact"]
+    
+  ur5:
+    display_name: "UR5"
+    description: "Medium payload collaborative robot for versatile automation"
+    image_path: "resources/graphics/universal_robots/ur5.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur5_robot ur_type:=ur5"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 5.0
+      reach_mm: 850
+      weight_kg: 18.4
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    tags: ["collaborative", "medium", "versatile", "popular"]
+
+  ur5e:
+      display_name: "UR5e"
+      description: "Medium payload collaborative robot for versatile automation"
+      image_path: "resources/graphics/universal_robots/ur5e.png"
+      urdf_package: "ur_description"
+      urdf_path: "urdf/ur.urdf.xacro"
+      xacro_args: "name:=ur5e_robot ur_type:=ur5e"
+      category: "universal_robots"
+      
+      specifications:
+        degrees_of_freedom: 6
+        payload_kg: 5.0
+        reach_mm: 850
+        weight_kg: 18.4
+        repeatability_mm: 0.1
+        max_speed_ms: 1.0
+        mounting: ["floor", "ceiling", "wall"]
+        safety_certified: true
+        collaborative: true
+      
+      required_packages:
+        - "ur_description"
+        - "ur_msgs"
+      
+      tags: ["collaborative", "medium", "versatile", "popular"]
+
+  ur10:
+    display_name: "UR10"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur10.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur10_robot ur_type:=ur10"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 10.0
+      reach_mm: 1300
+      weight_kg: 28.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+  
+  ur10e:
+    display_name: "UR10e"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur10e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur10e_robot ur_type:=ur10e"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 10.0
+      reach_mm: 1300
+      weight_kg: 28.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+  
+  ur16e:
+    display_name: "UR16e"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur16e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur16e_robot ur_type:=ur16e"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 16.0
+      reach_mm: 900
+      weight_kg: 33.5
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+  
+  ur20:
+    display_name: "UR20"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur20.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur20_robot ur_type:=ur20"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 20.0
+      reach_mm: 1750
+      weight_kg: 60.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+  
+  ur30:
+    display_name: "UR30"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur30.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur30_robot ur_type:=ur30"
+    category: "universal_robots"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 30.0
+      reach_mm: 2000
+      weight_kg: 80.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+  
+  kr6_r700_sixx:
+    display_name: "KUKA KR6 R700 Sixx"
+    description: "Compact industrial robot with high precision and speed"
+    image_path: "resources/graphics/kuka/kr6_r700_sixx.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr6_r700_sixx kuka_type:=kr6_r700_sixx"
+    category: "kuka"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 6.0
+      reach_mm: 900
+      weight_kg: 20.0
+      repeatability_mm: 0.05
+      max_speed_ms: 2.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: false
+    required_packages:
+      - "kuka_robot_descriptions"
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    tags: ["industrial", "compact", "high_precision", "fast"]
+  
+  kr6_r900_sixx:
+    display_name: "KUKA KR6 R900 Sixx"
+    description: "Compact industrial robot with high precision and speed"
+    image_path: "resources/graphics/kuka/kr6_r900_sixx.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr6_r900_sixx kuka_type:=kr6_r900_sixx"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 6.0
+      reach_mm: 1100
+      weight_kg: 20.0
+      repeatability_mm: 0.05
+      max_speed_ms: 2.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: false
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["industrial", "compact", "high_precision", "fast"]
+  
+  kr10_r1100_2:
+    display_name: "KUKA KR10 R1100-2"
+    description: "High payload industrial robot for heavy-duty tasks"
+    image_path: "resources/graphics/kuka/kr10_r1100_2.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr10_r1100_2 kuka_type:=kr10_r1100_2"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 10.0
+      reach_mm: 1100
+      weight_kg: 30.0
+      repeatability_mm: 0.05
+      max_speed_ms: 1.5
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: false
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["industrial", "heavy_payload", "high_precision", "fast"]
+  
+  kr16_r2010_2:
+    display_name: "KUKA KR16 R2010-2"
+    description: "High payload industrial robot for heavy-duty tasks"
+    image_path: "resources/graphics/kuka/kr16_r2010_2.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr16_r2010_2 kuka_type:=kr16_r2010_2"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 16.0
+      reach_mm: 1600
+      weight_kg: 40.0
+      repeatability_mm: 0.05
+      max_speed_ms: 1.5
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: false
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["industrial", "heavy_payload", "high_precision", "fast"]
+  
+  kr210_r2700_2:
+    display_name: "KUKA KR210 R2700-2"
+    description: "High payload industrial robot for heavy-duty tasks"
+    image_path: "resources/graphics/kuka/kr210_r2700_2.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr210_r2700_2 kuka_type:=kr210_r2700_2"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 210.0
+      reach_mm: 2700
+      weight_kg: 70.0
+      repeatability_mm: 0.05
+      max_speed_ms: 1.5
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: false
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["industrial", "heavy_payload", "high_precision", "fast"]
+  
+  kr210_r3100_2:
+    display_name: "KUKA KR210 R3100-2"
+    description: "High payload industrial robot for heavy-duty tasks"
+    image_path: "resources/graphics/kuka/kr210_r3100_2.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr210_r3100_2 kuka_type:=kr210_r3100_2"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 560.0
+      reach_mm: 3100
+      weight_kg: 100.0
+      repeatability_mm: 0.05
+      max_speed_ms: 1.5
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: false
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["industrial", "heavy_payload", "high_precision", "fast"]
+  
+  kr560_r3100_2:
+    display_name: "KUKA KR560 R3100-2"
+    description: "High payload industrial robot for heavy-duty tasks"
+    image_path: "resources/graphics/kuka/kr210_r3100_2.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=kr560_r3100_2 kuka_type:=kr560_r3100_2"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 560.0
+      reach_mm: 3100
+      weight_kg: 100.0
+      repeatability_mm: 0.05
+      max_speed_ms: 1.5
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: false
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["industrial", "heavy_payload", "high_precision", "fast"]
+  lbr_iisy3_r760:
+    display_name: "KUKA LBR IISY3 R760"
+    description: "Lightweight collaborative robot with advanced sensing capabilities"
+    image_path: "resources/graphics/kuka/lbr_iisy3_r760.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=lbr_iisy3_r760 kuka_type:=lbr_iisy3_r760"
+    category: "kuka"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 3.0
+      reach_mm: 800
+      weight_kg: 15.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "kuka_robot_descriptions"
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    tags: ["collaborative", "lightweight", "advanced_sensing", "flexible"]
+  
+  lbr_iisy11_r1300:
+    display_name: "KUKA LBR IISY11 R1300"
+    description: "Lightweight collaborative robot with advanced sensing capabilities"
+    image_path: "resources/graphics/kuka/lbr_iisy11_r1300.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=lbr_iisy11_r1300 kuka_type:=lbr_iisy11_r1300"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 11.0
+      reach_mm: 1300
+      weight_kg: 20.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["collaborative", "lightweight", "advanced_sensing", "flexible"]
+  
+  lbr_iisy15_r930:
+    display_name: "KUKA LBR IISY15 R930"
+    description: "Lightweight collaborative robot with advanced sensing capabilities"
+    image_path: "resources/graphics/kuka/lbr_iisy15_r930.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=lbr_iisy15_r930 kuka_type:=lbr_iisy15_r930"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 15.0
+      reach_mm: 930
+      weight_kg: 25.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["collaborative", "lightweight", "advanced_sensing", "flexible"]
+  
+  lbr_iiwa14_r820:
+    display_name: "KUKA LBR IIWA 14 R820"
+    description: "Collaborative robot with high precision and flexibility"
+    image_path: "resources/graphics/kuka/lbr_iiwa14_r820.png"
+    urdf_package: "kuka_robot_descriptions"
+    urdf_path: "urdf/kuka.urdf.xacro"
+    xacro_args: "name:=lbr_iiwa14_r820 kuka_type:=lbr_iiwa14_r820"
+    category: "kuka"
+    
+    specifications:
+      degrees_of_freedom: 7
+      payload_kg: 14.0
+      reach_mm: 820
+      weight_kg: 20.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    
+    required_packages:
+      - "kuka_robot_descriptions"
+    
+    optional_packages:
+      - "kuka_moveit_config"
+      - "kuka_gazebo"
+    
+    tags: ["collaborative", "high_precision", "flexible", "advanced_sensing"]
+

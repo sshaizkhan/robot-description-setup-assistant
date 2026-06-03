@@ -93,6 +93,14 @@ public:
     return *logger_;
   }
 
+  rclcpp::Node::SharedPtr getParentNode() const {
+    return parent_node_;
+  }
+
+  moveit_setup::DataWarehousePtr getConfigData() const {
+    return config_data_;
+  }
+
 protected:
   moveit_setup::DataWarehousePtr config_data_;
   rclcpp::Node::SharedPtr parent_node_;

@@ -63,8 +63,7 @@ r
 #.clang generated cache
 .cache/
 
-# any .vscode directory
-.vscode/
-
 # ignore any .clangd file
 *.clangd
+
+build.sh

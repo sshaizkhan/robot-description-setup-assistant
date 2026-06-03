@@ -75,9 +75,9 @@ void RVizPanel::initialize()
   tm->addTool("rviz_default_plugins/MoveCamera");
 
   // Initialize or update robot_state_display_
-  robot_state_display_ = std::make_unique<moveit_rviz_plugin::RobotStateDisplay>();
+  robot_state_display_ = new moveit_rviz_plugin::RobotStateDisplay();
   robot_state_display_->setName("Robot State");
-  rviz_manager_->addDisplay(robot_state_display_.get(), true);
+  rviz_manager_->addDisplay(robot_state_display_, true);
 
   updateFixedFrame();
 
@@ -111,7 +111,6 @@ RVizPanel::~RVizPanel()
 {
   rviz_manager_.reset();
   rviz_render_panel_.reset();
-  robot_state_display_.reset();
 }
 
 moveit::core::RobotModelPtr RVizPanel::getRobotModel() const

@@ -74,6 +74,7 @@ int main(int argc, char** argv)
   robot_description::setup_assistant::SetupRobotDescriptionAssistantWidget setup_assistant_widget(node, nullptr, vm);
   setup_assistant_widget.setMinimumWidth(1290);
   setup_assistant_widget.setMinimumHeight(600);
+  setup_assistant_widget.resize(1400, 600);
 
   setup_assistant_widget.show();
 

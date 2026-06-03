@@ -3,6 +3,10 @@
       "/home/bot/rds_ws/install/lib/python3.7/site-packages",
       "/opt/ros/humble/install/lib/python3.7/site-packages"
     ],
+    "cursorpyright.analysis.extraPaths": [
+      "/home/bot/rds_ws/install/lib/python3.7/site-packages",
+      "/opt/ros/humble/install/lib/python3.7/site-packages"
+    ],
     "[json]": {
       "editor.formatOnSave": false,
       "editor.formatOnPaste": false
@@ -11,6 +15,8 @@
       "editor.formatOnSave": false,
       "editor.formatOnPaste": false
     },
+    "terminal.integrated.mouseWheelScrollSensitivity": 3,
+    "terminal.integrated.gpuAcceleration": "auto",
     "[python]": {
       "editor.formatOnSave": false
     },
@@ -97,6 +103,36 @@
       "typeindex": "cpp",
       "typeinfo": "cpp",
       "valarray": "cpp"
+    },
+    "files.exclude": {
+      "**/.agents": true,
+      "**/.cache": true,
+      "**/.colcon": true,
+      "**/.config": true,
+      "**/.claude.json": true,
+      "**/.cursor-server": true,
+      "**/.vscode-server": true,
+      "**/.gnupg": true,
+      "**/.local": true,
+      "**/.npm": true,
+      "**/.claude-mem": true,
+      "**/.npmrc": true,
+      "**/.git": true,
+      "**/.nvm": true,
+      "**/.bun": true,
+      "**/.svn": true,
+      "**/.hg": true,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true,
+      "**/.sudo_as_admin_successful": true,
+      "**/.profile": true,
+      "**/.gitconfig": true,
+      "**/.bash_aliases": true,
+      "**/.bashrc": false,
+      "**/.bash_profile": true,
+      "**/.bash_history": true,
+      "**/.bash_logout": true,
+      "**/skills-lock.json": true,
     },
     "git-graph.maxDepthOfRepoSearch": 50,
     "terminal.integrated.showExitAlert": false,

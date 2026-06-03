@@ -18,6 +18,7 @@
   <depend>rviz_rendering</depend>
   <depend>srdfdom</depend>
   <depend>urdf</depend>
+  <depend>yaml-cpp</depend>  <!-- For YAML configuration parsing -->
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_clang_format</test_depend>
