@@ -37,6 +37,7 @@
 #include "robot_description_setup_assistant/setup_assistant_widget.hpp"
 #include <memory>
 #include <robot_description_setup_framework/qt/setup_step_widget.hpp>
+#include <robot_description_setup_framework/urdf_loader.hpp>
 
 namespace robot_description::setup_assistant
 {
@@ -142,6 +143,23 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   // Initialize RViz once; the RobotModel display renders from the
   // /robot_description topic, so no preloaded model is required.
   rviz_panel_->initialize();
+
+  // If a URDF path was supplied on the command line, load and display it now.
+  if (config_data_->preload_urdf_path)
+  {
+    try
+    {
+      robot_description::URDFModel model =
+          robot_description::URDFLoader::load(*config_data_->preload_urdf_path, "");
+      config_data_->current_urdf = model;
+      rviz_panel_->loadRobot(model);
+    }
+    catch (const std::exception& e)
+    {
+      RCLCPP_ERROR(node_->get_logger(), "Failed to preload URDF '%s': %s",
+                   config_data_->preload_urdf_path->c_str(), e.what());
+    }
+  }
 
   // Show screen before message
   QApplication::processEvents();

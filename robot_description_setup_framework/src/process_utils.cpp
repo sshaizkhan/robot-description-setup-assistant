@@ -36,25 +36,13 @@
 #include "robot_description_setup_framework/process_utils.hpp"
 
 #include <array>
+#include <cerrno>
 #include <poll.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 namespace robot_description
 {
-namespace
-{
-void drain(int fd, std::string& sink)
-{
-  std::array<char, 4096> buf;
-  ssize_t n;
-  while ((n = ::read(fd, buf.data(), buf.size())) > 0)
-  {
-    sink.append(buf.data(), static_cast<size_t>(n));
-  }
-}
-}  // namespace
-
 int runProcess(const std::vector<std::string>& argv, std::string& out, std::string& err)
 {
   out.clear();
@@ -66,14 +54,24 @@ int runProcess(const std::vector<std::string>& argv, std::string& out, std::stri
 
   int out_pipe[2];
   int err_pipe[2];
-  if (::pipe(out_pipe) != 0 || ::pipe(err_pipe) != 0)
+  if (::pipe(out_pipe) != 0)
   {
+    return -1;
+  }
+  if (::pipe(err_pipe) != 0)
+  {
+    ::close(out_pipe[0]);
+    ::close(out_pipe[1]);
     return -1;
   }
 
   pid_t pid = ::fork();
   if (pid < 0)
   {
+    ::close(out_pipe[0]);
+    ::close(out_pipe[1]);
+    ::close(err_pipe[0]);
+    ::close(err_pipe[1]);
     return -1;
   }
 
@@ -111,40 +109,42 @@ int runProcess(const std::vector<std::string>& argv, std::string& out, std::stri
     int ready = ::poll(fds.data(), fds.size(), -1);
     if (ready < 0)
     {
+      if (errno == EINTR)
+      {
+        continue;
+      }
       break;
     }
     for (auto& pfd : fds)
     {
-      if (pfd.fd < 0)
+      if (pfd.fd < 0 || pfd.revents == 0)
       {
         continue;
       }
-      if (pfd.revents & (POLLIN | POLLHUP))
+      // Any readiness (POLLIN/POLLHUP/POLLERR/POLLNVAL): attempt a read, and
+      // close the fd on EOF or error so open_fds always converges to 0 — never
+      // spin on a pure-error fd.
+      std::array<char, 4096> buf;
+      ssize_t n = ::read(pfd.fd, buf.data(), buf.size());
+      if (n > 0)
       {
-        std::array<char, 4096> buf;
-        ssize_t n = ::read(pfd.fd, buf.data(), buf.size());
-        if (n > 0)
-        {
-          (pfd.fd == out_pipe[0] ? out : err).append(buf.data(), static_cast<size_t>(n));
-        }
-        else  // EOF or error
-        {
-          ::close(pfd.fd);
-          pfd.fd = -1;
-          --open_fds;
-        }
+        (pfd.fd == out_pipe[0] ? out : err).append(buf.data(), static_cast<size_t>(n));
+      }
+      else  // EOF (0) or error (<0)
+      {
+        ::close(pfd.fd);
+        pfd.fd = -1;
+        --open_fds;
       }
     }
   }
-  // flush any straggler bytes
+  // Close any fds still open if poll() itself failed and broke the loop.
   if (fds[0].fd >= 0)
   {
-    drain(out_pipe[0], out);
     ::close(out_pipe[0]);
   }
   if (fds[1].fd >= 0)
   {
-    drain(err_pipe[0], err);
     ::close(err_pipe[0]);
   }
 

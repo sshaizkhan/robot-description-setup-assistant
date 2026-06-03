@@ -36,6 +36,7 @@
 #include "robot_description_setup_framework/urdf_loader.hpp"
 #include "robot_description_setup_framework/process_utils.hpp"
 
+#include <cctype>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -43,6 +44,53 @@
 
 namespace robot_description
 {
+namespace
+{
+// Split a xacro argument string into tokens, honoring single and double quotes
+// so values containing spaces (e.g. initial_positions:="0 0 1.57") stay intact.
+std::vector<std::string> tokenizeArgs(const std::string& args)
+{
+  std::vector<std::string> tokens;
+  std::string cur;
+  bool in_token = false;
+  char quote = 0;
+  for (char c : args)
+  {
+    if (quote)
+    {
+      if (c == quote)
+        quote = 0;
+      else
+        cur.push_back(c);
+    }
+    else if (c == '"' || c == '\'')
+    {
+      quote = c;
+      in_token = true;
+    }
+    else if (std::isspace(static_cast<unsigned char>(c)))
+    {
+      if (in_token)
+      {
+        tokens.push_back(cur);
+        cur.clear();
+        in_token = false;
+      }
+    }
+    else
+    {
+      cur.push_back(c);
+      in_token = true;
+    }
+  }
+  if (in_token)
+  {
+    tokens.push_back(cur);
+  }
+  return tokens;
+}
+}  // namespace
+
 bool URDFLoader::isXacro(const std::filesystem::path& p)
 {
   return p.extension() == ".xacro";
@@ -63,12 +111,10 @@ std::string URDFLoader::readFile(const std::filesystem::path& p)
 std::string URDFLoader::runXacro(const std::filesystem::path& p, const std::string& args)
 {
   std::vector<std::string> argv{ "xacro", p.string() };
-  // split args on whitespace ("name:=x ur_type:=ur5")
-  std::istringstream iss(args);
-  std::string tok;
-  while (iss >> tok)
+  // split args, honoring quotes ("name:=x ur_type:=ur5", or values with spaces)
+  for (std::string& tok : tokenizeArgs(args))
   {
-    argv.push_back(tok);
+    argv.push_back(std::move(tok));
   }
 
   std::string out, err;
@@ -97,7 +143,9 @@ URDFModel URDFLoader::parse(const std::string& xml)
   }
   for (const auto& [name, joint] : model->joints_)
   {
-    if (joint && joint->type != urdf::Joint::FIXED && joint->type != urdf::Joint::UNKNOWN)
+    // Skip FIXED/UNKNOWN, and mimic joints (their value is derived from the
+    // joint they mimic, not an independent DOF to publish).
+    if (joint && joint->type != urdf::Joint::FIXED && joint->type != urdf::Joint::UNKNOWN && !joint->mimic)
     {
       out.movable_joints.push_back(name);
     }

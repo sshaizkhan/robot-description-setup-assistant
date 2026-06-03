@@ -16,6 +16,9 @@
   <depend>rclcpp</depend>
   <depend>rviz_common</depend>
   <depend>rviz_rendering</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>tf2_ros</depend>
+  <depend>sensor_msgs</depend>
   <depend>urdf</depend>
   <depend>yaml-cpp</depend>  <!-- For YAML configuration parsing -->
 

@@ -28,6 +28,14 @@ TEST(URDFLoader, MissingFileThrows)
   EXPECT_THROW(URDFLoader::load(fixture("nope.urdf.xacro"), ""), std::runtime_error);
 }
 
+// A quoted xacro arg value containing a space must reach xacro as a single
+// token (regression guard for the whitespace-split tokenizer).
+TEST(URDFLoader, HandlesQuotedXacroArgWithSpace)
+{
+  URDFModel m = URDFLoader::load(fixture("simple_arm.urdf.xacro"), "name:=\"my arm\"");
+  EXPECT_EQ(m.robot_name, "my arm");
+}
+
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

@@ -59,13 +59,13 @@ RVizPanel::RVizPanel(QWidget* parent,
 
 RVizPanel::~RVizPanel()
 {
+  if (spin_timer_)
+  {
+    spin_timer_->stop();
+  }
   if (exec_)
   {
     exec_->cancel();
-  }
-  if (spin_thread_.joinable())
-  {
-    spin_thread_.join();
   }
   rviz_manager_.reset();
   rviz_render_panel_.reset();
@@ -95,9 +95,19 @@ void RVizPanel::initialize()
     {
       p->setValue("Topic");
     }
+    else
+    {
+      RCLCPP_WARN(*logger_, "RobotModel display has no 'Description Source' property; the robot may "
+                            "not render. Check the rviz_default_plugins version.");
+    }
     if (auto* p = robot_model_display_->subProp("Description Topic"))
     {
       p->setValue(ROBOT_DESCRIPTION_TOPIC);
+    }
+    else
+    {
+      RCLCPP_WARN(*logger_, "RobotModel display has no 'Description Topic' property; the robot may "
+                            "not render. Check the rviz_default_plugins version.");
     }
   }
 
@@ -148,7 +158,13 @@ void RVizPanel::initialize()
   exec_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
   exec_->add_node(rsp_node_);
   exec_->add_node(jsp_node_);
-  spin_thread_ = std::thread([this]() { exec_->spin(); });
+
+  // Spin the embedded RSP/JSP nodes on the Qt main thread via a QTimer, so their
+  // executor callbacks never run concurrently with loadRobot()'s set_parameter()
+  // (which invokes RSP's parameter callback synchronously on this same thread).
+  spin_timer_ = new QTimer(this);
+  connect(spin_timer_, &QTimer::timeout, [this]() { exec_->spin_some(); });
+  spin_timer_->start(33);  // ~30 Hz
 }
 
 void RVizPanel::loadRobot(const URDFModel& model)
@@ -169,6 +185,9 @@ void RVizPanel::loadRobot(const URDFModel& model)
   if (robot_model_display_)
   {
     robot_model_display_->setEnabled(true);
+    // Force the display to re-read the (republished) description so switching
+    // robots always refreshes, regardless of latched-topic timing.
+    robot_model_display_->reset();
   }
 }
 }  // namespace robot_description::setup_framework

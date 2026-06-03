@@ -14,6 +14,9 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 
 find_package(robot_description_setup_framework REQUIRED)
+find_package(robot_state_publisher REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -62,6 +65,9 @@ ament_target_dependencies(
   rviz_common
   rviz_rendering
   robot_description_setup_framework
+  robot_state_publisher
+  tf2_ros
+  sensor_msgs
   yaml-cpp
 )
 

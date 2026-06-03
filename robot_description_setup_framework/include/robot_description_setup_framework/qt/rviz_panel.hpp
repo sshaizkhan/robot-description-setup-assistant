@@ -55,6 +55,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QApplication>
+#include <QTimer>
 
 #include "robot_description_setup_framework/app_context.hpp"
 #include "robot_description_setup_framework/qt/joint_state_zero_publisher.hpp"
@@ -119,6 +120,6 @@ protected:
   std::shared_ptr<robot_state_publisher::RobotStatePublisher> rsp_node_;
   std::shared_ptr<JointStateZeroPublisher> jsp_node_;
   rclcpp::executors::SingleThreadedExecutor::SharedPtr exec_;
-  std::thread spin_thread_;
+  QTimer* spin_timer_ = nullptr;  // spins exec_ on the Qt main thread
 };
 }  // namespace robot_description::setup_framework
