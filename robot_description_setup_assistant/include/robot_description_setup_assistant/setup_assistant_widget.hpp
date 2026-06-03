@@ -60,6 +60,7 @@
 class QSplitter;
 
 #include <robot_description_setup_framework/utilities.hpp>
+#include <robot_description_setup_framework/app_context.hpp>
 #include <robot_description_setup_framework/qt/rviz_panel.hpp>
 #include <robot_description_setup_framework/qt/setup_step_widget.hpp>
 
@@ -114,7 +115,7 @@ private:
   pluginlib::ClassLoader<robot_description::setup_framework::SetupStepWidget> widget_loader_;
   std::vector<std::shared_ptr<setup_framework::SetupStepWidget>> steps_;
 
-  moveit_setup::DataWarehousePtr config_data_;
+  robot_description::AppContextPtr config_data_;
 
   /// Contains all the configuration data for the setup assistant
   // DataWarehousePtr config_data_;

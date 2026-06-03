@@ -49,7 +49,7 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   , node_(node_abstraction_.lock()->get_raw_node())
   , widget_loader_("robot_description_setup_framework", "robot_description::setup_framework::SetupStepWidget")
 {
-  config_data_ = std::make_shared<moveit_setup::DataWarehouse>(node_);
+  config_data_ = std::make_shared<robot_description::AppContext>(node_);
 
   if (args.count("debug"))
     config_data_->debug = true;
@@ -100,11 +100,12 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   // Pass command arg values to start screen and show appropriate part of screen
   if (args.count("urdf_path"))
   {
-    config_data_->preloadWithURDFPath(args["urdf_path"].as<std::filesystem::path>());
+    config_data_->preload_urdf_path = args["urdf_path"].as<std::filesystem::path>();
   }
   if (args.count("config_pkg"))
   {
-    config_data_->preloadWithFullConfig(args["config_pkg"].as<std::string>());
+    RCLCPP_INFO(node_->get_logger(), "Existing-config preload not yet supported: %s",
+                args["config_pkg"].as<std::string>().c_str());
   }
 
   // nav_name_list_ = { "Home", "Arm Selection", "End-Effector Tool", "Base (Optional)", "Author Info" };
@@ -138,6 +139,10 @@ SetupRobotDescriptionAssistantWidget::SetupRobotDescriptionAssistantWidget(
   // Title
   this->setWindowTitle("Robot Description Setup Assistant");
 
+  // Initialize RViz once; the RobotModel display renders from the
+  // /robot_description topic, so no preloaded model is required.
+  rviz_panel_->initialize();
+
   // Show screen before message
   QApplication::processEvents();
 }
@@ -156,19 +161,6 @@ void SetupRobotDescriptionAssistantWidget::onDataUpdate()
   {
     bool ready = steps_[index]->isReady();
     navs_view_->setEnabled(index, ready);
-  }
-
-  if (rviz_panel_->isReadyForInitialization())
-  {
-    RCLCPP_INFO(node_->get_logger(), "RViz panel is ready for initialization");
-    rviz_panel_->initialize();
-    // Replace logo with Rviz screen
-    // rviz_panel_->show();
-  }
-  else if (rviz_panel_->isRobotModelLoaded())
-  {
-    RCLCPP_INFO(node_->get_logger(), "Robot model is loaded. Updating fixed frame if new model is loaded.");
-    rviz_panel_->updateFixedFrame();
   }
 }
 
@@ -200,9 +192,6 @@ void SetupRobotDescriptionAssistantWidget::moveToScreen(const int index)
     }
 
     current_index_ = index;
-
-    // Unhighlight anything on robot
-    rviz_panel_->unhighlightAll();
 
     // Change screens
     main_content_->setCurrentIndex(index);
