@@ -25,6 +25,7 @@ find_package(rviz_default_plugins REQUIRED)
 
 # find_package(srdfdom REQUIRED)
 find_package(urdf REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -32,12 +33,14 @@ qt5_wrap_cpp(MOC_FILES
   include/robot_description_setup_framework/qt/helper_widgets.hpp
   include/robot_description_setup_framework/qt/rviz_panel.hpp
   include/robot_description_setup_framework/qt/setup_step_widget.hpp
+  include/robot_description_setup_framework/qt/joint_state_zero_publisher.hpp
 )
 
 add_library(${PROJECT_NAME}
   src/utilities.cpp
   src/process_utils.cpp
   src/urdf_loader.cpp
+  src/joint_state_zero_publisher.cpp
   src/helper_widgets.cpp
   src/rviz_panel.cpp
   ${MOC_FILES}
@@ -61,6 +64,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rviz_default_plugins
   # srdfdom
   urdf
+  sensor_msgs
 )
 
 if(BUILD_TESTING)
@@ -86,6 +90,12 @@ if(BUILD_TESTING)
     FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/fixtures")
   target_link_libraries(test_urdf_loader ${PROJECT_NAME})
   ament_target_dependencies(test_urdf_loader urdf)
+
+  ament_add_gtest(test_joint_state_zero_publisher test/test_joint_state_zero_publisher.cpp)
+  target_include_directories(test_joint_state_zero_publisher PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+  target_link_libraries(test_joint_state_zero_publisher ${PROJECT_NAME})
+  ament_target_dependencies(test_joint_state_zero_publisher rclcpp sensor_msgs)
 endif()
 
 install(DIRECTORY include/
@@ -113,5 +123,6 @@ ament_export_dependencies(Qt5Widgets)
 ament_export_dependencies(rviz_common)
 ament_export_dependencies(rviz_rendering)
 ament_export_dependencies(rviz_default_plugins)
+ament_export_dependencies(sensor_msgs)
 
 ament_package()
