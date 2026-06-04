@@ -67,3 +67,15 @@ r
 *.clangd
 
 build.sh
+
+# Web UI build artifacts
+web/backend/.venv/
+web/backend/**/__pycache__/
+web/backend/*.egg-info/
+web/frontend/node_modules/
+web/frontend/dist/
+web/frontend/*.tsbuildinfo
+
+# Playwright artifacts
+.playwright-mcp/
+**/.playwright-mcp/
