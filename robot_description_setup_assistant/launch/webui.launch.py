@@ -5,6 +5,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
@@ -17,6 +18,13 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument("host", default_value="127.0.0.1"),
         DeclareLaunchArgument("port", default_value="8000"),
+        # C++ catalog service node — the source of truth for the catalog.
+        Node(
+            package="robot_catalog_server",
+            executable="robot_catalog_server",
+            name="robot_catalog_server",
+            output="screen",
+        ),
         ExecuteProcess(
             cmd=[
                 "uvicorn", "rdsa_web.app:app",
@@ -25,6 +33,7 @@ def generate_launch_description():
             ],
             additional_env={
                 "RDSA_ROBOTS_YAML": robots_yaml,
+                "RDSA_CATALOG_BACKEND": "cpp",
                 **(
                     {"RDSA_FRONTEND_DIST": os.environ["RDSA_FRONTEND_DIST"]}
                     if os.environ.get("RDSA_FRONTEND_DIST")
