@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .catalog import RobotCatalog
+from .catalog_client import CatalogServiceUnavailable
 from .meshes import resolve_mesh_path
 from .models import CategoryInfo, RobotConfig, RobotFilter
 from .package_gen import build_package_zip, package_name
@@ -29,9 +30,18 @@ def _default_catalog() -> RobotCatalog:
     return RobotCatalog.from_file(share / "config" / "robots.yaml")
 
 
-def create_app(catalog: RobotCatalog | None = None, relay=None, frontend_dist=None) -> FastAPI:
+def _make_catalog():
+    """C++ service-backed catalog when RDSA_CATALOG_BACKEND=cpp, else YAML."""
+    if os.environ.get("RDSA_CATALOG_BACKEND") == "cpp":
+        from .catalog_client import CppCatalog
+
+        return CppCatalog()
+    return _default_catalog()
+
+
+def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
     app = FastAPI(title="RDSA Web", version="0.1.0")
-    catalog = catalog or _default_catalog()
+    catalog = catalog or _make_catalog()
     relay = relay if relay is not None else JointStateRelay()
     frontend_dist = frontend_dist or os.environ.get("RDSA_FRONTEND_DIST")
 
@@ -41,15 +51,24 @@ def create_app(catalog: RobotCatalog | None = None, relay=None, frontend_dist=No
 
     @app.get("/api/categories", response_model=list[CategoryInfo])
     def categories() -> list[CategoryInfo]:
-        return catalog.get_categories()
+        try:
+            return catalog.get_categories()
+        except CatalogServiceUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
 
     @app.get("/api/robots", response_model=list[RobotConfig])
     def robots() -> list[RobotConfig]:
-        return catalog.get_all_robots()
+        try:
+            return catalog.get_all_robots()
+        except CatalogServiceUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
 
     @app.post("/api/robots/filter", response_model=list[RobotConfig])
     def filter_robots(flt: RobotFilter) -> list[RobotConfig]:
-        return catalog.filter_robots(flt)
+        try:
+            return catalog.filter_robots(flt)
+        except CatalogServiceUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
 
     @app.get("/api/robots/{robot_id}", response_model=RobotConfig)
     def robot(robot_id: str) -> RobotConfig:

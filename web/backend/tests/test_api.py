@@ -171,3 +171,23 @@ def test_package_endpoint_returns_zip():
 def test_package_endpoint_404_for_unknown_robot():
     resp = _client().get("/api/robots/nope/package")
     assert resp.status_code == 404
+
+
+def test_catalog_503_when_service_unavailable():
+    from rdsa_web.app import create_app
+    from rdsa_web.catalog_client import CatalogServiceUnavailable
+
+    class DownClient:
+        def get_all_robots(self):
+            raise CatalogServiceUnavailable("down")
+
+        def get_categories(self):
+            raise CatalogServiceUnavailable("down")
+
+        def filter_robots(self, f):
+            raise CatalogServiceUnavailable("down")
+
+    app = create_app(catalog=DownClient())
+    client = TestClient(app)
+    assert client.get("/api/robots").status_code == 503
+    assert client.get("/api/categories").status_code == 503
