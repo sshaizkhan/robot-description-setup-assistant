@@ -102,3 +102,25 @@ class CatalogClient:
         req.robot_id = robot_id
         res = self._call(self._validate, req)
         return {"ok": bool(res.ok), "missing_packages": list(res.missing_packages)}
+
+
+class CppCatalog:
+    """Adapter exposing the RobotCatalog interface, backed by the C++ node."""
+
+    def __init__(self, client: "CatalogClient | None" = None) -> None:
+        self._client = client or CatalogClient()
+
+    def get_all_robots(self) -> list[RobotConfig]:
+        return self._client.get_all_robots()
+
+    def get_categories(self) -> list[CategoryInfo]:
+        return self._client.get_categories()
+
+    def filter_robots(self, flt: RobotFilter) -> list[RobotConfig]:
+        return self._client.filter_robots(flt)
+
+    def get_robot_by_id(self, robot_id: str) -> RobotConfig | None:
+        for r in self._client.get_all_robots():
+            if r.id == robot_id:
+                return r
+        return None
