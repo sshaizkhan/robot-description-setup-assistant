@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_catalog_server</name>
+  <version>0.1.0</version>
+  <description>rclcpp node exposing the robot catalog over services.</description>
+  <maintainer email="sshaizkhan@gmail.com">Shahwaz Khan</maintainer>
+  <license>BSD</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>robot_catalog_core</depend>
+  <depend>robot_catalog_msgs</depend>
+  <depend>ament_index_cpp</depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.10)
+project(robot_catalog_server)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(robot_catalog_core REQUIRED)
+find_package(robot_catalog_msgs REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+
+add_executable(robot_catalog_server src/server_node.cpp)
+ament_target_dependencies(robot_catalog_server
+  rclcpp robot_catalog_core robot_catalog_msgs ament_index_cpp)
+install(TARGETS robot_catalog_server DESTINATION lib/${PROJECT_NAME})
+ament_package()
