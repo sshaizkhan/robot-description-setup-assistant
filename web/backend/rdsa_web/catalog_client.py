@@ -1,0 +1,104 @@
+"""Bridge: call the C++ robot_catalog_server over ROS services via rclpy."""
+from __future__ import annotations
+
+import json
+import threading
+
+from .models import CategoryInfo, RobotConfig, RobotFilter
+
+
+def filter_to_request_fields(f: RobotFilter) -> dict:
+    return {
+        "category": f.category or "",
+        "has_min_payload": f.min_payload is not None,
+        "min_payload": f.min_payload or 0.0,
+        "has_max_payload": f.max_payload is not None,
+        "max_payload": f.max_payload or 0.0,
+        "has_min_reach": f.min_reach is not None,
+        "min_reach": f.min_reach or 0.0,
+        "has_max_reach": f.max_reach is not None,
+        "max_reach": f.max_reach or 0.0,
+        "has_dof": f.degrees_of_freedom is not None,
+        "degrees_of_freedom": f.degrees_of_freedom or 0,
+        "has_collaborative_only": f.collaborative_only is not None,
+        "collaborative_only": bool(f.collaborative_only),
+        "required_tags": list(f.required_tags),
+        "search_text": f.search_text or "",
+    }
+
+
+def parse_robots_json(text: str) -> list[RobotConfig]:
+    return [RobotConfig(**r) for r in json.loads(text)]
+
+
+def parse_categories_json(text: str) -> list[CategoryInfo]:
+    return [CategoryInfo(**c) for c in json.loads(text)]
+
+
+class CatalogServiceUnavailable(Exception):
+    """Raised when the C++ catalog node is unreachable or times out."""
+
+
+class CatalogClient:
+    """Thin rclpy client over the C++ robot_catalog_server. One call at a time."""
+
+    def __init__(self, timeout_sec: float = 5.0) -> None:
+        import rclpy
+        from robot_catalog_msgs.srv import (
+            FilterRobots,
+            GetCategories,
+            GetRobots,
+            ValidateRobot,
+        )
+
+        if not rclpy.ok():
+            rclpy.init()
+        self._rclpy = rclpy
+        self._node = rclpy.create_node("rdsa_catalog_client")
+        self._timeout = timeout_sec
+        self._lock = threading.Lock()
+        self._types = {
+            "GetRobots": GetRobots,
+            "GetCategories": GetCategories,
+            "FilterRobots": FilterRobots,
+            "ValidateRobot": ValidateRobot,
+        }
+        self._get_robots = self._node.create_client(GetRobots, "catalog/get_robots")
+        self._get_categories = self._node.create_client(
+            GetCategories, "catalog/get_categories"
+        )
+        self._filter = self._node.create_client(FilterRobots, "catalog/filter_robots")
+        self._validate = self._node.create_client(ValidateRobot, "catalog/validate_robot")
+
+    def _call(self, client, request):
+        with self._lock:
+            if not client.wait_for_service(timeout_sec=self._timeout):
+                raise CatalogServiceUnavailable("robot_catalog_server not available")
+            future = client.call_async(request)
+            self._rclpy.spin_until_future_complete(
+                self._node, future, timeout_sec=self._timeout
+            )
+            if not future.done() or future.result() is None:
+                raise CatalogServiceUnavailable("catalog service call timed out")
+            return future.result()
+
+    def get_all_robots(self) -> list[RobotConfig]:
+        res = self._call(self._get_robots, self._types["GetRobots"].Request())
+        return parse_robots_json(res.robots_json)
+
+    def get_categories(self) -> list[CategoryInfo]:
+        res = self._call(self._get_categories, self._types["GetCategories"].Request())
+        return parse_categories_json(res.categories_json)
+
+    def filter_robots(self, flt: RobotFilter) -> list[RobotConfig]:
+        req = self._types["FilterRobots"].Request()
+        for key, value in filter_to_request_fields(flt).items():
+            setattr(req, key, value)
+        res = self._call(self._filter, req)
+        return parse_robots_json(res.robots_json)
+
+    def validate(self, robot_id: str) -> dict:
+        req = self._types["ValidateRobot"].Request()
+        req.robot_id = robot_id
+        res = self._call(self._validate, req)
+        return {"ok": bool(res.ok), "missing_packages": list(res.missing_packages)}
