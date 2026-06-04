@@ -1,0 +1,5 @@
+string robot_id
+---
+bool found
+bool ok
+string[] missing_packages
