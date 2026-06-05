@@ -1,0 +1,7 @@
+string robot_id
+---
+bool found
+bool ok
+string urdf_xml
+string[] missing_packages
+string error

@@ -6,17 +6,13 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .catalog import RobotCatalog
-from .catalog_client import CatalogServiceUnavailable
-from .meshes import resolve_mesh_path
+from .catalog_client import CatalogServiceUnavailable, MeshTooLarge
 from .models import CategoryInfo, RobotConfig, RobotFilter
 from .package_gen import build_package_zip, package_name
 from .ros_bridge import JointStateRelay
-from .urdf import UrdfError, resolve_urdf
-from .validation import get_missing_packages
 
 
 def _default_catalog() -> RobotCatalog:
@@ -79,51 +75,65 @@ def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
 
     @app.get("/api/robots/{robot_id}/validate")
     def validate(robot_id: str) -> dict:
-        found = catalog.get_robot_by_id(robot_id)
-        if found is None:
+        try:
+            data = catalog.validate(robot_id)
+        except CatalogServiceUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        if not data.get("found"):
             raise HTTPException(status_code=404, detail=f"unknown robot: {robot_id}")
-        missing = get_missing_packages(found)
-        return {"ok": not missing, "missing_packages": missing}
+        return {"ok": data["ok"], "missing_packages": data["missing_packages"]}
 
     @app.get("/api/robots/{robot_id}/urdf")
     def robot_urdf(robot_id: str) -> dict:
-        found = catalog.get_robot_by_id(robot_id)
-        if found is None:
-            raise HTTPException(status_code=404, detail=f"unknown robot: {robot_id}")
-        missing = get_missing_packages(found)
-        xml = ""
-        err = ""
+        # All xacro/package resolution happens in the C++ backend; we relay it.
         try:
-            xml = resolve_urdf(found)
-        except UrdfError as exc:
-            err = str(exc)
+            data = catalog.get_urdf(robot_id)
+        except CatalogServiceUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        if not data.get("found"):
+            raise HTTPException(status_code=404, detail=f"unknown robot: {robot_id}")
         return {
-            "urdf_xml": xml,
+            "urdf_xml": data.get("urdf_xml", ""),
             "mesh_base": "/meshes",
-            "missing_packages": missing,
-            "error": err,
+            "missing_packages": data.get("missing_packages", []),
+            "error": data.get("error", ""),
         }
 
     @app.get("/meshes/{pkg}/{rel:path}")
-    def mesh(pkg: str, rel: str) -> FileResponse:
-        path = resolve_mesh_path(pkg, rel)
-        if path is None:
+    def mesh(pkg: str, rel: str) -> Response:
+        # C++ reads + resolves the file; Python relays the bytes (no filesystem).
+        try:
+            result = catalog.resolve_mesh(pkg, rel)
+        except CatalogServiceUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        except MeshTooLarge as exc:
+            raise HTTPException(status_code=413, detail=str(exc))
+        if not result:
             raise HTTPException(status_code=404, detail="mesh not found")
-        return FileResponse(path)
+        data, media_type = result
+        return Response(content=data, media_type=media_type)
 
     @app.get("/api/robots/{robot_id}/image")
-    def robot_image(robot_id: str) -> FileResponse:
+    def robot_image(robot_id: str) -> Response:
         found = catalog.get_robot_by_id(robot_id)
         if found is None:
             raise HTTPException(status_code=404, detail=f"unknown robot: {robot_id}")
-        path = (
-            resolve_mesh_path("robot_description_setup_assistant", found.image_path)
-            if found.image_path
-            else None
-        )
-        if path is None:
+        try:
+            result = (
+                catalog.resolve_mesh(
+                    "robot_description_setup_assistant", found.image_path
+                )
+                if found.image_path
+                else None
+            )
+        except CatalogServiceUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        except MeshTooLarge as exc:
+            raise HTTPException(status_code=413, detail=str(exc))
+        if result is None:
             raise HTTPException(status_code=404, detail="image not found")
-        return FileResponse(path)
+        data, media_type = result
+        return Response(content=data, media_type=media_type)
 
     @app.get("/api/robots/{robot_id}/package")
     def robot_package(robot_id: str) -> Response:
