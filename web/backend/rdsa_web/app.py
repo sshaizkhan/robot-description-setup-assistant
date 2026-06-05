@@ -111,7 +111,11 @@ def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
         if not result:
             raise HTTPException(status_code=404, detail="mesh not found")
         data, media_type = result
-        return Response(content=data, media_type=media_type)
+        return Response(
+            content=data,
+            media_type=media_type,
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
 
     @app.get("/api/robots/{robot_id}/image")
     def robot_image(robot_id: str) -> Response:
@@ -133,7 +137,11 @@ def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
         if result is None:
             raise HTTPException(status_code=404, detail="image not found")
         data, media_type = result
-        return Response(content=data, media_type=media_type)
+        return Response(
+            content=data,
+            media_type=media_type,
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
 
     @app.get("/api/robots/{robot_id}/package")
     def robot_package(robot_id: str) -> Response:

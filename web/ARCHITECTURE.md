@@ -188,7 +188,9 @@ The robot catalog (the list of 20 robots, 3 categories, and filtering) is the
 `web/backend/rdsa_web/catalog_client.py`:
 
 - `CatalogClient` — a thin **rclpy** client (`rdsa_catalog_client` node) that
-  calls the four services, one call at a time (locked), with a timeout. Raises
+  calls the services concurrently (a background executor spins the node so many
+  `call_async` futures are in flight at once), with a timeout, and caches
+  resolved mesh bytes. Raises
   `CatalogServiceUnavailable` if the node is down.
 - `CppCatalog` — an adapter exposing the same interface FastAPI expects
   (`get_all_robots`, `get_categories`, `filter_robots`, `get_robot_by_id`),

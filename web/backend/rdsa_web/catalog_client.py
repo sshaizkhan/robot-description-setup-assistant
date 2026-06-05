@@ -55,10 +55,17 @@ class MeshTooLarge(Exception):
 
 
 class CatalogClient:
-    """Thin rclpy client over the C++ robot_catalog_server. One call at a time."""
+    """rclpy client over the C++ robot_catalog_server.
+
+    A background executor spins the node continuously so many service calls can
+    be in flight at once (the FastAPI thread pool issues them concurrently —
+    e.g. all of a robot's mesh requests). Resolved mesh bytes are cached so a
+    re-open never re-crosses ROS.
+    """
 
     def __init__(self, timeout_sec: float = 5.0) -> None:
         import rclpy
+        from rclpy.executors import SingleThreadedExecutor
         from robot_catalog_msgs.srv import (
             FilterRobots,
             GetCategories,
@@ -73,7 +80,6 @@ class CatalogClient:
         self._rclpy = rclpy
         self._node = rclpy.create_node("rdsa_catalog_client")
         self._timeout = timeout_sec
-        self._lock = threading.Lock()
         self._types = {
             "GetRobots": GetRobots,
             "GetCategories": GetCategories,
@@ -91,17 +97,33 @@ class CatalogClient:
         self._get_urdf = self._node.create_client(GetUrdf, "catalog/get_urdf")
         self._resolve_mesh = self._node.create_client(ResolveMesh, "catalog/resolve_mesh")
 
+        # Spin the node in a background thread so concurrent call_async() futures
+        # all complete without each caller having to drive the executor.
+        self._executor = SingleThreadedExecutor()
+        self._executor.add_node(self._node)
+        self._spin_thread = threading.Thread(target=self._executor.spin, daemon=True)
+        self._spin_thread.start()
+
+        # Resolved-mesh byte cache: (package, rel_path) -> (bytes, media_type).
+        # Meshes are immutable for a given install, so entries never expire.
+        self._mesh_cache: dict = {}
+        self._mesh_cache_lock = threading.Lock()
+
     def _call(self, client, request):
-        with self._lock:
+        # No global lock: concurrent calls are the whole point. The background
+        # executor completes each future; we block this caller's thread on it.
+        if not client.service_is_ready():
             if not client.wait_for_service(timeout_sec=self._timeout):
                 raise CatalogServiceUnavailable("robot_catalog_server not available")
-            future = client.call_async(request)
-            self._rclpy.spin_until_future_complete(
-                self._node, future, timeout_sec=self._timeout
-            )
-            if not future.done() or future.result() is None:
-                raise CatalogServiceUnavailable("catalog service call timed out")
-            return future.result()
+        future = client.call_async(request)
+        done = threading.Event()
+        future.add_done_callback(lambda _f: done.set())
+        if not done.wait(self._timeout):
+            raise CatalogServiceUnavailable("catalog service call timed out")
+        result = future.result()
+        if result is None:
+            raise CatalogServiceUnavailable("catalog service call failed")
+        return result
 
     def get_all_robots(self) -> list[RobotConfig]:
         res = self._call(self._get_robots, self._types["GetRobots"].Request())
@@ -141,12 +163,19 @@ class CatalogClient:
         }
 
     def resolve_mesh(self, package: str, rel_path: str) -> "tuple[bytes, str] | None":
+        key = (package, rel_path)
+        cached = self._mesh_cache.get(key)
+        if cached is not None:
+            return cached
         req = self._types["ResolveMesh"].Request()
         req.package = package
         req.rel_path = rel_path
         res = self._call(self._resolve_mesh, req)
         if res.ok:
-            return bytes(res.data), res.media_type
+            value = (bytes(res.data), res.media_type)
+            with self._mesh_cache_lock:
+                self._mesh_cache[key] = value
+            return value
         if res.too_large:
             raise MeshTooLarge(int(res.size_bytes))
         return None
