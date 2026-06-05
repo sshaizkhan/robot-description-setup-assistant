@@ -53,9 +53,21 @@ def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
             raise HTTPException(status_code=503, detail=str(exc))
 
     @app.get("/api/robots", response_model=list[RobotConfig])
-    def robots() -> list[RobotConfig]:
+    def robots(
+        response: Response,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> list[RobotConfig]:
+        # No `limit` → full list (unchanged default). With `limit`, return a
+        # stable page and report the full count via the X-Total-Count header.
         try:
-            return catalog.get_all_robots()
+            if limit is None:
+                items = catalog.get_all_robots()
+                response.headers["X-Total-Count"] = str(len(items))
+                return items
+            page, total = catalog.get_robots_page(offset, limit)
+            response.headers["X-Total-Count"] = str(total)
+            return page
         except CatalogServiceUnavailable as exc:
             raise HTTPException(status_code=503, detail=str(exc))
 

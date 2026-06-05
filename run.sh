@@ -101,7 +101,7 @@ done
 
 # --- 7. uvicorn: relay + SPA, backed by the C++ node -----------------------
 export RDSA_CATALOG_BACKEND=cpp
-export RDSA_ROBOTS_YAML="$WS/install/share/robot_description_setup_assistant/config/robots.yaml"
+export RDSA_ROBOTS_YAML="$WS/install/share/robot_description_setup_assistant/config/catalog"
 export RDSA_FRONTEND_DIST="$DIST"
 
 echo "[run] starting backend (cpp mode) on http://$HOST:$PORT"

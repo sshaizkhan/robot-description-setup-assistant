@@ -10,7 +10,11 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     share = get_package_share_directory("robot_description_setup_assistant")
-    robots_yaml = os.path.join(share, "config", "robots.yaml")
+    # Canonical multi-file catalog directory (falls back to robots.yaml if absent).
+    catalog_dir = os.path.join(share, "config", "catalog")
+    robots_yaml = catalog_dir if os.path.isdir(catalog_dir) else os.path.join(
+        share, "config", "robots.yaml"
+    )
 
     host = LaunchConfiguration("host")
     port = LaunchConfiguration("port")
