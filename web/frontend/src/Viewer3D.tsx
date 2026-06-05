@@ -111,6 +111,11 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
   const [joints, setJoints] = useState<string[]>([]);
   const [values, setValues] = useState<Record<string, number>>({});
   const [showCollision, setShowCollision] = useState(false);
+  // Collision geometry is loaded lazily — only after the user first asks for it.
+  const [collisionEnabled, setCollisionEnabled] = useState(false);
+  // True while the robot's meshes are still loading; the model is hidden until
+  // every mesh is in, so it appears all at once instead of link by link.
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -151,14 +156,56 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
     controls.target.set(0, 0.25, 0);
     controls.update();
 
+    setLoading(true);
     const loader = new URDFLoader();
     loader.packages = (pkg: string) =>
       resolvePackageUrl(meshBase, `package://${pkg}`);
-    loader.parseCollision = true;
+    // Only fetch/parse collision geometry once the user wants it (halves the
+    // mesh count on a normal open).
+    loader.parseCollision = collisionEnabled;
+
+    // Reveal the robot only once every mesh has finished loading, so it appears
+    // all at once instead of building up link by link. We wrap urdf-loader's
+    // default mesh loader to count outstanding loads (more reliable than
+    // LoadingManager.onLoad, which this version fires before meshes resolve).
+    let pending = 0;
+    let parseDone = false;
+    let revealed = false;
+    let revealTimer = 0;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      window.clearTimeout(revealTimer);
+      const r = robotRef.current;
+      if (r) r.visible = true;
+      setLoading(false);
+    };
+    const maybeReveal = () => {
+      if (parseDone && pending === 0) reveal();
+    };
+    const defaultLoadMeshCb = loader.loadMeshCb;
+    loader.loadMeshCb = (
+      path: string,
+      manager: THREE.LoadingManager,
+      done: (mesh: THREE.Object3D, err?: Error) => void,
+    ) => {
+      pending += 1;
+      defaultLoadMeshCb.call(
+        loader,
+        path,
+        manager,
+        (mesh: THREE.Object3D, err?: Error) => {
+          done(mesh, err);
+          pending -= 1;
+          maybeReveal();
+        },
+      );
+    };
 
     const robot = loader.parse(urdfXml);
     // URDF is Z-up; rotate so Z points up in three.js (Y-up) view.
     robot.rotation.x = -Math.PI / 2;
+    robot.visible = false; // revealed once all meshes have loaded
     scene.add(robot);
     robotRef.current = robot;
     const movable = Object.entries(robot.joints)
@@ -166,6 +213,12 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
       .map(([name]) => name);
     setJoints(movable);
     setValues(Object.fromEntries(movable.map((n) => [n, 0])));
+
+    parseDone = true;
+    // Safety net: reveal anyway after a few seconds (e.g. a mesh that hangs) and
+    // handle robots that declared no meshes at all.
+    revealTimer = window.setTimeout(reveal, 6000);
+    maybeReveal();
 
     let raf = 0;
     const animate = () => {
@@ -176,6 +229,7 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
     animate();
 
     return () => {
+      window.clearTimeout(revealTimer);
       cancelAnimationFrame(raf);
       controls.dispose();
       scene.remove(robot);
@@ -187,7 +241,7 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
       mount.removeChild(renderer.domElement);
       robotRef.current = null;
     };
-  }, [urdfXml, meshBase]);
+  }, [urdfXml, meshBase, collisionEnabled]);
 
   useEffect(() => {
     const robot = robotRef.current;
@@ -270,14 +324,26 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
 
   return (
     <div className="viewer3d">
-      <div ref={mountRef} className="viewer-canvas" />
+      <div className="viewer-canvas-wrap">
+        <div ref={mountRef} className="viewer-canvas" />
+        {loading && (
+          <div className="viewer-loading-overlay">
+            <span className="viewer-spinner" />
+            Loading model…
+          </div>
+        )}
+      </div>
       <div className="viewer-controls">
         <div className="viewer-actions">
           <label className="viewer-toggle">
             <input
               type="checkbox"
               checked={showCollision}
-              onChange={(e) => setShowCollision(e.target.checked)}
+              onChange={(e) => {
+                const v = e.target.checked;
+                setShowCollision(v);
+                if (v) setCollisionEnabled(true); // lazy-load colliders once
+              }}
             />
             <span>Show collision</span>
           </label>

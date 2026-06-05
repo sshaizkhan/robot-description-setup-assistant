@@ -108,6 +108,9 @@ class CatalogClient:
         # Meshes are immutable for a given install, so entries never expire.
         self._mesh_cache: dict = {}
         self._mesh_cache_lock = threading.Lock()
+        # URDF (xacro) output is deterministic per robot; cache it too.
+        self._urdf_cache: dict = {}
+        self._urdf_cache_lock = threading.Lock()
 
     def _call(self, client, request):
         # No global lock: concurrent calls are the whole point. The background
@@ -151,16 +154,24 @@ class CatalogClient:
         }
 
     def get_urdf(self, robot_id: str) -> dict:
+        cached = self._urdf_cache.get(robot_id)
+        if cached is not None:
+            return cached
         req = self._types["GetUrdf"].Request()
         req.robot_id = robot_id
         res = self._call(self._get_urdf, req)
-        return {
+        result = {
             "found": bool(res.found),
             "ok": bool(res.ok),
             "urdf_xml": res.urdf_xml,
             "missing_packages": list(res.missing_packages),
             "error": res.error,
         }
+        # Cache only a successfully-expanded URDF (errors may be transient).
+        if result["found"] and result["ok"]:
+            with self._urdf_cache_lock:
+                self._urdf_cache[robot_id] = result
+        return result
 
     def resolve_mesh(self, package: str, rel_path: str) -> "tuple[bytes, str] | None":
         key = (package, rel_path)
