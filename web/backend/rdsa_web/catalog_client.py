@@ -39,6 +39,21 @@ class CatalogServiceUnavailable(Exception):
     """Raised when the C++ catalog node is unreachable or times out."""
 
 
+# Hard cap on mesh/image size, mirrored from the C++ side (kMeshSizeCap).
+MESH_SIZE_CAP = 2 * 1024 * 1024  # 2 MiB
+
+
+class MeshTooLarge(Exception):
+    """Raised when a mesh/image exceeds the size cap; the asset must be shrunk."""
+
+    def __init__(self, size: int, cap: int = MESH_SIZE_CAP) -> None:
+        self.size = size
+        self.cap = cap
+        super().__init__(
+            f"mesh too large: {size} bytes exceeds the {cap} byte cap"
+        )
+
+
 class CatalogClient:
     """Thin rclpy client over the C++ robot_catalog_server. One call at a time."""
 
@@ -48,6 +63,8 @@ class CatalogClient:
             FilterRobots,
             GetCategories,
             GetRobots,
+            GetUrdf,
+            ResolveMesh,
             ValidateRobot,
         )
 
@@ -62,6 +79,8 @@ class CatalogClient:
             "GetCategories": GetCategories,
             "FilterRobots": FilterRobots,
             "ValidateRobot": ValidateRobot,
+            "GetUrdf": GetUrdf,
+            "ResolveMesh": ResolveMesh,
         }
         self._get_robots = self._node.create_client(GetRobots, "catalog/get_robots")
         self._get_categories = self._node.create_client(
@@ -69,6 +88,8 @@ class CatalogClient:
         )
         self._filter = self._node.create_client(FilterRobots, "catalog/filter_robots")
         self._validate = self._node.create_client(ValidateRobot, "catalog/validate_robot")
+        self._get_urdf = self._node.create_client(GetUrdf, "catalog/get_urdf")
+        self._resolve_mesh = self._node.create_client(ResolveMesh, "catalog/resolve_mesh")
 
     def _call(self, client, request):
         with self._lock:
@@ -101,7 +122,34 @@ class CatalogClient:
         req = self._types["ValidateRobot"].Request()
         req.robot_id = robot_id
         res = self._call(self._validate, req)
-        return {"ok": bool(res.ok), "missing_packages": list(res.missing_packages)}
+        return {
+            "found": bool(res.found),
+            "ok": bool(res.ok),
+            "missing_packages": list(res.missing_packages),
+        }
+
+    def get_urdf(self, robot_id: str) -> dict:
+        req = self._types["GetUrdf"].Request()
+        req.robot_id = robot_id
+        res = self._call(self._get_urdf, req)
+        return {
+            "found": bool(res.found),
+            "ok": bool(res.ok),
+            "urdf_xml": res.urdf_xml,
+            "missing_packages": list(res.missing_packages),
+            "error": res.error,
+        }
+
+    def resolve_mesh(self, package: str, rel_path: str) -> "tuple[bytes, str] | None":
+        req = self._types["ResolveMesh"].Request()
+        req.package = package
+        req.rel_path = rel_path
+        res = self._call(self._resolve_mesh, req)
+        if res.ok:
+            return bytes(res.data), res.media_type
+        if res.too_large:
+            raise MeshTooLarge(int(res.size_bytes))
+        return None
 
 
 class CppCatalog:
@@ -124,3 +172,13 @@ class CppCatalog:
             if r.id == robot_id:
                 return r
         return None
+
+    # -- heavy work delegated to C++; this layer only relays --------------
+    def get_urdf(self, robot_id: str) -> dict:
+        return self._client.get_urdf(robot_id)
+
+    def resolve_mesh(self, package: str, rel_path: str) -> "tuple[bytes, str] | None":
+        return self._client.resolve_mesh(package, rel_path)
+
+    def validate(self, robot_id: str) -> dict:
+        return self._client.validate(robot_id)

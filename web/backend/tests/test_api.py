@@ -83,6 +83,17 @@ def test_mesh_endpoint_404_for_unknown_package():
     assert resp.status_code == 404
 
 
+def test_mesh_endpoint_413_when_too_large(monkeypatch):
+    from rdsa_web.catalog_client import MeshTooLarge
+
+    def boom(self, pkg, rel):
+        raise MeshTooLarge(5_000_000)
+
+    monkeypatch.setattr(RobotCatalog, "resolve_mesh", boom)
+    resp = _client().get("/meshes/ur_description/meshes/ur3/visual/base.dae")
+    assert resp.status_code == 413
+
+
 def test_image_endpoint_404_for_unknown_robot():
     resp = _client().get("/api/robots/nope/image")
     assert resp.status_code == 404
@@ -90,9 +101,9 @@ def test_image_endpoint_404_for_unknown_robot():
 
 def test_image_endpoint_404_when_no_image_path(monkeypatch):
     # A robot whose image cannot be resolved yields 404, not a 500.
-    import rdsa_web.app as appmod
-
-    monkeypatch.setattr(appmod, "resolve_mesh_path", lambda pkg, rel: None)
+    monkeypatch.setattr(
+        RobotCatalog, "resolve_mesh", lambda self, pkg, rel: None
+    )
     resp = _client().get("/api/robots/ur3/image")
     assert resp.status_code == 404
 

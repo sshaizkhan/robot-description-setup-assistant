@@ -1,0 +1,8 @@
+string package
+string rel_path
+---
+bool ok
+bool too_large
+uint64 size_bytes
+uint8[] data
+string media_type

@@ -8,7 +8,7 @@ find_package(yaml_cpp_vendor REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-add_library(robot_catalog_core src/catalog.cpp src/json.cpp)
+add_library(robot_catalog_core src/catalog.cpp src/json.cpp src/urdf.cpp src/mesh.cpp)
 target_include_directories(robot_catalog_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)

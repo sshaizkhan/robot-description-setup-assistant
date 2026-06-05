@@ -2,10 +2,14 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include "robot_catalog_core/catalog.hpp"
 #include "robot_catalog_core/json.hpp"
+#include "robot_catalog_core/urdf.hpp"
+#include "robot_catalog_core/mesh.hpp"
 #include "robot_catalog_msgs/srv/get_robots.hpp"
 #include "robot_catalog_msgs/srv/get_categories.hpp"
 #include "robot_catalog_msgs/srv/filter_robots.hpp"
 #include "robot_catalog_msgs/srv/validate_robot.hpp"
+#include "robot_catalog_msgs/srv/get_urdf.hpp"
+#include "robot_catalog_msgs/srv/resolve_mesh.hpp"
 
 using robot_catalog::RobotCatalogCore;
 using robot_catalog::RobotFilter;
@@ -62,6 +66,37 @@ public:
         res->missing_packages = core_.getMissingPackages(r);
         res->ok = res->missing_packages.empty();
       });
+
+    get_urdf_ = create_service<robot_catalog_msgs::srv::GetUrdf>(
+      "catalog/get_urdf",
+      [this](const std::shared_ptr<robot_catalog_msgs::srv::GetUrdf::Request> req,
+             std::shared_ptr<robot_catalog_msgs::srv::GetUrdf::Response> res) {
+        robot_catalog::RobotConfig r;
+        if (!core_.getRobotById(req->robot_id, r)) {
+          res->found = false;
+          res->ok = false;
+          return;
+        }
+        res->found = true;
+        robot_catalog::UrdfResult u = robot_catalog::resolveUrdf(r);
+        res->ok = u.ok;
+        res->urdf_xml = u.xml;
+        res->error = u.error;
+        res->missing_packages = core_.getMissingPackages(r);
+      });
+
+    resolve_mesh_ = create_service<robot_catalog_msgs::srv::ResolveMesh>(
+      "catalog/resolve_mesh",
+      [this](const std::shared_ptr<robot_catalog_msgs::srv::ResolveMesh::Request> req,
+             std::shared_ptr<robot_catalog_msgs::srv::ResolveMesh::Response> res) {
+        robot_catalog::MeshResult m =
+            robot_catalog::readMesh(req->package, req->rel_path);
+        res->ok = m.ok;
+        res->too_large = m.too_large;
+        res->size_bytes = m.size;
+        res->data = m.data;
+        res->media_type = m.media_type;
+      });
   }
 
 private:
@@ -74,6 +109,8 @@ private:
   rclcpp::Service<robot_catalog_msgs::srv::GetCategories>::SharedPtr get_categories_;
   rclcpp::Service<robot_catalog_msgs::srv::FilterRobots>::SharedPtr filter_;
   rclcpp::Service<robot_catalog_msgs::srv::ValidateRobot>::SharedPtr validate_;
+  rclcpp::Service<robot_catalog_msgs::srv::GetUrdf>::SharedPtr get_urdf_;
+  rclcpp::Service<robot_catalog_msgs::srv::ResolveMesh>::SharedPtr resolve_mesh_;
 };
 
 int main(int argc, char** argv) {

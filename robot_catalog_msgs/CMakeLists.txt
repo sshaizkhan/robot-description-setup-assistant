@@ -7,6 +7,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetCategories.srv"
   "srv/FilterRobots.srv"
   "srv/ValidateRobot.srv"
+  "srv/GetUrdf.srv"
+  "srv/ResolveMesh.srv"
 )
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()

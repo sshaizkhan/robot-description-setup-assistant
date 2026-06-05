@@ -131,3 +131,48 @@ class RobotCatalog:
         needle = term.lower()
         haystacks = [r.display_name, r.description, r.category, *r.tags]
         return any(needle in h.lower() for h in haystacks)
+
+    # -- URDF / mesh / validation ----------------------------------------
+    # Pure-Python fallback used only in no-ROS/test mode. In production the
+    # C++ catalog backend (CppCatalog) performs all of this work; this class
+    # mirrors that interface so app.py can stay backend-agnostic.
+    def get_urdf(self, robot_id: str) -> dict:
+        from .urdf import UrdfError, resolve_urdf
+        from .validation import get_missing_packages
+
+        robot = self.get_robot_by_id(robot_id)
+        if robot is None:
+            return {"found": False, "ok": False, "urdf_xml": "",
+                    "missing_packages": [], "error": ""}
+        missing = get_missing_packages(robot)
+        try:
+            xml = resolve_urdf(robot)
+            return {"found": True, "ok": True, "urdf_xml": xml,
+                    "missing_packages": missing, "error": ""}
+        except UrdfError as exc:
+            return {"found": True, "ok": False, "urdf_xml": "",
+                    "missing_packages": missing, "error": str(exc)}
+
+    def resolve_mesh(self, package: str, rel_path: str) -> "tuple[bytes, str] | None":
+        import mimetypes
+
+        from .catalog_client import MESH_SIZE_CAP, MeshTooLarge
+        from .meshes import resolve_mesh_path
+
+        path = resolve_mesh_path(package, rel_path)
+        if path is None:
+            return None
+        size = path.stat().st_size
+        if size > MESH_SIZE_CAP:
+            raise MeshTooLarge(size)
+        media_type = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        return path.read_bytes(), media_type
+
+    def validate(self, robot_id: str) -> dict:
+        from .validation import get_missing_packages
+
+        robot = self.get_robot_by_id(robot_id)
+        if robot is None:
+            return {"found": False, "ok": False, "missing_packages": []}
+        missing = get_missing_packages(robot)
+        return {"found": True, "ok": not missing, "missing_packages": missing}
