@@ -1,3 +1,4 @@
+string type
 string category
 bool has_min_payload
 float64 min_payload

@@ -45,6 +45,24 @@ static std::string num(double v) {
   return os.str();
 }
 
+static std::string num_array(const double* v, size_t n) {
+  std::string out = "[";
+  for (size_t i = 0; i < n; ++i) {
+    if (i) out += ",";
+    out += num(v[i]);
+  }
+  return out + "]";
+}
+
+static std::string attach_json(const AttachInfo& a) {
+  std::string out = "{";
+  out += "\"tool_frame\":" + q(a.tool_frame);
+  out += ",\"mount_frame\":" + q(a.mount_frame);
+  out += ",\"xyz\":" + num_array(a.xyz, 3);
+  out += ",\"rpy\":" + num_array(a.rpy, 3);
+  return out + "}";
+}
+
 static std::string specs_json(const RobotSpecifications& s) {
   std::string out = "{";
   out += "\"degrees_of_freedom\":" + std::to_string(s.degrees_of_freedom);
@@ -70,6 +88,8 @@ std::string to_json(const RobotConfig& r) {
   out += ",\"urdf_path\":" + q(r.urdf_path);
   out += ",\"xacro_args\":" + q(r.xacro_args);
   out += ",\"category\":" + q(r.category);
+  out += ",\"type\":" + q(r.type);
+  out += ",\"attach\":" + attach_json(r.attach);
   out += ",\"specifications\":" + specs_json(r.specifications);
   out += ",\"required_packages\":" + str_array(r.required_packages);
   out += ",\"optional_packages\":" + str_array(r.optional_packages);

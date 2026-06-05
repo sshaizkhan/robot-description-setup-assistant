@@ -25,6 +25,16 @@ class RobotSpecifications(BaseModel):
     torque_sensing: bool = False
 
 
+class AttachInfo(BaseModel):
+    """Mount contract. Arms expose `tool_frame`; end-effectors expose
+    `mount_frame` + an xyz/rpy offset onto the arm's tool_frame."""
+
+    tool_frame: str = ""
+    mount_frame: str = ""
+    xyz: list[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0])
+    rpy: list[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0])
+
+
 class RobotConfig(BaseModel):
     id: str
     display_name: str
@@ -34,6 +44,9 @@ class RobotConfig(BaseModel):
     urdf_path: str = ""
     xacro_args: str = ""
     category: str = ""
+    # Component kind: "arm" (default), "end_effector", or "base".
+    type: str = "arm"
+    attach: AttachInfo = Field(default_factory=AttachInfo)
     specifications: RobotSpecifications = Field(default_factory=RobotSpecifications)
     required_packages: list[str] = Field(default_factory=list)
     optional_packages: list[str] = Field(default_factory=list)
@@ -41,6 +54,7 @@ class RobotConfig(BaseModel):
 
 
 class RobotFilter(BaseModel):
+    type: str | None = None
     category: str | None = None
     min_payload: float | None = None
     max_payload: float | None = None
@@ -53,7 +67,8 @@ class RobotFilter(BaseModel):
 
     def is_empty(self) -> bool:
         return (
-            self.category is None
+            self.type is None
+            and self.category is None
             and self.min_payload is None
             and self.max_payload is None
             and self.min_reach is None

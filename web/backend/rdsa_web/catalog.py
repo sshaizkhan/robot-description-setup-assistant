@@ -5,7 +5,13 @@ from pathlib import Path
 
 import yaml
 
-from .models import CategoryInfo, RobotConfig, RobotFilter, RobotSpecifications
+from .models import (
+    AttachInfo,
+    CategoryInfo,
+    RobotConfig,
+    RobotFilter,
+    RobotSpecifications,
+)
 
 
 class RobotCatalog:
@@ -20,15 +26,27 @@ class RobotCatalog:
     # -- construction --------------------------------------------------
     @classmethod
     def from_file(cls, path: str | Path) -> "RobotCatalog":
-        data = yaml.safe_load(Path(path).read_text()) or {}
-        categories = {
-            cid: cls._parse_category(cid, node)
-            for cid, node in (data.get("categories") or {}).items()
-        }
-        robots = {
-            rid: cls._parse_robot(rid, node)
-            for rid, node in (data.get("robots") or {}).items()
-        }
+        """Load a single YAML file, or every *.yml/*.yaml under a directory."""
+        p = Path(path)
+        if p.is_dir():
+            return cls.from_directory(p)
+        return cls._from_data([yaml.safe_load(p.read_text()) or {}])
+
+    @classmethod
+    def from_directory(cls, path: str | Path) -> "RobotCatalog":
+        p = Path(path)
+        files = sorted(set(p.rglob("*.yml")) | set(p.rglob("*.yaml")))
+        return cls._from_data([yaml.safe_load(f.read_text()) or {} for f in files])
+
+    @classmethod
+    def _from_data(cls, datas: list[dict]) -> "RobotCatalog":
+        categories: dict[str, CategoryInfo] = {}
+        robots: dict[str, RobotConfig] = {}
+        for data in datas:
+            for cid, node in (data.get("categories") or {}).items():
+                categories[cid] = cls._parse_category(cid, node)
+            for rid, node in (data.get("robots") or {}).items():
+                robots[rid] = cls._parse_robot(rid, node)
         return cls(robots, categories)
 
     @staticmethod
@@ -57,6 +75,16 @@ class RobotCatalog:
             torque_sensing=node.get("torque_sensing", False),
         )
 
+    @staticmethod
+    def _parse_attach(node: dict | None) -> AttachInfo:
+        node = node or {}
+        return AttachInfo(
+            tool_frame=node.get("tool_frame", ""),
+            mount_frame=node.get("mount_frame", ""),
+            xyz=list(node.get("xyz", [0.0, 0.0, 0.0]) or [0.0, 0.0, 0.0]),
+            rpy=list(node.get("rpy", [0.0, 0.0, 0.0]) or [0.0, 0.0, 0.0]),
+        )
+
     @classmethod
     def _parse_robot(cls, rid: str, node: dict) -> RobotConfig:
         return RobotConfig(
@@ -68,6 +96,8 @@ class RobotCatalog:
             urdf_path=node.get("urdf_path", ""),
             xacro_args=node.get("xacro_args", ""),
             category=node.get("category", ""),
+            type=node.get("type", "arm"),
+            attach=cls._parse_attach(node.get("attach")),
             specifications=cls._parse_specs(node.get("specifications")),
             required_packages=list(node.get("required_packages", []) or []),
             optional_packages=list(node.get("optional_packages", []) or []),
@@ -76,7 +106,17 @@ class RobotCatalog:
 
     # -- queries -------------------------------------------------------
     def get_all_robots(self) -> list[RobotConfig]:
-        return list(self._robots.values())
+        return sorted(self._robots.values(), key=lambda r: r.id)
+
+    def get_robots_page(
+        self, offset: int = 0, limit: int = 0
+    ) -> "tuple[list[RobotConfig], int]":
+        """Stable page of all robots; limit <= 0 means all. Returns (page, total)."""
+        robots = self.get_all_robots()
+        total = len(robots)
+        offset = max(offset, 0)
+        end = total if limit <= 0 else min(total, offset + limit)
+        return robots[offset:end], total
 
     def get_robot_by_id(self, robot_id: str) -> RobotConfig | None:
         return self._robots.get(robot_id)
@@ -98,6 +138,8 @@ class RobotCatalog:
     @staticmethod
     def _matches_filter(r: RobotConfig, flt: RobotFilter) -> bool:
         s = r.specifications
+        if flt.type is not None and r.type != flt.type:
+            return False
         if flt.category is not None and r.category != flt.category:
             return False
         if flt.min_payload is not None and s.payload_kg < flt.min_payload:

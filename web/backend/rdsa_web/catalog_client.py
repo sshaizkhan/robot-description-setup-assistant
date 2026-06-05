@@ -9,6 +9,7 @@ from .models import CategoryInfo, RobotConfig, RobotFilter
 
 def filter_to_request_fields(f: RobotFilter) -> dict:
     return {
+        "type": f.type or "",
         "category": f.category or "",
         "has_min_payload": f.min_payload is not None,
         "min_payload": f.min_payload or 0.0,
@@ -129,8 +130,16 @@ class CatalogClient:
         return result
 
     def get_all_robots(self) -> list[RobotConfig]:
-        res = self._call(self._get_robots, self._types["GetRobots"].Request())
-        return parse_robots_json(res.robots_json)
+        return self.get_robots_page(0, 0)[0]
+
+    def get_robots_page(
+        self, offset: int = 0, limit: int = 0
+    ) -> "tuple[list[RobotConfig], int]":
+        req = self._types["GetRobots"].Request()
+        req.offset = int(offset)
+        req.limit = int(limit)
+        res = self._call(self._get_robots, req)
+        return parse_robots_json(res.robots_json), int(res.total)
 
     def get_categories(self) -> list[CategoryInfo]:
         res = self._call(self._get_categories, self._types["GetCategories"].Request())
@@ -200,6 +209,11 @@ class CppCatalog:
 
     def get_all_robots(self) -> list[RobotConfig]:
         return self._client.get_all_robots()
+
+    def get_robots_page(
+        self, offset: int = 0, limit: int = 0
+    ) -> "tuple[list[RobotConfig], int]":
+        return self._client.get_robots_page(offset, limit)
 
     def get_categories(self) -> list[CategoryInfo]:
         return self._client.get_categories()

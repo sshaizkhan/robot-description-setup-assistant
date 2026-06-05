@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <filesystem>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include "robot_catalog_core/catalog.hpp"
 #include "robot_catalog_core/json.hpp"
@@ -17,9 +18,10 @@ using robot_catalog::RobotFilter;
 class CatalogServer : public rclcpp::Node {
 public:
   CatalogServer() : Node("robot_catalog_server") {
-    std::string path = this->declare_parameter<std::string>("robots_yaml", default_yaml());
-    core_.loadFromFile(path);
-    RCLCPP_INFO(get_logger(), "loaded catalog: %zu robots", core_.getAllRobots().size());
+    std::string path = this->declare_parameter<std::string>("catalog_path", default_catalog());
+    core_.load(path);  // single YAML file or a directory of them
+    RCLCPP_INFO(get_logger(), "loaded catalog from %s: %zu robots",
+                path.c_str(), core_.getAllRobots().size());
 
     // Reentrant group: with the MultiThreadedExecutor, this lets multiple
     // service requests (e.g. all of a robot's mesh fetches) run concurrently
@@ -28,16 +30,25 @@ public:
 
     get_robots_ = create_service<robot_catalog_msgs::srv::GetRobots>(
       "catalog/get_robots",
-      [this](const std::shared_ptr<robot_catalog_msgs::srv::GetRobots::Request>,
+      [this](const std::shared_ptr<robot_catalog_msgs::srv::GetRobots::Request> req,
              std::shared_ptr<robot_catalog_msgs::srv::GetRobots::Response> res) {
-        res->robots_json = robot_catalog::robots_to_json(core_.getAllRobots());
+        int total = 0;
+        if (req->offset == 0 && req->limit <= 0) {
+          // Whole list: serve the pre-built JSON cache.
+          res->robots_json = core_.allRobotsJson();
+          res->total = static_cast<int>(core_.getAllRobots().size());
+        } else {
+          res->robots_json =
+              robot_catalog::robots_to_json(core_.getRobotsPage(req->offset, req->limit, total));
+          res->total = total;
+        }
       }, rmw_qos_profile_services_default, cbg_);
 
     get_categories_ = create_service<robot_catalog_msgs::srv::GetCategories>(
       "catalog/get_categories",
       [this](const std::shared_ptr<robot_catalog_msgs::srv::GetCategories::Request>,
              std::shared_ptr<robot_catalog_msgs::srv::GetCategories::Response> res) {
-        res->categories_json = robot_catalog::categories_to_json(core_.getCategories());
+        res->categories_json = core_.categoriesJson();
       }, rmw_qos_profile_services_default, cbg_);
 
     filter_ = create_service<robot_catalog_msgs::srv::FilterRobots>(
@@ -45,6 +56,7 @@ public:
       [this](const std::shared_ptr<robot_catalog_msgs::srv::FilterRobots::Request> req,
              std::shared_ptr<robot_catalog_msgs::srv::FilterRobots::Response> res) {
         RobotFilter f;
+        if (!req->type.empty()) f.type = req->type;
         if (!req->category.empty()) f.category = req->category;
         if (req->has_min_payload) f.min_payload = req->min_payload;
         if (req->has_max_payload) f.max_payload = req->max_payload;
@@ -105,9 +117,14 @@ public:
   }
 
 private:
-  static std::string default_yaml() {
-    return ament_index_cpp::get_package_share_directory("robot_description_setup_assistant") +
-           "/config/robots.yaml";
+  // Prefer the multi-file catalog directory; fall back to the legacy single file.
+  static std::string default_catalog() {
+    std::string share =
+        ament_index_cpp::get_package_share_directory("robot_description_setup_assistant");
+    std::string dir = share + "/config/catalog";
+    std::error_code ec;
+    if (std::filesystem::is_directory(dir, ec)) return dir;
+    return share + "/config/robots.yaml";
   }
   RobotCatalogCore core_;
   rclcpp::CallbackGroup::SharedPtr cbg_;

@@ -6,11 +6,12 @@ from rdsa_web.app import create_app
 from rdsa_web.catalog import RobotCatalog
 
 # web/backend/tests/test_api.py -> repo root is 3 levels up.
+# Canonical multi-file catalog directory (from_file detects + merges it).
 ROBOTS_YAML = (
     Path(__file__).resolve().parents[3]
     / "robot_description_setup_assistant"
     / "config"
-    / "robots.yaml"
+    / "catalog"
 )
 
 

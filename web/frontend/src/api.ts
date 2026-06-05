@@ -11,6 +11,13 @@ export interface RobotSpecifications {
   torque_sensing: boolean;
 }
 
+export interface AttachInfo {
+  tool_frame?: string;
+  mount_frame?: string;
+  xyz?: number[];
+  rpy?: number[];
+}
+
 export interface RobotConfig {
   id: string;
   display_name: string;
@@ -20,6 +27,9 @@ export interface RobotConfig {
   description?: string;
   image_path?: string;
   urdf_package?: string;
+  // Component kind: "arm" (default), "end_effector", or "base".
+  type?: string;
+  attach?: AttachInfo;
   specifications?: RobotSpecifications;
   required_packages?: string[];
   tags?: string[];
@@ -34,6 +44,7 @@ export interface CategoryInfo {
 }
 
 export interface RobotFilter {
+  type?: string;
   category?: string;
   min_payload?: number;
   max_payload?: number;

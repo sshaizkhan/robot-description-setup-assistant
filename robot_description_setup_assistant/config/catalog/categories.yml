@@ -1,0 +1,20 @@
+# Catalog categories. Any catalog file may declare `categories:` and/or
+# `robots:`; the loader merges them across every *.yml under config/catalog/.
+categories:
+  universal_robots:
+    display_name: "Universal Robots"
+    description: "Collaborative industrial robots from Universal Robots"
+    manufacturer: "Universal Robots"
+    website: "https://www.universal-robots.com"
+
+  franka:
+    display_name: "Franka Emika"
+    description: "Research and sensitive manipulation robots"
+    manufacturer: "Franka Emika"
+    website: "https://www.franka.de"
+
+  kuka:
+    display_name: "KUKA Robots"
+    description: "Industrial robots for various applications"
+    manufacturer: "KUKA Robotics"
+    website: "https://www.kuka.com"

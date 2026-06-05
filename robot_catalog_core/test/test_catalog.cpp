@@ -15,7 +15,7 @@ static std::string yaml_path() {
 class CatalogTest : public ::testing::Test {
 protected:
   RobotCatalogCore cat;
-  void SetUp() override { cat.loadFromFile(yaml_path()); }
+  void SetUp() override { cat.load(yaml_path()); }
 };
 
 TEST_F(CatalogTest, LoadsAllRobotsAndCategories) {
