@@ -130,7 +130,7 @@ URDF refs are `package://PKG/rel`. `Viewer3D` rewrites them via
 - **cpp mode**: `robot_catalog_core/src/mesh.cpp :: readMesh()` does the
   `ament_index_cpp` lookup + **path-traversal guard** (lexical `..` collapse,
   containment check; symlinks not resolved so merged/symlink installs work),
-  **reads the file** (if within the **2 MiB `kMeshSizeCap`** — checked via
+  **reads the file** (if within the **5 MiB `kMeshSizeCap`** — checked via
   `file_size` *before* reading, so oversized files never load into memory), and
   returns the raw bytes + MIME type via the `catalog/resolve_mesh` service.
   Python (`app.py`) just wraps those bytes in a `Response` — **zero filesystem

@@ -8,7 +8,7 @@ namespace robot_catalog {
 // Hard cap on the size of a mesh/image the service will read and return.
 // Files above this are rejected (not read into memory) so the user can shrink
 // or decimate the offending asset.
-constexpr uint64_t kMeshSizeCap = 2ULL * 1024 * 1024;  // 2 MiB
+constexpr uint64_t kMeshSizeCap = 5ULL * 1024 * 1024;  // 5 MiB
 
 struct MeshResult {
   bool ok = false;                 // true if a real file inside the package was read

@@ -40,7 +40,7 @@ class CatalogServiceUnavailable(Exception):
 
 
 # Hard cap on mesh/image size, mirrored from the C++ side (kMeshSizeCap).
-MESH_SIZE_CAP = 2 * 1024 * 1024  # 2 MiB
+MESH_SIZE_CAP = 5 * 1024 * 1024  # 5 MiB
 
 
 class MeshTooLarge(Exception):

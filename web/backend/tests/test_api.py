@@ -87,7 +87,7 @@ def test_mesh_endpoint_413_when_too_large(monkeypatch):
     from rdsa_web.catalog_client import MeshTooLarge
 
     def boom(self, pkg, rel):
-        raise MeshTooLarge(5_000_000)
+        raise MeshTooLarge(9_000_000)
 
     monkeypatch.setattr(RobotCatalog, "resolve_mesh", boom)
     resp = _client().get("/meshes/ur_description/meshes/ur3/visual/base.dae")
