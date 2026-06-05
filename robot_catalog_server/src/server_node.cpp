@@ -21,19 +21,24 @@ public:
     core_.loadFromFile(path);
     RCLCPP_INFO(get_logger(), "loaded catalog: %zu robots", core_.getAllRobots().size());
 
+    // Reentrant group: with the MultiThreadedExecutor, this lets multiple
+    // service requests (e.g. all of a robot's mesh fetches) run concurrently
+    // instead of one-at-a-time.
+    cbg_ = create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+
     get_robots_ = create_service<robot_catalog_msgs::srv::GetRobots>(
       "catalog/get_robots",
       [this](const std::shared_ptr<robot_catalog_msgs::srv::GetRobots::Request>,
              std::shared_ptr<robot_catalog_msgs::srv::GetRobots::Response> res) {
         res->robots_json = robot_catalog::robots_to_json(core_.getAllRobots());
-      });
+      }, rmw_qos_profile_services_default, cbg_);
 
     get_categories_ = create_service<robot_catalog_msgs::srv::GetCategories>(
       "catalog/get_categories",
       [this](const std::shared_ptr<robot_catalog_msgs::srv::GetCategories::Request>,
              std::shared_ptr<robot_catalog_msgs::srv::GetCategories::Response> res) {
         res->categories_json = robot_catalog::categories_to_json(core_.getCategories());
-      });
+      }, rmw_qos_profile_services_default, cbg_);
 
     filter_ = create_service<robot_catalog_msgs::srv::FilterRobots>(
       "catalog/filter_robots",
@@ -50,7 +55,7 @@ public:
         f.required_tags = req->required_tags;
         f.search_text = req->search_text;
         res->robots_json = robot_catalog::robots_to_json(core_.filterRobots(f));
-      });
+      }, rmw_qos_profile_services_default, cbg_);
 
     validate_ = create_service<robot_catalog_msgs::srv::ValidateRobot>(
       "catalog/validate_robot",
@@ -65,7 +70,7 @@ public:
         res->found = true;
         res->missing_packages = core_.getMissingPackages(r);
         res->ok = res->missing_packages.empty();
-      });
+      }, rmw_qos_profile_services_default, cbg_);
 
     get_urdf_ = create_service<robot_catalog_msgs::srv::GetUrdf>(
       "catalog/get_urdf",
@@ -83,7 +88,7 @@ public:
         res->urdf_xml = u.xml;
         res->error = u.error;
         res->missing_packages = core_.getMissingPackages(r);
-      });
+      }, rmw_qos_profile_services_default, cbg_);
 
     resolve_mesh_ = create_service<robot_catalog_msgs::srv::ResolveMesh>(
       "catalog/resolve_mesh",
@@ -96,7 +101,7 @@ public:
         res->size_bytes = m.size;
         res->data = m.data;
         res->media_type = m.media_type;
-      });
+      }, rmw_qos_profile_services_default, cbg_);
   }
 
 private:
@@ -105,6 +110,7 @@ private:
            "/config/robots.yaml";
   }
   RobotCatalogCore core_;
+  rclcpp::CallbackGroup::SharedPtr cbg_;
   rclcpp::Service<robot_catalog_msgs::srv::GetRobots>::SharedPtr get_robots_;
   rclcpp::Service<robot_catalog_msgs::srv::GetCategories>::SharedPtr get_categories_;
   rclcpp::Service<robot_catalog_msgs::srv::FilterRobots>::SharedPtr filter_;
@@ -115,7 +121,13 @@ private:
 
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<CatalogServer>());
+  // Multi-threaded so concurrent mesh/URDF requests are served in parallel
+  // (the web layer fires all of a robot's mesh requests at once). The catalog
+  // data is loaded once and only read thereafter, so concurrent reads are safe.
+  auto node = std::make_shared<CatalogServer>();
+  rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(node);
+  executor.spin();
   rclcpp::shutdown();
   return 0;
 }
