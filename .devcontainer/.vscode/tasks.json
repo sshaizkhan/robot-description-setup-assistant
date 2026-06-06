@@ -76,13 +76,13 @@
       "id": "package",
       "description": "The package to select",
       "options": [
+        "robot_catalog_core",
+        "robot_catalog_msgs",
+        "robot_catalog_server",
         "robot_description_setup_assistant",
-        "robot_description_common",
-        "robot_description_core_plugins",
-        "robot_description_setup_framework",
         "kuka_robot_descriptions"
       ],
-      "default": "ros2_mapping"
+      "default": "robot_catalog_server"
     }
   ]
 }
