@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 from pathlib import Path
 
@@ -13,6 +14,27 @@ from .catalog_client import CatalogServiceUnavailable, MeshTooLarge
 from .models import CategoryInfo, RobotConfig, RobotFilter
 from .package_gen import build_package_zip, package_name
 from .ros_bridge import JointStateRelay
+
+
+class _QuietPathsFilter(logging.Filter):
+    """Drop uvicorn access-log lines for chatty static routes (one GET per mesh).
+
+    Opening a robot fetches ~14 meshes; logging each just buries the API calls.
+    Set RDSA_LOG_MESHES=1 to keep them.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        # uvicorn.access args: (client, method, path, http_version, status)
+        if isinstance(args, tuple) and len(args) >= 3 and isinstance(args[2], str):
+            path = args[2]
+            if path.startswith("/meshes/") or path.endswith("/image"):
+                return False
+        return True
+
+
+if os.environ.get("RDSA_LOG_MESHES") != "1":
+    logging.getLogger("uvicorn.access").addFilter(_QuietPathsFilter())
 
 
 def _default_catalog() -> RobotCatalog:
