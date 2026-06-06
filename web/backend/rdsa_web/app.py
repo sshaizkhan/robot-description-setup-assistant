@@ -45,6 +45,11 @@ def _default_catalog() -> RobotCatalog:
     from ament_index_python.packages import get_package_share_directory
 
     share = Path(get_package_share_directory("robot_description_setup_assistant"))
+    # Prefer the multi-file catalog directory (arms + end-effectors + bases);
+    # fall back to the legacy single file. Mirrors the C++ default_catalog().
+    catalog_dir = share / "config" / "catalog"
+    if catalog_dir.is_dir():
+        return RobotCatalog.from_file(catalog_dir)
     return RobotCatalog.from_file(share / "config" / "robots.yaml")
 
 
