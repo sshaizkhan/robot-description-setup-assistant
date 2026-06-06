@@ -8,7 +8,14 @@ def _cat(p):
 
 def test_empty_filter_returns_all(robots_yaml_path):
     cat = _cat(robots_yaml_path)
-    assert len(cat.filter_robots(RobotFilter())) == 20
+    assert len(cat.filter_robots(RobotFilter())) == 27
+
+
+def test_filter_by_type(robots_yaml_path):
+    cat = _cat(robots_yaml_path)
+    assert len(cat.filter_robots(RobotFilter(type="arm"))) == 20
+    assert len(cat.filter_robots(RobotFilter(type="end_effector"))) == 2
+    assert len(cat.filter_robots(RobotFilter(type="base"))) == 5
 
 
 def test_filter_by_category(robots_yaml_path):

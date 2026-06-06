@@ -1,0 +1,39 @@
+# Robotiq end-effectors (real descriptions from deps/ros2_robotiq_gripper).
+robots:
+  robotiq_2f85:
+    type: end_effector
+    display_name: "Robotiq 2F-85"
+    description: "Adaptive 2-finger parallel gripper, 85 mm stroke"
+    urdf_package: "robotiq_description"
+    urdf_path: "urdf/robotiq_2f_85_gripper.urdf.xacro"
+    xacro_args: ""
+    category: "grippers"
+    attach:
+      mount_frame: "robotiq_85_base_link"
+      xyz: [0.0, 0.0, 0.0]
+      rpy: [0.0, 0.0, 0.0]
+    specifications:
+      payload_kg: 5.0
+      weight_kg: 0.9
+    required_packages:
+      - "robotiq_description"
+    tags: ["gripper", "parallel", "2finger", "robotiq", "collaborative"]
+
+  robotiq_2f140:
+    type: end_effector
+    display_name: "Robotiq 2F-140"
+    description: "Adaptive 2-finger parallel gripper, 140 mm stroke"
+    urdf_package: "robotiq_description"
+    urdf_path: "urdf/robotiq_2f_140_gripper.urdf.xacro"
+    xacro_args: ""
+    category: "grippers"
+    attach:
+      mount_frame: "robotiq_base_link"
+      xyz: [0.0, 0.0, 0.0]
+      rpy: [0.0, 0.0, 0.0]
+    specifications:
+      payload_kg: 2.5
+      weight_kg: 1.0
+    required_packages:
+      - "robotiq_description"
+    tags: ["gripper", "parallel", "2finger", "robotiq", "wide"]

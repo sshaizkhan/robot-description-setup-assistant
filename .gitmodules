@@ -4,3 +4,6 @@
 [submodule "deps/ur5_description"]
 	path = deps/ur5_description
 	url = https://github.com/UniversalRobots/Universal_Robots_ROS2_Description.git
+[submodule "deps/ros2_robotiq_gripper"]
+	path = deps/ros2_robotiq_gripper
+	url = https://github.com/PickNikRobotics/ros2_robotiq_gripper.git

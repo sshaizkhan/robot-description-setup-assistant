@@ -3,8 +3,9 @@ from rdsa_web.catalog import RobotCatalog
 
 def test_loads_all_robots_and_categories(robots_yaml_path):
     cat = RobotCatalog.from_file(robots_yaml_path)
-    assert len(cat.get_all_robots()) == 20
-    assert len(cat.get_categories()) == 3
+    # 20 arms + 2 end-effectors + 5 bases; 3 arm categories + grippers + bases.
+    assert len(cat.get_all_robots()) == 27
+    assert len(cat.get_categories()) == 5
 
 
 def test_ur3_fields_parsed(robots_yaml_path):

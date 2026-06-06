@@ -99,13 +99,35 @@ function selfCollisionCount(
   return count;
 }
 
-interface Viewer3DProps {
-  urdfXml: string;
-  meshBase: string;
-  liveJoints?: Record<string, number> | null;
+interface Attach {
+  tool_frame?: string;
+  mount_frame?: string;
+  xyz?: number[];
+  rpy?: number[];
 }
 
-export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
+interface AssemblyPart {
+  urdfXml: string;
+  attach?: Attach;
+}
+
+interface Viewer3DProps {
+  urdfXml: string; // the arm
+  meshBase: string;
+  liveJoints?: Record<string, number> | null;
+  armAttach?: Attach; // arm's tool frame (default "tool0")
+  endEffector?: AssemblyPart | null; // attached to the arm's tool frame
+  base?: AssemblyPart | null; // the arm mounts on top of it
+}
+
+export function Viewer3D({
+  urdfXml,
+  meshBase,
+  liveJoints,
+  armAttach,
+  endEffector,
+  base,
+}: Viewer3DProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const robotRef = useRef<URDFRobot | null>(null);
   const [joints, setJoints] = useState<string[]>([]);
@@ -157,56 +179,65 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
     controls.update();
 
     setLoading(true);
-    const loader = new URDFLoader();
-    loader.packages = (pkg: string) =>
-      resolvePackageUrl(meshBase, `package://${pkg}`);
-    // Only fetch/parse collision geometry once the user wants it (halves the
-    // mesh count on a normal open).
-    loader.parseCollision = collisionEnabled;
 
-    // Reveal the robot only once every mesh has finished loading, so it appears
-    // all at once instead of building up link by link. We wrap urdf-loader's
-    // default mesh loader to count outstanding loads (more reliable than
-    // LoadingManager.onLoad, which this version fires before meshes resolve).
+    // Reveal the whole assembly only once every mesh has finished loading, so it
+    // appears at once instead of building up link by link. Each loader's
+    // loadMeshCb is wrapped to count outstanding loads (more reliable than
+    // LoadingManager.onLoad in this urdf-loader version).
     let pending = 0;
     let parseDone = false;
     let revealed = false;
     let revealTimer = 0;
+
+    // Everything lives in one group rotated Z-up -> Y-up; base/arm are added in
+    // URDF (Z-up) coordinates, the end-effector rides on the arm's tool frame.
+    const assembly = new THREE.Group();
+    assembly.rotation.x = -Math.PI / 2;
+    assembly.visible = false;
+    scene.add(assembly);
+
     const reveal = () => {
       if (revealed) return;
       revealed = true;
       window.clearTimeout(revealTimer);
-      const r = robotRef.current;
-      if (r) r.visible = true;
+      assembly.visible = true;
       setLoading(false);
     };
     const maybeReveal = () => {
       if (parseDone && pending === 0) reveal();
     };
-    const defaultLoadMeshCb = loader.loadMeshCb;
-    loader.loadMeshCb = (
-      path: string,
-      manager: THREE.LoadingManager,
-      done: (mesh: THREE.Object3D, err?: Error) => void,
-    ) => {
-      pending += 1;
-      defaultLoadMeshCb.call(
-        loader,
-        path,
-        manager,
-        (mesh: THREE.Object3D, err?: Error) => {
+
+    const makeLoader = (withCollision: boolean): URDFLoader => {
+      const l = new URDFLoader();
+      l.packages = (pkg: string) =>
+        resolvePackageUrl(meshBase, `package://${pkg}`);
+      l.parseCollision = withCollision;
+      const def = l.loadMeshCb;
+      l.loadMeshCb = (
+        path: string,
+        manager: THREE.LoadingManager,
+        done: (mesh: THREE.Object3D, err?: Error) => void,
+      ) => {
+        pending += 1;
+        def.call(l, path, manager, (mesh: THREE.Object3D, err?: Error) => {
           done(mesh, err);
           pending -= 1;
           maybeReveal();
-        },
-      );
+        });
+      };
+      return l;
     };
 
-    const robot = loader.parse(urdfXml);
-    // URDF is Z-up; rotate so Z points up in three.js (Y-up) view.
-    robot.rotation.x = -Math.PI / 2;
-    robot.visible = false; // revealed once all meshes have loaded
-    scene.add(robot);
+    // Base (optional): on the ground; the arm sits on top at this height.
+    const baseHeight = base?.attach?.xyz?.[2] ?? 0;
+    if (base?.urdfXml) {
+      assembly.add(makeLoader(false).parse(base.urdfXml));
+    }
+
+    // Arm: the joint-controlled robot.
+    const robot = makeLoader(collisionEnabled).parse(urdfXml);
+    robot.position.z = baseHeight;
+    assembly.add(robot);
     robotRef.current = robot;
     const movable = Object.entries(robot.joints)
       .filter(([, j]) => j.jointType !== "fixed")
@@ -214,9 +245,20 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
     setJoints(movable);
     setValues(Object.fromEntries(movable.map((n) => [n, 0])));
 
+    // End-effector (optional): parented to the arm's tool frame so it moves with
+    // the joints.
+    if (endEffector?.urdfXml) {
+      const ee = makeLoader(false).parse(endEffector.urdfXml);
+      const a = endEffector.attach ?? {};
+      ee.position.set(a.xyz?.[0] ?? 0, a.xyz?.[1] ?? 0, a.xyz?.[2] ?? 0);
+      ee.rotation.set(a.rpy?.[0] ?? 0, a.rpy?.[1] ?? 0, a.rpy?.[2] ?? 0, "ZYX");
+      const toolName = armAttach?.tool_frame || "tool0";
+      const tool = robot.getObjectByName(toolName) ?? robot;
+      tool.add(ee);
+    }
+
     parseDone = true;
-    // Safety net: reveal anyway after a few seconds (e.g. a mesh that hangs) and
-    // handle robots that declared no meshes at all.
+    // Safety net: reveal anyway after a few seconds, and handle parts with no meshes.
     revealTimer = window.setTimeout(reveal, 6000);
     maybeReveal();
 
@@ -232,8 +274,8 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
       window.clearTimeout(revealTimer);
       cancelAnimationFrame(raf);
       controls.dispose();
-      scene.remove(robot);
-      disposeObject3D(robot); // free GPU geometries/materials/textures
+      scene.remove(assembly);
+      disposeObject3D(assembly); // free GPU geometries/materials/textures
       (grid.geometry as THREE.BufferGeometry).dispose();
       (grid.material as THREE.Material).dispose();
       renderer.dispose();
@@ -241,7 +283,13 @@ export function Viewer3D({ urdfXml, meshBase, liveJoints }: Viewer3DProps) {
       mount.removeChild(renderer.domElement);
       robotRef.current = null;
     };
-  }, [urdfXml, meshBase, collisionEnabled]);
+  }, [
+    urdfXml,
+    meshBase,
+    collisionEnabled,
+    endEffector?.urdfXml,
+    base?.urdfXml,
+  ]);
 
   useEffect(() => {
     const robot = robotRef.current;
