@@ -1,55 +1,55 @@
 # Architecture — Robot Description Setup Assistant
 
-How the whole workspace fits together: the two front-ends, who parses URDF, who
-publishes/consumes `joint_states`, and how the C++, Python, and TypeScript code
-share one robot-catalog domain.
+How the whole workspace fits together: who parses URDF, who publishes/consumes
+`joint_states`, and how the C++, Python, and TypeScript code share one
+robot-catalog domain.
 
 > Web-stack-only detail lives in [`web/ARCHITECTURE.md`](web/ARCHITECTURE.md).
 > This file is the workspace-wide map.
+>
+> **No Qt / RViz / MoveIt.** The original Qt desktop setup assistant (and its
+> `robot_description_core_plugins` / `robot_description_setup_framework` /
+> `robot_description_common` packages) was removed. The web UI is the only
+> front-end; `robot_description_setup_assistant` is now a data-only package
+> (catalog `config/`, robot `resources/`, web launch).
 
 ---
 
-## 0. Two front-ends, one domain
+## 0. One front-end, one domain
 
-The repo is a ROS 2 Humble workspace. There are **two complete UIs** over the
-same robot catalog:
+The repo is a ROS 2 Humble workspace. The **web UI** is the only front-end:
 
-| | Legacy Qt desktop app | Web UI (current) |
-|---|---|---|
-| Entry | `robot_description_setup_assistant` (`main.cpp`) | `web/run.sh` → uvicorn |
-| Render | RViz (`RVizPanel` + MoveIt `RobotStateDisplay`) | three.js + `urdf-loader` in browser |
-| Catalog | `RobotConfigManager` singleton (in-process) | C++ `robot_catalog_server` ROS service |
-| GUI | Qt widgets (pluginlib setup steps) | React + Vite SPA |
-| MoveIt | **Required** (URDF/SRDF config, RViz plugin) | **Not used** |
-| Status | Being retired | Active |
+| | Web UI |
+|---|---|
+| Entry | `./run.sh` → uvicorn |
+| Render | three.js + `urdf-loader` in the browser |
+| Catalog | C++ `robot_catalog_server` ROS service |
+| GUI | React + Vite SPA |
+| MoveIt / Qt / RViz | **Not used** |
 
-Both read the **same** `robot_description_setup_assistant/config/robots.yaml`
-(20 robots: 9 Universal Robots + 11 KUKA; 3 categories; `franka` declared but
-empty).
+Catalog data: `robot_description_setup_assistant/config/catalog/` (a directory of
+`*.yml` merged by the loader) — 20 robots (9 Universal Robots + 11 KUKA), 3
+categories (`franka` declared but empty). A legacy single-file `config/robots.yaml`
+is kept only as a fallback.
 
 ---
 
-## 1. The catalog domain is mirrored 4×
+## 1. The catalog domain is mirrored 3×
 
 `RobotConfig` / `RobotSpecifications` / `CategoryInfo` / `RobotFilter` are
-defined **four times**, all semantically identical (same fields, same filter
+defined **three times**, all semantically identical (same fields, same filter
 rules):
 
 | Definition | File | Notes |
 |---|---|---|
-| C++ legacy | `robot_description_core_plugins/.../robot_config_manager.hpp` | Qt, `std::filesystem::path` fields |
-| C++ new | `robot_catalog_core/include/robot_catalog_core/types.hpp` | Qt-free, MoveIt-free |
+| C++ | `robot_catalog_core/include/robot_catalog_core/types.hpp` | source of truth |
 | Python | `web/backend/rdsa_web/models.py` | Pydantic |
 | TypeScript | `web/frontend/src/api.ts` | interfaces |
 
 Filter semantics identical everywhere (`matchesFilter` / `_matches_filter`):
-category equality · payload/reach min–max · DOF exact · collaborative-only ·
+type · category equality · payload/reach min–max · DOF exact · collaborative-only ·
 required-tags **all** must match · case-insensitive substring search over
 name/description/category/tags. Empty filter ⇒ return all.
-
-The C++ `robot_catalog_core` is a deliberate **de-Qt'd, MoveIt-free copy** of
-the legacy `RobotConfigManager` logic — built so the web backend can own the
-catalog without dragging in Qt/MoveIt.
 
 ---
 
@@ -112,17 +112,16 @@ web stack's production (cpp) mode, Python never parses URDF, resolves
   the package share dir (`ament_index_cpp`), builds the `xacro` argv, and runs
   the `xacro` process **from C++** (fork/exec, separate stdout/stderr pipes, 30s
   timeout). Exposed as the `catalog/get_urdf` service; `app.py` relays the result
-  to `GET /api/robots/{id}/urdf`. (Running the `xacro` binary is the same thing
-  MoveIt's `URDFConfig` does — orchestration is C++, not Python.)
-- **Web (YAML fallback)**: `urdf.py :: resolve_urdf()` (Python xacro subprocess) —
+  to `GET /api/robots/{id}/urdf` (and caches it).
+- **YAML fallback**: `urdf.py :: resolve_urdf()` (Python xacro subprocess) —
   used **only** in no-ROS/test mode (`RDSA_CATALOG_BACKEND` unset).
-- **Legacy Qt**: `RobotSelection::loadURDFFile()` → MoveIt `URDFConfig::loadFromPath()`.
 
 ### Stage B — URDF XML → 3D scene
-- **Web**: `Viewer3D.tsx` uses `urdf-loader` (`loader.parse(xml)`) **in the
-  browser** to build the three.js link/joint tree (`parseCollision=true`,
-  rotated −90° X for Z-up→Y-up).
-- **Legacy Qt**: MoveIt `RobotModel` + RViz `RobotStateDisplay` render it.
+- `Viewer3D.tsx` uses `urdf-loader` (`loader.parse(xml)`) **in the browser** to
+  build the three.js link/joint tree (rotated −90° X for Z-up→Y-up). Visual
+  meshes load first; collision geometry is loaded lazily only when the user
+  toggles "Show collision". The robot is hidden until all meshes are in, then
+  revealed at once (no link-by-link build).
 
 ### Mesh resolution (web)
 URDF refs are `package://PKG/rel`. `Viewer3D` rewrites them via
@@ -147,16 +146,15 @@ URDF refs are `package://PKG/rel`. `Viewer3D` rewrites them via
 
 ## 4. Who publishes `joint_states`?
 
-**Neither UI publishes `/joint_states` itself.** Two posing modes:
+**The web app does not publish `/joint_states` itself.** Two posing modes:
 
 ### Manual (default, no ROS)
-- **Web**: sliders in `Viewer3D` call `robot.setJointValue()` directly on the
-  three.js model. "Randomize" rejection-samples a self-collision-free pose
-  (shrunk-AABB overlap test) — all client-side.
-- **Legacy Qt**: RViz shows the static model.
+- Sliders in `Viewer3D` call `robot.setJointValue()` directly on the three.js
+  model. "Randomize" rejection-samples a self-collision-free pose (shrunk-AABB
+  overlap test) — all client-side.
 
 ### Live (mirror a running ROS graph)
-- **Web**: `ros_bridge.py :: JointStateRelay` is an rclpy node
+- `ros_bridge.py :: JointStateRelay` is an rclpy node
   (`rdsa_joint_relay`) that **subscribes** `/joint_states`
   (`sensor_msgs/JointState`), caches the latest map (double-checked-locked
   thread), and `/ws/joint_states` streams it at ~10 Hz → `Viewer3D.setJointValue`.
@@ -174,49 +172,34 @@ values are JSON-encoded into the launch file (injection-safe).
 
 ---
 
-## 5. Legacy Qt path (retiring — still MoveIt-coupled)
+## 5. Removed: the legacy Qt/RViz/MoveIt desktop app
 
-```
-main.cpp
-  └─ SetupRobotDescriptionAssistantWidget        (setup_assistant pkg)
-       ├─ pluginlib loads SetupStepWidget plugins (core_plugins pkg):
-       │    ├─ StartScreenWidget    (new vs. existing package)
-       │    └─ RobotSelectionWidget (catalog grid + filter + spec + RViz)
-       │         └─ RobotConfigManager  (singleton, QFileSystemWatcher auto-reload)
-       │         └─ FilterWidget / RobotSpecificationWidget
-       └─ RVizPanel  (RViz VisualizationManager + MoveIt RobotStateDisplay)
-```
-
-Despite memory notes about "MoveIt removed," **this path is still hard-coupled to
-MoveIt + RViz**: `rviz_panel.cpp` uses `moveit_rviz_plugin::RobotStateDisplay`
-and `moveit_setup::URDFConfig/SRDFConfig`; `setup_step.hpp` and
-`robot_selection.hpp` include `moveit_setup_framework`; the CMakeLists require
-`moveit_setup_framework`, `moveit_ros_visualization`, `rviz_common`. The MoveIt
-removal applied to the **new catalog/web path only**. `RobotSelectionWidget`
-loads its catalog from the `robot_description_setup_assistant` package's
-`robots.yaml`; the second copy under `robot_description_core_plugins/config/` is
-stale and unused.
+The original desktop setup assistant — a Qt UI with an embedded RViz panel and
+MoveIt-backed URDF/SRDF handling — has been **deleted**. Removed packages:
+`robot_description_core_plugins` (Qt setup-step widgets + `RobotConfigManager`),
+`robot_description_setup_framework` (Qt framework + `RVizPanel`), and
+`robot_description_common` (its cmake macro). `robot_description_setup_assistant`
+remains as a **data-only** package (no Qt/MoveIt): it ships the catalog
+(`config/`), robot images (`resources/`), and the web launch file. The workspace
+no longer depends on Qt5, RViz, or MoveIt.
 
 ---
 
 ## 6. Package map
 
-| Package | Role | Heavy deps |
+| Package | Role | Deps |
 |---|---|---|
-| `robot_catalog_core` | Qt/MoveIt-free catalog lib (yaml-cpp + JSON writer) | yaml-cpp, ament_index_cpp |
-| `robot_catalog_msgs` | `.srv` defs (GetRobots/GetCategories/FilterRobots/ValidateRobot) | rosidl |
+| `robot_catalog_core` | Catalog lib: YAML/dir load, filter, URDF (xacro), mesh read, JSON writer | yaml-cpp, ament_index_cpp |
+| `robot_catalog_msgs` | `.srv` defs (GetRobots/GetCategories/FilterRobots/ValidateRobot/GetUrdf/ResolveMesh) | rosidl |
 | `robot_catalog_server` | rclcpp node advertising `catalog/*` services | rclcpp + the two above |
-| `web/backend` (`rdsa_web`) | FastAPI app, rclpy bridge, urdf/mesh/package gen | fastapi, rclpy, xacro |
-| `web/frontend` | React + three.js SPA | vite, urdf-loader |
-| `robot_description_core_plugins` | Legacy Qt setup-step plugins + `RobotConfigManager` | Qt5, MoveIt, RViz |
-| `robot_description_setup_framework` | Legacy Qt framework (`SetupStep`, `RVizPanel`, helpers) | Qt5, MoveIt, RViz |
-| `robot_description_setup_assistant` | Legacy Qt main app + `robots.yaml` + launch | Qt5, RViz |
-| `robot_description_common` | `robot_description_package()` cmake macro (warnings, C++17) | ament_cmake |
+| `robot_description_setup_assistant` | **Data-only**: catalog `config/`, robot `resources/`, web launch | ament_cmake |
+| `web/backend` (`rdsa_web`) | FastAPI app + rclpy bridge (relay) + package gen | fastapi, rclpy |
+| `web/frontend` | React + three.js SPA | vite, urdf-loader, @tanstack/react-virtual |
 | `deps/ur5_description`, `deps/kuka_robot_descriptions` | Vendored robot description packages (xacro + meshes) | — |
 
-**Build note:** low-RAM machine — always `colcon build --parallel-workers 1`
-(max 2), prefer `--packages-select` one at a time. The new catalog packages are
-light; the legacy Qt packages (Qt5 + MoveIt + RViz) are the expensive ones.
+**Build note:** low-RAM machine — always `colcon build --merge-install
+--parallel-workers 1` (max 2), prefer `--packages-select`. All remaining
+packages are light (no Qt/MoveIt).
 
 ---
 
