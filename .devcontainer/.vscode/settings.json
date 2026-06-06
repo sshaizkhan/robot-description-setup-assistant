@@ -137,4 +137,5 @@
     "git-graph.maxDepthOfRepoSearch": 50,
     "terminal.integrated.showExitAlert": false,
     "cmake.configureOnOpen": false,
+    "remote.autoForwardPorts": false,
   }
