@@ -128,8 +128,22 @@ static int runProcess(const std::vector<std::string>& args, std::string& out,
     }
   }
 
+  // Reap with the same deadline. A child that closed its pipes (EOF on both,
+  // ending the read loop) but then hung before exiting must not wedge us in a
+  // blocking waitpid — that would stall every serialized /get_urdf request.
   int status = 0;
-  if (waitpid(pid, &status, 0) < 0) return -1;
+  while (true) {
+    pid_t r = waitpid(pid, &status, WNOHANG);
+    if (r == pid) break;
+    if (r < 0) return -1;
+    if (timeout_sec > 0 && time(nullptr) - start > timeout_sec) {
+      kill(pid, SIGKILL);
+      waitpid(pid, &status, 0);  // reap the killed child, then bail
+      return -1;
+    }
+    struct timespec ts {0, 2 * 1000 * 1000};  // 2 ms
+    nanosleep(&ts, nullptr);
+  }
   if (WIFEXITED(status)) return WEXITSTATUS(status);
   return -1;
 }

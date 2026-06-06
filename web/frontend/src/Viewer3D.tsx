@@ -39,6 +39,52 @@ function owningLink(obj: THREE.Object3D): string {
   return p ? p.name : "";
 }
 
+const COMMON_TOOL_FRAMES = [
+  "tool0",
+  "flange",
+  "tool_frame",
+  "ee_link",
+  "tcp",
+  "gripper_mount_link",
+];
+
+/**
+ * Resolve the link an end-effector should mount to. Prefers the catalog's
+ * declared tool frame, then common conventional names, then the deepest link in
+ * the kinematic chain (the chain tip). Returns the robot root only as a last
+ * resort — better a visible best-effort than a hard-coded "tool0" that silently
+ * drops the EE at the base.
+ */
+function findToolFrame(
+  robot: URDFRobot,
+  preferred?: string,
+): THREE.Object3D {
+  for (const name of [preferred, ...COMMON_TOOL_FRAMES]) {
+    if (!name) continue;
+    const obj = robot.getObjectByName(name);
+    if (obj) return obj;
+  }
+  let tip: THREE.Object3D | null = null;
+  let bestDepth = -1;
+  robot.traverse((c) => {
+    if (!(c as AnyObj).isURDFLink) return;
+    let depth = 0;
+    let p: THREE.Object3D | null = c.parent;
+    while (p && p !== robot) {
+      depth += 1;
+      p = p.parent;
+    }
+    if (depth > bestDepth) {
+      bestDepth = depth;
+      tip = c;
+    }
+  });
+  if (!tip) {
+    console.warn("Viewer3D: no tool frame found; mounting EE at robot root");
+  }
+  return tip ?? robot;
+}
+
 /** Group each link's own visual meshes (by owning link name). */
 function collectLinkMeshes(robot: URDFRobot): Map<string, THREE.Object3D[]> {
   const groups = new Map<string, THREE.Object3D[]>();
@@ -269,8 +315,7 @@ export function Viewer3D({
       const a = endEffector.attach ?? {};
       ee.position.set(a.xyz?.[0] ?? 0, a.xyz?.[1] ?? 0, a.xyz?.[2] ?? 0);
       ee.rotation.set(a.rpy?.[0] ?? 0, a.rpy?.[1] ?? 0, a.rpy?.[2] ?? 0, "ZYX");
-      const toolName = armAttach?.tool_frame || "tool0";
-      const tool = robot.getObjectByName(toolName) ?? robot;
+      const tool = findToolFrame(robot, armAttach?.tool_frame);
       tool.add(ee);
     }
 

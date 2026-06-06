@@ -213,6 +213,9 @@ class CppCatalog:
 
     def __init__(self, client: "CatalogClient | None" = None) -> None:
         self._client = client or CatalogClient()
+        # The C++ node loads the catalog once at startup and only reads it
+        # thereafter, so a by-id index is safe to memoize for the process.
+        self._by_id: dict[str, RobotConfig] | None = None
 
     def get_all_robots(self) -> list[RobotConfig]:
         return self._client.get_all_robots()
@@ -234,10 +237,12 @@ class CppCatalog:
         return self._client.filter_robots_page(flt, offset, limit)
 
     def get_robot_by_id(self, robot_id: str) -> RobotConfig | None:
-        for r in self._client.get_all_robots():
-            if r.id == robot_id:
-                return r
-        return None
+        # Memoized by-id index: avoids a full GetRobots round-trip + parse on
+        # every /image, /package, and /{id} request (a card grid fires one
+        # /image per visible card).
+        if self._by_id is None:
+            self._by_id = {r.id: r for r in self._client.get_all_robots()}
+        return self._by_id.get(robot_id)
 
     # -- heavy work delegated to C++; this layer only relays --------------
     def get_urdf(self, robot_id: str) -> dict:
