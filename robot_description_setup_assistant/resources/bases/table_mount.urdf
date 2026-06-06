@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="table_mount">
+  <material name="wood"><color rgba="0.62 0.5 0.36 1"/></material>
+  <material name="leg"><color rgba="0.3 0.3 0.32 1"/></material>
+  <link name="base_link">
+    <visual><origin xyz="0 0 0.74" rpy="0 0 0"/>
+      <geometry><box size="0.6 0.6 0.04"/></geometry><material name="wood"/></visual>
+    <visual><origin xyz="0.26 0.26 0.36" rpy="0 0 0"/><geometry><box size="0.04 0.04 0.72"/></geometry><material name="leg"/></visual>
+    <visual><origin xyz="-0.26 0.26 0.36" rpy="0 0 0"/><geometry><box size="0.04 0.04 0.72"/></geometry><material name="leg"/></visual>
+    <visual><origin xyz="0.26 -0.26 0.36" rpy="0 0 0"/><geometry><box size="0.04 0.04 0.72"/></geometry><material name="leg"/></visual>
+    <visual><origin xyz="-0.26 -0.26 0.36" rpy="0 0 0"/><geometry><box size="0.04 0.04 0.72"/></geometry><material name="leg"/></visual>
+  </link>
+  <link name="mount_point"/>
+  <joint name="to_mount" type="fixed"><parent link="base_link"/><child link="mount_point"/>
+    <origin xyz="0 0 0.76" rpy="0 0 0"/></joint>
+</robot>

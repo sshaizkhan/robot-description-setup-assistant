@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot name="floor_plate">
+  <material name="dark"><color rgba="0.25 0.27 0.3 1"/></material>
+  <link name="base_link">
+    <visual><origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.18" length="0.04"/></geometry>
+      <material name="dark"/></visual>
+  </link>
+  <link name="mount_point"/>
+  <joint name="to_mount" type="fixed"><parent link="base_link"/><child link="mount_point"/>
+    <origin xyz="0 0 0.04" rpy="0 0 0"/></joint>
+</robot>

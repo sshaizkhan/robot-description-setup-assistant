@@ -19,8 +19,8 @@ protected:
 };
 
 TEST_F(CatalogTest, LoadsAllRobotsAndCategories) {
-  EXPECT_EQ(cat.getAllRobots().size(), 20u);
-  EXPECT_EQ(cat.getCategories().size(), 3u);
+  EXPECT_EQ(cat.getAllRobots().size(), 27u);  // 20 arms + 2 EE + 5 bases
+  EXPECT_EQ(cat.getCategories().size(), 5u);
 }
 
 TEST_F(CatalogTest, Ur3Fields) {
@@ -41,7 +41,7 @@ TEST_F(CatalogTest, FilterByCategory) {
 }
 
 TEST_F(CatalogTest, EmptyFilterReturnsAll) {
-  EXPECT_EQ(cat.filterRobots(RobotFilter{}).size(), 20u);
+  EXPECT_EQ(cat.filterRobots(RobotFilter{}).size(), 27u);
 }
 
 TEST_F(CatalogTest, SearchCaseInsensitive) {

@@ -30,13 +30,13 @@ def test_health_returns_ok():
 def test_get_categories():
     resp = _client().get("/api/categories")
     assert resp.status_code == 200
-    assert len(resp.json()) == 3
+    assert len(resp.json()) == 5
 
 
 def test_get_robots():
     resp = _client().get("/api/robots")
     assert resp.status_code == 200
-    assert len(resp.json()) == 20
+    assert len(resp.json()) == 27
 
 
 def test_get_robot_by_id():
@@ -160,7 +160,7 @@ def test_api_still_wins_over_spa_mount(tmp_path):
         catalog=RobotCatalog.from_file(ROBOTS_YAML), frontend_dist=str(dist)
     )
     client = TestClient(app)
-    assert len(client.get("/api/robots").json()) == 20
+    assert len(client.get("/api/robots").json()) == 27
 
 
 def test_no_spa_mount_without_dist():

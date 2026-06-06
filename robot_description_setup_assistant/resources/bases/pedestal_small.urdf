@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot name="pedestal_small">
+  <material name="steel"><color rgba="0.55 0.57 0.6 1"/></material>
+  <link name="base_link">
+    <visual><origin xyz="0 0 0.20" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.12" length="0.40"/></geometry>
+      <material name="steel"/></visual>
+  </link>
+  <link name="mount_point"/>
+  <joint name="to_mount" type="fixed"><parent link="base_link"/><child link="mount_point"/>
+    <origin xyz="0 0 0.40" rpy="0 0 0"/></joint>
+</robot>

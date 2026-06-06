@@ -10,6 +10,7 @@ import {
   type UrdfResponse,
   type ValidationResult,
 } from "./api";
+import { Builder } from "./Builder";
 import { DetailPanel } from "./DetailPanel";
 import { FilterPanel } from "./FilterPanel";
 import { Intro } from "./Intro";
@@ -26,6 +27,7 @@ const TYPE_TABS: { value: string; label: string }[] = [
   { value: "", label: "All" },
   { value: "arm", label: "Arms" },
   { value: "end_effector", label: "End-effectors" },
+  { value: "base", label: "Bases" },
 ];
 
 function initialTheme(): Theme {
@@ -64,6 +66,7 @@ export function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(introPending);
+  const [view, setView] = useState<"catalog" | "builder">("catalog");
 
   useEffect(() => {
     fetchCategories().then(setCategories).catch((e) => setError(String(e)));
@@ -178,17 +181,33 @@ export function App() {
       <header className="app-header">
         <h1>Robot Description Setup Assistant</h1>
         <div className="header-actions">
-          <label className="live-toggle">
-            <input
-              type="checkbox"
-              checked={live}
-              onChange={(e) => setLive(e.target.checked)}
-            />
-            Live (ROS)
-          </label>
+          <button
+            type="button"
+            className="view-toggle"
+            onClick={() =>
+              setView((v) => (v === "catalog" ? "builder" : "catalog"))
+            }
+          >
+            {view === "catalog" ? "Assembly Builder" : "← Catalog"}
+          </button>
+          {view === "catalog" && (
+            <label className="live-toggle">
+              <input
+                type="checkbox"
+                checked={live}
+                onChange={(e) => setLive(e.target.checked)}
+              />
+              Live (ROS)
+            </label>
+          )}
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
       </header>
+
+      {view === "builder" && <Builder />}
+
+      {view === "catalog" && (
+      <>
       <div className="app-body">
         <FilterPanel categories={categories} onChange={setFilter} />
         <main className="app-main">
@@ -240,6 +259,8 @@ export function App() {
             <p className="viewer-loading">Loading…</p>
           )}
         </Modal>
+      )}
+      </>
       )}
     </div>
   );

@@ -1,0 +1,78 @@
+# Mounting bases, by footprint / robot class. Primitive geometry shipped in this
+# package (resources/bases/*.urdf). `attach.xyz[2]` is the height at which the
+# arm's base_link sits on top of the base.
+robots:
+  floor_plate:
+    type: base
+    display_name: "Floor Plate"
+    description: "Low bolt-down floor plate — direct mount, any arm"
+    urdf_package: "robot_description_setup_assistant"
+    urdf_path: "resources/bases/floor_plate.urdf"
+    category: "bases"
+    attach:
+      mount_frame: "mount_point"
+      xyz: [0.0, 0.0, 0.04]
+      rpy: [0.0, 0.0, 0.0]
+    specifications:
+      weight_kg: 8.0
+    tags: ["base", "floor", "compact"]
+
+  pedestal_small:
+    type: base
+    display_name: "Pedestal (Small)"
+    description: "Compact floor pedestal for light arms (UR3/UR5, small KUKA)"
+    urdf_package: "robot_description_setup_assistant"
+    urdf_path: "resources/bases/pedestal_small.urdf"
+    category: "bases"
+    attach:
+      mount_frame: "mount_point"
+      xyz: [0.0, 0.0, 0.40]
+      rpy: [0.0, 0.0, 0.0]
+    specifications:
+      weight_kg: 25.0
+    tags: ["base", "pedestal", "light"]
+
+  pedestal_large:
+    type: base
+    display_name: "Pedestal (Large)"
+    description: "Heavy floor pedestal for high-payload arms (UR10/16/20, large KUKA)"
+    urdf_package: "robot_description_setup_assistant"
+    urdf_path: "resources/bases/pedestal_large.urdf"
+    category: "bases"
+    attach:
+      mount_frame: "mount_point"
+      xyz: [0.0, 0.0, 0.60]
+      rpy: [0.0, 0.0, 0.0]
+    specifications:
+      weight_kg: 60.0
+    tags: ["base", "pedestal", "heavy"]
+
+  table_mount:
+    type: base
+    display_name: "Workbench Mount"
+    description: "Bench/table-top mount at ~0.76 m working height"
+    urdf_package: "robot_description_setup_assistant"
+    urdf_path: "resources/bases/table_mount.urdf"
+    category: "bases"
+    attach:
+      mount_frame: "mount_point"
+      xyz: [0.0, 0.0, 0.76]
+      rpy: [0.0, 0.0, 0.0]
+    specifications:
+      weight_kg: 40.0
+    tags: ["base", "table", "bench"]
+
+  mobile_base:
+    type: base
+    display_name: "Mobile Base"
+    description: "Wheeled mobile platform for an arm-on-AMR setup"
+    urdf_package: "robot_description_setup_assistant"
+    urdf_path: "resources/bases/mobile_base.urdf"
+    category: "bases"
+    attach:
+      mount_frame: "mount_point"
+      xyz: [0.0, 0.0, 0.32]
+      rpy: [0.0, 0.0, 0.0]
+    specifications:
+      weight_kg: 90.0
+    tags: ["base", "mobile", "amr"]

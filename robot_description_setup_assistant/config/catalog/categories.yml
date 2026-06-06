@@ -18,3 +18,13 @@ categories:
     description: "Industrial robots for various applications"
     manufacturer: "KUKA Robotics"
     website: "https://www.kuka.com"
+
+  grippers:
+    display_name: "End-Effectors"
+    description: "Grippers and tools that mount on an arm's tool flange"
+    manufacturer: ""
+
+  bases:
+    display_name: "Bases & Mounts"
+    description: "Pedestals, benches, and mobile platforms an arm mounts onto"
+    manufacturer: ""
