@@ -200,12 +200,17 @@ export function Builder() {
           </button>
         </header>
         <div className="builder-preview-body">
-          {hasArm ? (
-            renderAssembly()
-          ) : (
+          {!hasArm ? (
             <div className="builder-empty">
               <p>Select an arm to start building your assembly.</p>
             </div>
+          ) : fullscreen ? (
+            // Avoid mounting a second WebGL viewer while the modal is open.
+            <div className="builder-empty">
+              <p>Viewing fullscreen…</p>
+            </div>
+          ) : (
+            renderAssembly()
           )}
         </div>
       </section>

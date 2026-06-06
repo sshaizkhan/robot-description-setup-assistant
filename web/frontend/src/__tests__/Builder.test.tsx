@@ -81,9 +81,11 @@ describe("Builder", () => {
     await waitFor(() => expect(btn).not.toBeDisabled());
 
     fireEvent.click(btn);
-    // Modal renders a dialog with a second viewer instance.
+    // Modal opens; the inline viewer is unmounted so only ONE WebGL viewer
+    // is live at a time.
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
-    expect(screen.getAllByTestId("viewer")).toHaveLength(2);
+    expect(screen.getAllByTestId("viewer")).toHaveLength(1);
+    expect(screen.getByText(/viewing fullscreen/i)).toBeInTheDocument();
   });
 
   it("switches tabs to show end-effector cards (no None card)", async () => {
