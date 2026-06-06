@@ -1,3 +1,4 @@
+import { Logo } from "./Logo";
 import { ThemeToggle, type Theme } from "./ThemeToggle";
 
 interface StartScreenProps {
@@ -14,7 +15,9 @@ export function StartScreen({ onBegin, theme, onThemeToggle }: StartScreenProps)
           <ThemeToggle theme={theme ?? "light"} onToggle={onThemeToggle} />
         </div>
       )}
-      <h1>Robot Description Setup Assistant</h1>
+      <h1 className="start-title">
+        <Logo theme={theme ?? "light"} className="start-logo" />
+      </h1>
       <p>Browse the robot catalog and preview robots in 3D.</p>
       <button type="button" onClick={onBegin}>
         Browse robots
