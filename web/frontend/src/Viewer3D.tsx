@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import URDFLoader, { type URDFRobot } from "urdf-loader";
 import { resolvePackageUrl } from "./meshUrl";
 
@@ -148,16 +149,24 @@ export function Viewer3D({
 
     // Viewer stays dark regardless of the app theme.
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e1117);
-    scene.fog = new THREE.Fog(0x0e1117, 7, 16);
+    scene.background = new THREE.Color(0x1a212c);
+    scene.fog = new THREE.Fog(0x1a212c, 8, 18);
 
-    scene.add(new THREE.HemisphereLight(0xbcd6ff, 0x1a130a, 0.95));
-    const key = new THREE.DirectionalLight(0xffffff, 1.35);
+    scene.add(new THREE.HemisphereLight(0xdfe9ff, 0x3a3320, 2.0));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+    const key = new THREE.DirectionalLight(0xffffff, 2.8);
     key.position.set(2.5, 3.5, 2);
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xffd9b0, 0.45);
+    const fill = new THREE.DirectionalLight(0xffe6c4, 1.2);
     fill.position.set(-2.5, 1.5, -1.5);
     scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xcfe0ff, 0.7);
+    rim.position.set(-1, 2, -3);
+    scene.add(rim);
+    // Bounce from below so undersides don't fall to black.
+    const under = new THREE.DirectionalLight(0xffffff, 0.4);
+    under.position.set(0, -3, 0.5);
+    scene.add(under);
 
     const grid = new THREE.GridHelper(6, 24, 0x34404f, 0x1b212b);
     (grid.material as THREE.Material).transparent = true;
@@ -170,7 +179,15 @@ export function Viewer3D({
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.5;
     mount.appendChild(renderer.domElement);
+
+    // Image-based lighting: metallic/standard URDF materials look flat and dull
+    // without an environment to reflect. A neutral room env gives them form.
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envMap = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environment = envMap;
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -278,6 +295,9 @@ export function Viewer3D({
       disposeObject3D(assembly); // free GPU geometries/materials/textures
       (grid.geometry as THREE.BufferGeometry).dispose();
       (grid.material as THREE.Material).dispose();
+      scene.environment = null;
+      envMap.dispose();
+      pmrem.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
       mount.removeChild(renderer.domElement);
