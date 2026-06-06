@@ -9,6 +9,7 @@
 :root {
   color-scheme: light;     /* render native controls (select popup) light */
   --paper: #f4f3ef;       /* app background — warm off-white */
+  --header-bg: rgba(244, 243, 239, 0.82); /* sticky header (paper + alpha) */
   --surface: #ffffff;      /* cards / panels */
   --surface-2: #faf9f6;    /* recessed fields */
   --viewer-bg: #eeece7;    /* matches three.js scene */
@@ -36,6 +37,7 @@
 [data-theme="dark"] {
   color-scheme: dark;      /* native select popup + scrollbars render dark */
   --paper: #100f0e;
+  --header-bg: rgba(16, 15, 14, 0.82);
   --surface: #1a1917;
   --surface-2: #211f1c;
   --line: #2b2925;
@@ -191,28 +193,24 @@ button { font-family: inherit; }
   gap: 16px;
   padding: 18px 28px;
   border-bottom: 1px solid var(--line);
-  background: rgba(244, 243, 239, 0.82);
+  background: var(--header-bg);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: 20;
 }
 .app-header h1 {
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: -0.01em;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 11px;
-  color: var(--ink);
 }
-.app-header h1::before {
-  content: "";
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  background: var(--ink);
+.app-logo {
+  display: block;
+  height: 30px;
+  width: auto;
 }
+.start-title { max-width: none; }
+.start-logo { display: block; height: clamp(56px, 9vw, 104px); width: auto; }
 
 .header-actions { display: flex; align-items: center; gap: 18px; }
 

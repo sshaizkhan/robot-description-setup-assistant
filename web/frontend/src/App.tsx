@@ -14,6 +14,7 @@ import { Builder } from "./Builder";
 import { DetailPanel } from "./DetailPanel";
 import { FilterPanel } from "./FilterPanel";
 import { Intro } from "./Intro";
+import { Logo } from "./Logo";
 import { Modal } from "./Modal";
 import { connectJointStates } from "./jointSocket";
 import { RobotGrid } from "./RobotGrid";
@@ -179,7 +180,9 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Robot Description Setup Assistant</h1>
+        <h1 className="app-title">
+          <Logo theme={theme} />
+        </h1>
         <div className="header-actions">
           <button
             type="button"
