@@ -517,6 +517,11 @@ button { font-family: inherit; }
 @media (max-width: 1180px) { .robot-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 720px) { .robot-grid { grid-template-columns: 1fr; } }
 
+/* Virtualized grid: only rows near the viewport are mounted. Column count is
+   set inline per row by RobotGrid (matches the breakpoints above). */
+.robot-grid-virt { width: 100%; }
+.robot-row { display: grid; }
+
 .robot-card {
   display: flex;
   flex-direction: column;
