@@ -26,7 +26,15 @@ const robots: RobotConfig[] = [
 
 describe("RobotGrid", () => {
   it("renders a card per robot and the count", () => {
-    render(<RobotGrid robots={robots} selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <RobotGrid
+        robots={robots}
+        selectedId={null}
+        onSelect={vi.fn()}
+        total={2}
+        onLoadMore={vi.fn()}
+      />,
+    );
     expect(screen.getByText("UR3")).toBeInTheDocument();
     expect(screen.getByText("UR5")).toBeInTheDocument();
     expect(screen.getByText("2 robots")).toBeInTheDocument();
@@ -34,14 +42,46 @@ describe("RobotGrid", () => {
 
   it("calls onSelect with the robot id when a card is clicked", () => {
     const onSelect = vi.fn();
-    render(<RobotGrid robots={robots} selectedId={null} onSelect={onSelect} />);
+    render(
+      <RobotGrid
+        robots={robots}
+        selectedId={null}
+        onSelect={onSelect}
+        total={2}
+        onLoadMore={vi.fn()}
+      />,
+    );
     fireEvent.click(screen.getByText("UR3"));
     expect(onSelect).toHaveBeenCalledWith("ur3");
   });
 
   it("renders an empty state when there are no robots", () => {
-    render(<RobotGrid robots={[]} selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <RobotGrid
+        robots={[]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        total={0}
+        onLoadMore={vi.fn()}
+      />,
+    );
     expect(screen.getByText("0 robots")).toBeInTheDocument();
     expect(screen.getByText(/No robots match/i)).toBeInTheDocument();
+  });
+
+  it("shows Load more when more robots exist and fires the callback", () => {
+    const onLoadMore = vi.fn();
+    render(
+      <RobotGrid
+        robots={robots}
+        selectedId={null}
+        onSelect={vi.fn()}
+        total={50}
+        onLoadMore={onLoadMore}
+      />,
+    );
+    expect(screen.getByText("Showing 2 of 50")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Load more"));
+    expect(onLoadMore).toHaveBeenCalled();
   });
 });

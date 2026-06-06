@@ -14,5 +14,8 @@ bool has_collaborative_only
 bool collaborative_only
 string[] required_tags
 string search_text
+int32 offset
+int32 limit
 ---
 string robots_json
+int32 total

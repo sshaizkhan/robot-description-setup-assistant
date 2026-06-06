@@ -72,9 +72,20 @@ def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
             raise HTTPException(status_code=503, detail=str(exc))
 
     @app.post("/api/robots/filter", response_model=list[RobotConfig])
-    def filter_robots(flt: RobotFilter) -> list[RobotConfig]:
+    def filter_robots(
+        flt: RobotFilter,
+        response: Response,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> list[RobotConfig]:
         try:
-            return catalog.filter_robots(flt)
+            if limit is None:
+                items = catalog.filter_robots(flt)
+                response.headers["X-Total-Count"] = str(len(items))
+                return items
+            page, total = catalog.filter_robots_page(flt, offset, limit)
+            response.headers["X-Total-Count"] = str(total)
+            return page
         except CatalogServiceUnavailable as exc:
             raise HTTPException(status_code=503, detail=str(exc))
 
