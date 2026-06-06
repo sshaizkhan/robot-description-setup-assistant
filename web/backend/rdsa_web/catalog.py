@@ -133,7 +133,16 @@ class RobotCatalog:
     def filter_robots(self, flt: RobotFilter) -> list[RobotConfig]:
         if flt.is_empty():
             return self.get_all_robots()
-        return [r for r in self._robots.values() if self._matches_filter(r, flt)]
+        return [r for r in self.get_all_robots() if self._matches_filter(r, flt)]
+
+    def filter_robots_page(
+        self, flt: RobotFilter, offset: int = 0, limit: int = 0
+    ) -> "tuple[list[RobotConfig], int]":
+        matched = self.filter_robots(flt)
+        total = len(matched)
+        offset = max(offset, 0)
+        end = total if limit <= 0 else min(total, offset + limit)
+        return matched[offset:end], total
 
     @staticmethod
     def _matches_filter(r: RobotConfig, flt: RobotFilter) -> bool:

@@ -99,6 +99,35 @@ export async function filterRobots(
   return (await resp.json()) as RobotConfig[];
 }
 
+export interface RobotPage {
+  items: RobotConfig[];
+  total: number;
+}
+
+/**
+ * Server-side filtered + paginated catalog fetch. An empty filter returns the
+ * whole catalog, one page at a time. `total` comes from the X-Total-Count header.
+ */
+export async function filterRobotsPage(
+  filter: RobotFilter,
+  offset: number,
+  limit: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<RobotPage> {
+  const resp = await fetchImpl(
+    `/api/robots/filter?offset=${offset}&limit=${limit}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(filter),
+    },
+  );
+  if (!resp.ok) throw new Error(`fetch /api/robots/filter failed: ${resp.status}`);
+  const items = (await resp.json()) as RobotConfig[];
+  const total = Number(resp.headers.get("X-Total-Count") ?? items.length);
+  return { items, total };
+}
+
 export function fetchValidation(
   robotId: string,
   fetchImpl: typeof fetch = fetch,

@@ -19,6 +19,8 @@ export function RobotCard({ robot, selected, onSelect }: RobotCardProps) {
         className="robot-card-img"
         src={imageUrl(robot.id)}
         alt={robot.display_name}
+        loading="lazy"
+        decoding="async"
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
         }}

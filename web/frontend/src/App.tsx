@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   fetchCategories,
-  fetchRobots,
   fetchUrdf,
   fetchValidation,
-  filterRobots,
+  filterRobotsPage,
   type CategoryInfo,
   type RobotConfig,
   type RobotFilter,
@@ -21,9 +20,13 @@ import { StartScreen } from "./StartScreen";
 import { ThemeToggle, type Theme } from "./ThemeToggle";
 import { Viewer3D } from "./Viewer3D";
 
-function isEmptyFilter(f: RobotFilter): boolean {
-  return Object.keys(f).length === 0;
-}
+const PAGE_SIZE = 24;
+
+const TYPE_TABS: { value: string; label: string }[] = [
+  { value: "", label: "All" },
+  { value: "arm", label: "Arms" },
+  { value: "end_effector", label: "End-effectors" },
+];
 
 function initialTheme(): Theme {
   try {
@@ -44,6 +47,10 @@ function introPending(): boolean {
 
 export function App() {
   const [robots, setRobots] = useState<RobotConfig[]>([]);
+  const [total, setTotal] = useState(0);
+  const [filter, setFilter] = useState<RobotFilter>({});
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const listReq = useRef(0);
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -59,9 +66,45 @@ export function App() {
   const [showIntro, setShowIntro] = useState(introPending);
 
   useEffect(() => {
-    fetchRobots().then(setRobots).catch((e) => setError(String(e)));
     fetchCategories().then(setCategories).catch((e) => setError(String(e)));
   }, []);
+
+  // Effective filter combines the panel filters with the type tab.
+  const effectiveFilter = useMemo<RobotFilter>(
+    () => (typeFilter ? { ...filter, type: typeFilter } : filter),
+    [filter, typeFilter],
+  );
+  const filterKey = JSON.stringify(effectiveFilter);
+
+  // Fetch the first page whenever the filter changes (server-side paginated).
+  useEffect(() => {
+    const token = ++listReq.current;
+    setError(null);
+    filterRobotsPage(effectiveFilter, 0, PAGE_SIZE)
+      .then(({ items, total: t }) => {
+        if (token !== listReq.current) return;
+        setRobots(items);
+        setTotal(t);
+      })
+      .catch((e) => {
+        if (token === listReq.current) setError(String(e));
+      });
+    // effectiveFilter is captured via filterKey (stable string identity).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey]);
+
+  const loadMore = useCallback(() => {
+    const token = ++listReq.current;
+    filterRobotsPage(effectiveFilter, robots.length, PAGE_SIZE)
+      .then(({ items, total: t }) => {
+        if (token !== listReq.current) return;
+        setRobots((prev) => [...prev, ...items]);
+        setTotal(t);
+      })
+      .catch((e) => {
+        if (token === listReq.current) setError(String(e));
+      });
+  }, [effectiveFilter, robots.length]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -85,12 +128,6 @@ export function App() {
     const close = connectJointStates(url, setLiveJoints);
     return close;
   }, [live, selectedId]);
-
-  const onFilterChange = (filter: RobotFilter) => {
-    setError(null);
-    const query = isEmptyFilter(filter) ? fetchRobots() : filterRobots(filter);
-    query.then(setRobots).catch((e) => setError(String(e)));
-  };
 
   const onSelect = (id: string) => {
     // Token guards against out-of-order responses applying to the wrong robot.
@@ -153,12 +190,28 @@ export function App() {
         </div>
       </header>
       <div className="app-body">
-        <FilterPanel categories={categories} onChange={onFilterChange} />
+        <FilterPanel categories={categories} onChange={setFilter} />
         <main className="app-main">
+          <div className="type-tabs" role="tablist" aria-label="Component type">
+            {TYPE_TABS.map((t) => (
+              <button
+                key={t.value || "all"}
+                type="button"
+                role="tab"
+                aria-selected={typeFilter === t.value}
+                className={`type-tab${typeFilter === t.value ? " active" : ""}`}
+                onClick={() => setTypeFilter(t.value)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
           <RobotGrid
             robots={robots}
             selectedId={selectedId}
             onSelect={onSelect}
+            total={total}
+            onLoadMore={loadMore}
           />
         </main>
         <DetailPanel robot={selectedRobot} validation={validation} />

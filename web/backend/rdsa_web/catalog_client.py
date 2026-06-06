@@ -146,11 +146,18 @@ class CatalogClient:
         return parse_categories_json(res.categories_json)
 
     def filter_robots(self, flt: RobotFilter) -> list[RobotConfig]:
+        return self.filter_robots_page(flt, 0, 0)[0]
+
+    def filter_robots_page(
+        self, flt: RobotFilter, offset: int = 0, limit: int = 0
+    ) -> "tuple[list[RobotConfig], int]":
         req = self._types["FilterRobots"].Request()
         for key, value in filter_to_request_fields(flt).items():
             setattr(req, key, value)
+        req.offset = int(offset)
+        req.limit = int(limit)
         res = self._call(self._filter, req)
-        return parse_robots_json(res.robots_json)
+        return parse_robots_json(res.robots_json), int(res.total)
 
     def validate(self, robot_id: str) -> dict:
         req = self._types["ValidateRobot"].Request()
@@ -220,6 +227,11 @@ class CppCatalog:
 
     def filter_robots(self, flt: RobotFilter) -> list[RobotConfig]:
         return self._client.filter_robots(flt)
+
+    def filter_robots_page(
+        self, flt: RobotFilter, offset: int = 0, limit: int = 0
+    ) -> "tuple[list[RobotConfig], int]":
+        return self._client.filter_robots_page(flt, offset, limit)
 
     def get_robot_by_id(self, robot_id: str) -> RobotConfig | None:
         for r in self._client.get_all_robots():

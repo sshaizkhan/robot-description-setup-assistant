@@ -1,5 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
+#include <algorithm>
 #include <filesystem>
+#include <vector>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include "robot_catalog_core/catalog.hpp"
 #include "robot_catalog_core/json.hpp"
@@ -66,7 +68,16 @@ public:
         if (req->has_collaborative_only) f.collaborative_only = req->collaborative_only;
         f.required_tags = req->required_tags;
         f.search_text = req->search_text;
-        res->robots_json = robot_catalog::robots_to_json(core_.filterRobots(f));
+        auto matched = core_.filterRobots(f);
+        res->total = static_cast<int>(matched.size());
+        int off = req->offset < 0 ? 0 : req->offset;
+        int total = res->total;
+        std::vector<robot_catalog::RobotConfig> page;
+        if (off < total) {
+          int end = (req->limit <= 0) ? total : std::min(total, off + req->limit);
+          page.assign(matched.begin() + off, matched.begin() + end);
+        }
+        res->robots_json = robot_catalog::robots_to_json(page);
       }, rmw_qos_profile_services_default, cbg_);
 
     validate_ = create_service<robot_catalog_msgs::srv::ValidateRobot>(

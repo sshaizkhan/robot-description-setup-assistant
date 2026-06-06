@@ -452,6 +452,48 @@ button { font-family: inherit; }
    ========================================================================== */
 .app-main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
 
+/* Component type tabs (All / Arms / End-effectors) */
+.type-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+}
+.type-tab {
+  font-family: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-3);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 12px;
+  margin-bottom: -3px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.type-tab:hover { color: var(--ink-2); }
+.type-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* Load-more (server-side pagination) */
+.load-more {
+  align-self: center;
+  margin-top: 22px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 100px;
+  padding: 11px 28px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.load-more:hover { color: var(--ink); border-color: var(--ink); transform: translateY(-1px); }
+
 .robot-count {
   color: var(--ink-3);
   font-weight: 600;
