@@ -134,6 +134,11 @@
       "**/.bash_logout": true,
       "**/skills-lock.json": true,
     },
+    "urdf-visualizer.packages": {
+      "abb_robot_description": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/abb_robot_description"
+    },
+    "urdf-visualizer.renderOnSave": true,
+    "urdf-visualizer.reRenderWhenSwitchFile": true,
     "git-graph.maxDepthOfRepoSearch": 50,
     "terminal.integrated.showExitAlert": false,
     "cmake.configureOnOpen": false,
