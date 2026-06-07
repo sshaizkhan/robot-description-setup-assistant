@@ -7,3 +7,6 @@
 [submodule "deps/ros2_robotiq_gripper"]
 	path = deps/ros2_robotiq_gripper
 	url = https://github.com/PickNikRobotics/ros2_robotiq_gripper.git
+[submodule "deps/abb_robot_description"]
+	path = deps/abb_robot_description
+	url = https://github.com/sshaizkhan/abb_robot_description.git
