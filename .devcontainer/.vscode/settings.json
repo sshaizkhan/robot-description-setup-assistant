@@ -135,7 +135,10 @@
       "**/skills-lock.json": true,
     },
     "urdf-visualizer.packages": {
-      "abb_robot_description": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/abb_robot_description"
+      "abb_robot_description": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/abb_robot_description",
+      "yaskawa_robot_description": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/yaskawa_robot_description",
+      "ur5_robot_description": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/ur5_robot_description",
+      "robotiq_description": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/ros2_robotiq_gripper/robotiq_description",
     },
     "urdf-visualizer.renderOnSave": true,
     "urdf-visualizer.reRenderWhenSwitchFile": true,
