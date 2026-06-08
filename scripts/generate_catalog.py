@@ -91,3 +91,26 @@ def scrape_dof(vendor: str, type_: str) -> int:
     if isinstance(limits, dict):
         return len(limits)
     return len(set(re.findall(r"joint_\d+", text)))
+
+
+def titleize(type_: str) -> str:
+    """irb_120_3_0_6 -> 'Irb 120 3 0 6' (underscores to spaces, capitalized)."""
+    return " ".join(part.capitalize() for part in type_.split("_"))
+
+
+def build_entry(vendor: str, type_: str) -> dict:
+    meta = VENDORS[vendor]
+    return {
+        "type": "arm",
+        "display_name": f"{meta['label']} {titleize(type_)}",
+        "description": f"{meta['label']} industrial robot",
+        "image_path": PLACEHOLDER_IMAGE,
+        "urdf_package": meta["package"],
+        "urdf_path": f"urdf/{type_}.urdf.xacro",
+        "xacro_args": "",
+        "category": vendor,
+        "attach": {"tool_frame": "tool0"},
+        "specifications": {"degrees_of_freedom": scrape_dof(vendor, type_)},
+        "required_packages": [meta["package"]],
+        "tags": ["industrial"],
+    }

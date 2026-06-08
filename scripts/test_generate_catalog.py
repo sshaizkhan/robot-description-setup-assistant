@@ -33,3 +33,23 @@ def test_scrape_dof():
     assert g.scrape_dof("abb", "irb_120_3_0_6") == 6
     assert g.scrape_dof("fanuc", "m_410ic_185") == 4
     assert g.scrape_dof("abb", "does_not_exist") == 0
+
+
+def test_titleize():
+    assert g.titleize("irb_120_3_0_6") == "Irb 120 3 0 6"
+    assert g.titleize("crx_10ia_l") == "Crx 10ia L"
+
+
+def test_build_entry_shape():
+    e = g.build_entry("abb", "irb_120_3_0_6")
+    assert e["type"] == "arm"
+    assert e["display_name"] == "ABB Irb 120 3 0 6"
+    assert e["image_path"] == g.PLACEHOLDER_IMAGE
+    assert e["urdf_package"] == "abb_robot_descriptions"
+    assert e["urdf_path"] == "urdf/irb_120_3_0_6.urdf.xacro"
+    assert e["xacro_args"] == ""
+    assert e["category"] == "abb"
+    assert e["attach"]["tool_frame"] == "tool0"
+    assert e["specifications"]["degrees_of_freedom"] == 6
+    assert e["required_packages"] == ["abb_robot_descriptions"]
+    assert e["tags"] == ["industrial"]
