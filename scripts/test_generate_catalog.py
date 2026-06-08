@@ -27,3 +27,9 @@ def test_discover_types_counts_and_excludes_dispatch():
     for t in g.discover_types("yaskawa"):
         assert (g.vendor_dir("yaskawa") / "urdf" / f"{t}.urdf.xacro").is_file()
         assert (g.vendor_dir("yaskawa") / "config" / t).is_dir()
+
+
+def test_scrape_dof():
+    assert g.scrape_dof("abb", "irb_120_3_0_6") == 6
+    assert g.scrape_dof("fanuc", "m_410ic_185") == 4
+    assert g.scrape_dof("abb", "does_not_exist") == 0

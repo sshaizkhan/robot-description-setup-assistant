@@ -75,3 +75,19 @@ def discover_types(vendor: str) -> list[str]:
         if (config / t).is_dir():
             types.append(t)
     return types
+
+
+def scrape_dof(vendor: str, type_: str) -> int:
+    """Count joints in config/<type>/joint_limits.yaml; 0 if unavailable."""
+    jl = vendor_dir(vendor) / "config" / type_ / "joint_limits.yaml"
+    if not jl.is_file():
+        return 0
+    text = jl.read_text()
+    try:
+        data = yaml.safe_load(text) or {}
+    except yaml.YAMLError:
+        data = {}
+    limits = data.get("joint_limits") if isinstance(data, dict) else None
+    if isinstance(limits, dict):
+        return len(limits)
+    return len(set(re.findall(r"joint_\d+", text)))
