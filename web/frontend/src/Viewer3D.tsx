@@ -4,6 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import URDFLoader, { type URDFRobot } from "urdf-loader";
 import { resolvePackageUrl } from "./meshUrl";
+import { meshNameFromUrl } from "./meshError";
 
 type AnyObj = THREE.Object3D & {
   isURDFLink?: boolean;
@@ -185,6 +186,9 @@ export function Viewer3D({
   // True while the robot's meshes are still loading; the model is hidden until
   // every mesh is in, so it appears all at once instead of link by link.
   const [loading, setLoading] = useState(true);
+  // File names of meshes that failed to load (e.g. 413 — over the server size
+  // cap). Surfaced as a non-blocking banner; the rest of the robot still shows.
+  const [meshErrors, setMeshErrors] = useState<string[]>([]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -242,12 +246,15 @@ export function Viewer3D({
     controls.update();
 
     setLoading(true);
+    setMeshErrors([]);
 
     // Reveal the whole assembly only once every mesh has finished loading, so it
     // appears at once instead of building up link by link. Each loader's
     // loadMeshCb is wrapped to count outstanding loads (more reliable than
     // LoadingManager.onLoad in this urdf-loader version).
     let pending = 0;
+    // URLs of meshes that failed to load (over the size cap, network, parse).
+    const failed: string[] = [];
     let parseDone = false;
     let revealed = false;
     let revealTimer = 0;
@@ -265,6 +272,9 @@ export function Viewer3D({
       window.clearTimeout(revealTimer);
       assembly.visible = true;
       setLoading(false);
+      if (failed.length > 0) {
+        setMeshErrors(Array.from(new Set(failed.map(meshNameFromUrl))));
+      }
     };
     const maybeReveal = () => {
       if (parseDone && pending === 0) reveal();
@@ -283,6 +293,10 @@ export function Viewer3D({
       ) => {
         pending += 1;
         def.call(l, path, manager, (mesh: THREE.Object3D, err?: Error) => {
+          if (err) {
+            console.warn(`Viewer3D: mesh failed to load: ${path}`, err);
+            failed.push(path);
+          }
           done(mesh, err);
           pending -= 1;
           maybeReveal();
@@ -443,6 +457,13 @@ export function Viewer3D({
           <div className="viewer-loading-overlay">
             <span className="viewer-spinner" />
             Loading model…
+          </div>
+        )}
+        {!loading && meshErrors.length > 0 && (
+          <div className="viewer-mesh-warning" role="alert">
+            ⚠ {meshErrors.length} mesh
+            {meshErrors.length > 1 ? "es" : ""} too large to display:{" "}
+            {meshErrors.join(", ")}
           </div>
         )}
       </div>
