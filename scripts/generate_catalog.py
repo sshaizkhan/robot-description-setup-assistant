@@ -142,3 +142,55 @@ def write_doc(vendor: str, doc: dict) -> Path:
         fh.write(header)
         yaml.safe_dump(doc, fh, default_flow_style=False, sort_keys=False)
     return out
+
+
+def generate(check: bool = False) -> int:
+    """Build all vendor docs. Returns 0 on success, 1 on a validation error.
+
+    When check=True, validate only (no files written).
+    """
+    all_ids: dict[str, str] = {}
+    docs: dict[str, dict] = {}
+    counts: list[tuple[str, int]] = []
+    for vendor in VENDORS:
+        types = discover_types(vendor)
+        for t in types:
+            prev = all_ids.get(t)
+            if prev is not None:
+                print(
+                    f"ERROR: duplicate robot id '{t}' in '{vendor}' and '{prev}'",
+                    file=sys.stderr,
+                )
+                return 1
+            all_ids[t] = vendor
+            urdf = vendor_dir(vendor) / "urdf" / f"{t}.urdf.xacro"
+            if not urdf.is_file():
+                print(f"ERROR: missing urdf file {urdf}", file=sys.stderr)
+                return 1
+        docs[vendor] = build_vendor_doc(vendor, types)
+        counts.append((vendor, len(types)))
+
+    if not check:
+        ARMS_OUT.mkdir(parents=True, exist_ok=True)
+        for vendor, doc in docs.items():
+            write_doc(vendor, doc)
+
+    for vendor, n in counts:
+        print(f"{vendor}: {n}")
+    print(f"total: {sum(n for _, n in counts)}")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help="validate only; do not write catalog files",
+    )
+    args = ap.parse_args()
+    return generate(check=args.check)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
