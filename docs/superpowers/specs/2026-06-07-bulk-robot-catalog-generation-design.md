@@ -66,6 +66,30 @@ that can be re-run after future submodule additions.
    dispatch-based `universal_robots.yml` (different `ur_type:=` pattern); it can
    be folded in later if desired. (User was unsure about UR; left untouched.)
 
+## Why not a per-vendor dispatch xacro (kuka/UR style)?
+
+The existing UR and KUKA entries use a single dispatch xacro
+(`ur.urdf.xacro` + `ur_type:=`, `kuka.urdf.xacro` + `kuka_type:=`). Replicating
+that for abb/fanuc/yaskawa is **not possible generically**:
+
+- xacro cannot select a macro by an `$(arg)` value (no dynamic macro
+  invocation), so one dispatch file cannot fan out to N per-robot macros without
+  a hand-written per-type `if/else`.
+- The kuka dispatch sidesteps this by passing **parameter-file paths**
+  (`config/<type>/{joint_limits,kinematics,physical,visual}_parameters.yaml`)
+  into one generic `kuka_macro`. abb/fanuc/yaskawa config dirs contain **only
+  `joint_limits.yaml`** — no visual/physical params — so the same trick cannot
+  render their meshes.
+
+The per-robot **standalone** `urdf/<type>.urdf.xacro` (one per model, already
+shipped in each package) is therefore the correct generic mechanism. No
+modification of the `deps/` description packages is required.
+
+**Validation (run 2026-06-07):** `xacro irb_120_3_0_6.urdf.xacro` on the
+installed package produced a valid URDF — `world`→…→`tool0` chain with
+`package://abb_robot_descriptions/meshes/...` mesh refs (the same scheme the
+backend already resolves for kuka/UR/robotiq), exit 0.
+
 ## Architecture
 
 ### Generator script — `scripts/generate_catalog.py`
