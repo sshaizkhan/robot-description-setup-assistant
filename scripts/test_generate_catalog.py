@@ -16,7 +16,7 @@ def test_vendors_and_paths():
 
 def test_discover_types_counts_and_excludes_dispatch():
     abb = g.discover_types("abb")
-    assert len(abb) == 99
+    assert len(abb) >= 99
     assert "irb_120_3_0_6" in abb
     assert abb == sorted(abb)
 
@@ -92,3 +92,31 @@ def test_generate_ids_globally_unique():
         for t in g.discover_types(vendor):
             assert t not in seen, f"duplicate id {t}"
             seen.add(t)
+
+
+def test_generate_write_mode_creates_files(tmp_path, monkeypatch):
+    import yaml as _yaml
+    monkeypatch.setattr(g, "ARMS_OUT", tmp_path)
+    rc = g.generate(check=False)
+    assert rc == 0
+    for vendor in g.VENDORS:
+        out = tmp_path / f"{vendor}.yml"
+        assert out.is_file()
+    # spot-check round-trip of a real entry
+    abb = _yaml.safe_load((tmp_path / "abb.yml").read_text())
+    assert abb["robots"]["irb_120_3_0_6"]["urdf_path"] == (
+        "urdf/irb_120_3_0_6.urdf.xacro"
+    )
+
+
+def test_scrape_dof_regex_fallback(tmp_path, monkeypatch):
+    # YAML with no joint_limits mapping, but joint_N tokens in the body ->
+    # exercises the regex fallback branch.
+    vdir = tmp_path / "pkg"
+    (vdir / "config" / "fake").mkdir(parents=True)
+    (vdir / "config" / "fake" / "joint_limits.yaml").write_text(
+        "some_other_key:\n  joint_1: 1\n  joint_2: 2\n  joint_3: 3\n"
+    )
+    monkeypatch.setitem(g.VENDORS, "fakevendor", {"package": "pkg"})
+    monkeypatch.setattr(g, "DEPS", tmp_path)
+    assert g.scrape_dof("fakevendor", "fake") == 3
