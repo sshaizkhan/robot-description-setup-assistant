@@ -57,3 +57,21 @@ VENDORS = {
 
 def vendor_dir(vendor: str) -> Path:
     return DEPS / VENDORS[vendor]["package"]
+
+
+def discover_types(vendor: str) -> list[str]:
+    """Robot types with a standalone urdf/<type>.urdf.xacro AND a config/<type>/ dir.
+
+    The config-dir requirement naturally excludes a vendor dispatch file such as
+    kuka.urdf.xacro (no config/kuka), keeping output to per-robot descriptions.
+    """
+    vdir = vendor_dir(vendor)
+    urdf = vdir / "urdf"
+    config = vdir / "config"
+    types: list[str] = []
+    suffix = ".urdf.xacro"
+    for f in sorted(urdf.glob("*.urdf.xacro")):
+        t = f.name[: -len(suffix)]
+        if (config / t).is_dir():
+            types.append(t)
+    return types
