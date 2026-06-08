@@ -17,6 +17,10 @@ wget \
 sudo \
 gnupg \
 keyboard-configuration \
+tigervnc-standalone-server \
+tigervnc-common \
+openbox \
+x11-utils \
  && rm -rf /var/lib/apt/lists/*
 
 ARG USERNAME=bot
