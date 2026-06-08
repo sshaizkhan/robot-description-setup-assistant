@@ -53,3 +53,25 @@ def test_build_entry_shape():
     assert e["specifications"]["degrees_of_freedom"] == 6
     assert e["required_packages"] == ["abb_robot_descriptions"]
     assert e["tags"] == ["industrial"]
+
+
+def test_build_vendor_doc():
+    doc = g.build_vendor_doc("fanuc", ["m_10ia", "m_20ia"])
+    assert doc["categories"]["fanuc"]["manufacturer"] == "FANUC"
+    assert set(doc["robots"]) == {"m_10ia", "m_20ia"}
+    assert doc["robots"]["m_10ia"]["category"] == "fanuc"
+
+
+def test_write_doc_roundtrip(tmp_path, monkeypatch):
+    import yaml as _yaml
+    monkeypatch.setattr(g, "ARMS_OUT", tmp_path)
+    doc = g.build_vendor_doc("abb", ["irb_120_3_0_6"])
+    out = g.write_doc("abb", doc)
+    assert out == tmp_path / "abb.yml"
+    text = out.read_text()
+    assert text.startswith("# ABB Robots")
+    loaded = _yaml.safe_load(text)
+    assert loaded["robots"]["irb_120_3_0_6"]["urdf_path"] == (
+        "urdf/irb_120_3_0_6.urdf.xacro"
+    )
+    assert loaded["categories"]["abb"]["manufacturer"] == "ABB"
