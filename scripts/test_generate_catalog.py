@@ -75,3 +75,20 @@ def test_write_doc_roundtrip(tmp_path, monkeypatch):
         "urdf/irb_120_3_0_6.urdf.xacro"
     )
     assert loaded["categories"]["abb"]["manufacturer"] == "ABB"
+
+
+def test_generate_check_mode_validates_all(capsys):
+    rc = g.generate(check=True)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "total:" in out
+    total = int(out.strip().splitlines()[-1].split("total:")[1])
+    assert 450 <= total <= 520
+
+
+def test_generate_ids_globally_unique():
+    seen = set()
+    for vendor in g.VENDORS:
+        for t in g.discover_types(vendor):
+            assert t not in seen, f"duplicate id {t}"
+            seen.add(t)
