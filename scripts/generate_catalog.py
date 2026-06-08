@@ -138,7 +138,7 @@ def write_doc(vendor: str, doc: dict) -> Path:
         f"scripts/generate_catalog.py.\n# Do not edit by hand; re-run the "
         f"generator instead.\n"
     )
-    with out.open("w") as fh:
+    with out.open("w", encoding="utf-8") as fh:
         fh.write(header)
         yaml.safe_dump(doc, fh, default_flow_style=False, sort_keys=False)
     return out
@@ -164,6 +164,8 @@ def generate(check: bool = False) -> int:
                 return 1
             all_ids[t] = vendor
             urdf = vendor_dir(vendor) / "urdf" / f"{t}.urdf.xacro"
+            # Defensive: discover_types only yields existing files, but guard in case
+            # a future caller supplies types from elsewhere.
             if not urdf.is_file():
                 print(f"ERROR: missing urdf file {urdf}", file=sys.stderr)
                 return 1
