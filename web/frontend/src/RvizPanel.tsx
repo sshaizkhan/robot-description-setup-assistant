@@ -22,9 +22,9 @@ function hasWebGL(): boolean {
   return typeof WebGLRenderingContext !== "undefined";
 }
 
-/** Dispose geometry + material(s) of every child, then empty the group. */
-function disposeAndClear(group: THREE.Group): void {
-  group.traverse((obj) => {
+/** Dispose geometry + material(s) of an object and all descendants. */
+function disposeObject3D(root: THREE.Object3D): void {
+  root.traverse((obj) => {
     const withGeo = obj as THREE.Mesh | THREE.Line | THREE.Points;
     withGeo.geometry?.dispose?.();
     const mat = (withGeo as THREE.Mesh).material as
@@ -34,6 +34,11 @@ function disposeAndClear(group: THREE.Group): void {
     if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
     else mat?.dispose();
   });
+}
+
+/** Dispose every child's GPU resources, then empty the group. */
+function disposeAndClear(group: THREE.Group): void {
+  disposeObject3D(group);
   group.clear();
 }
 
@@ -100,6 +105,7 @@ export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
 
     const prev = robotRef.current;
     if (prev) {
+      disposeObject3D(prev);
       scene.remove(prev);
       robotRef.current = null;
     }
@@ -116,6 +122,7 @@ export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
 
     return () => {
       if (robotRef.current) {
+        disposeObject3D(robotRef.current);
         scene.remove(robotRef.current);
         robotRef.current = null;
       }
