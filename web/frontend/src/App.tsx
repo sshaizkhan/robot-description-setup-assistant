@@ -11,6 +11,7 @@ import {
   type ValidationResult,
 } from "./api";
 import { Builder } from "./Builder";
+import { RvizPanel } from "./RvizPanel";
 import { DetailPanel } from "./DetailPanel";
 import { FilterPanel } from "./FilterPanel";
 import { Intro } from "./Intro";
@@ -67,7 +68,7 @@ export function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(introPending);
-  const [view, setView] = useState<"catalog" | "builder">("catalog");
+  const [view, setView] = useState<"catalog" | "builder" | "rviz">("catalog");
 
   useEffect(() => {
     fetchCategories().then(setCategories).catch((e) => setError(String(e)));
@@ -193,6 +194,13 @@ export function App() {
           >
             {view === "catalog" ? "Assembly Builder" : "← Catalog"}
           </button>
+          <button
+            type="button"
+            className="view-toggle"
+            onClick={() => setView("rviz")}
+          >
+            RViz
+          </button>
           {view === "catalog" && (
             <label className="live-toggle">
               <input
@@ -208,6 +216,10 @@ export function App() {
       </header>
 
       {view === "builder" && <Builder />}
+
+      {view === "rviz" && (
+        <RvizPanel urdfXml={urdf?.urdf_xml ?? null} meshBase={urdf?.mesh_base ?? "/meshes"} />
+      )}
 
       {view === "catalog" && (
       <>

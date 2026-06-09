@@ -26,6 +26,11 @@ vi.mock("../Viewer3D", () => ({
   ),
 }));
 
+// RvizPanel pulls in three.js/WebGL which jsdom cannot run; stub it.
+vi.mock("../RvizPanel", () => ({
+  RvizPanel: () => <div data-testid="rviz-panel" />,
+}));
+
 vi.mock("../jointSocket", () => ({
   connectJointStates: vi.fn(() => vi.fn()),
 }));
@@ -180,5 +185,17 @@ describe("App", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /toggle dark mode/i }));
     expect(document.documentElement.dataset.theme).toBe("light");
+  });
+
+  it("switches to the RViz panel when the RViz button is clicked", async () => {
+    vi.mocked(filterRobotsPage).mockResolvedValue({ items: robots, total: robots.length });
+    vi.mocked(fetchCategories).mockResolvedValue([]);
+
+    render(<App />);
+    enterCatalog();
+    await waitFor(() => expect(screen.getByText("UR3")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: /rviz/i }));
+    expect(screen.getByTestId("rviz-panel")).toBeInTheDocument();
   });
 });
