@@ -26,7 +26,7 @@ function applyPose(obj: THREE.Object3D, m: RvizMarker): void {
   obj.quaternion.set(q.x, q.y, q.z, q.w);
 }
 
-function linePositions(m: RvizMarker): THREE.Vector3[] {
+function pointsToVectors(m: RvizMarker): THREE.Vector3[] {
   return m.points.map((p) => new THREE.Vector3(p.x, p.y, p.z));
 }
 
@@ -44,16 +44,19 @@ export function markerToObject(m: RvizMarker): THREE.Object3D | null {
       return obj;
     }
     case SPHERE: {
-      const geo = new THREE.SphereGeometry(m.scale.x * 0.5, 16, 12);
+      const geo = new THREE.SphereGeometry(0.5, 16, 12);
       const obj = new THREE.Mesh(geo, material(m));
       applyPose(obj, m);
+      obj.scale.set(m.scale.x, m.scale.y, m.scale.z);
       return obj;
     }
     case LINE_STRIP:
     case LINE_LIST: {
-      const geo = new THREE.BufferGeometry().setFromPoints(linePositions(m));
+      const geo = new THREE.BufferGeometry().setFromPoints(pointsToVectors(m));
       const mat = new THREE.LineBasicMaterial({
         color: new THREE.Color(m.color.r, m.color.g, m.color.b),
+        transparent: m.color.a < 1,
+        opacity: m.color.a,
       });
       const obj =
         m.type === LINE_LIST
@@ -63,10 +66,12 @@ export function markerToObject(m: RvizMarker): THREE.Object3D | null {
       return obj;
     }
     case POINTS: {
-      const geo = new THREE.BufferGeometry().setFromPoints(linePositions(m));
+      const geo = new THREE.BufferGeometry().setFromPoints(pointsToVectors(m));
       const mat = new THREE.PointsMaterial({
         color: new THREE.Color(m.color.r, m.color.g, m.color.b),
-        size: m.scale.x || 0.02,
+        size: m.scale.x > 0 ? m.scale.x : 0.02,
+        transparent: m.color.a < 1,
+        opacity: m.color.a,
       });
       const obj = new THREE.Points(geo, mat);
       applyPose(obj, m);
