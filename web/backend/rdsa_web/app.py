@@ -13,7 +13,7 @@ from .catalog import RobotCatalog
 from .catalog_client import CatalogServiceUnavailable, MeshTooLarge
 from .models import CategoryInfo, RobotConfig, RobotFilter
 from .package_gen import build_package_zip, package_name
-from .ros_bridge import JointStateRelay
+from .ros_bridge import JointStateRelay, MarkerRelay, TfRelay
 
 
 class _QuietPathsFilter(logging.Filter):
@@ -62,10 +62,14 @@ def _make_catalog():
     return _default_catalog()
 
 
-def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
+def create_app(
+    catalog=None, relay=None, tf_relay=None, marker_relay=None, frontend_dist=None
+) -> FastAPI:
     app = FastAPI(title="RDSA Web", version="0.1.0")
     catalog = catalog or _make_catalog()
     relay = relay if relay is not None else JointStateRelay()
+    tf_relay = tf_relay if tf_relay is not None else TfRelay()
+    marker_relay = marker_relay if marker_relay is not None else MarkerRelay()
     frontend_dist = frontend_dist or os.environ.get("RDSA_FRONTEND_DIST")
 
     @app.get("/api/health")
@@ -217,6 +221,34 @@ def create_app(catalog=None, relay=None, frontend_dist=None) -> FastAPI:
             while True:
                 await ws.send_json({"joints": relay.latest()})
                 await asyncio.sleep(0.1)
+        except WebSocketDisconnect:
+            return
+
+    @app.websocket("/ws/tf")
+    async def ws_tf(ws: WebSocket) -> None:
+        await ws.accept()
+        try:
+            tf_relay.start()
+        except Exception as exc:  # ROS unavailable: keep socket alive, no tf
+            await ws.send_json({"transforms": [], "error": str(exc)})
+        try:
+            while True:
+                await ws.send_json({"transforms": tf_relay.latest()})
+                await asyncio.sleep(0.066)  # ~15 Hz cap (low-RAM box)
+        except WebSocketDisconnect:
+            return
+
+    @app.websocket("/ws/markers")
+    async def ws_markers(ws: WebSocket) -> None:
+        await ws.accept()
+        try:
+            marker_relay.start()
+        except Exception as exc:  # ROS unavailable: keep socket alive, no markers
+            await ws.send_json({"markers": [], "error": str(exc)})
+        try:
+            while True:
+                await ws.send_json({"markers": marker_relay.latest()})
+                await asyncio.sleep(0.066)  # ~15 Hz cap
         except WebSocketDisconnect:
             return
 

@@ -185,6 +185,50 @@ def test_package_endpoint_404_for_unknown_robot():
     assert resp.status_code == 404
 
 
+def test_ws_tf_streams_relay_snapshot():
+    from rdsa_web.app import create_app
+    from rdsa_web.catalog import RobotCatalog
+
+    class FakeTf:
+        started = False
+
+        def start(self):
+            self.started = True
+
+        def latest(self):
+            return [{"parent": "world", "child": "base"}]
+
+    tf = FakeTf()
+    app = create_app(catalog=RobotCatalog.from_file(ROBOTS_YAML), tf_relay=tf)
+    client = TestClient(app)
+    with client.websocket_connect("/ws/tf") as ws:
+        msg = ws.receive_json()
+    assert tf.started is True
+    assert msg["transforms"] == [{"parent": "world", "child": "base"}]
+
+
+def test_ws_markers_streams_relay_snapshot():
+    from rdsa_web.app import create_app
+    from rdsa_web.catalog import RobotCatalog
+
+    class FakeMarkers:
+        started = False
+
+        def start(self):
+            self.started = True
+
+        def latest(self):
+            return [{"ns": "a", "id": 1}]
+
+    mk = FakeMarkers()
+    app = create_app(catalog=RobotCatalog.from_file(ROBOTS_YAML), marker_relay=mk)
+    client = TestClient(app)
+    with client.websocket_connect("/ws/markers") as ws:
+        msg = ws.receive_json()
+    assert mk.started is True
+    assert msg["markers"] == [{"ns": "a", "id": 1}]
+
+
 def test_catalog_503_when_service_unavailable():
     from rdsa_web.app import create_app
     from rdsa_web.catalog_client import CatalogServiceUnavailable
