@@ -22,6 +22,21 @@ function hasWebGL(): boolean {
   return typeof WebGLRenderingContext !== "undefined";
 }
 
+/** Dispose geometry + material(s) of every child, then empty the group. */
+function disposeAndClear(group: THREE.Group): void {
+  group.traverse((obj) => {
+    const withGeo = obj as THREE.Mesh | THREE.Line | THREE.Points;
+    withGeo.geometry?.dispose?.();
+    const mat = (withGeo as THREE.Mesh).material as
+      | THREE.Material
+      | THREE.Material[]
+      | undefined;
+    if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+    else mat?.dispose();
+  });
+  group.clear();
+}
+
 export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -138,7 +153,7 @@ export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
     const close = connectMarkers(wsUrl("/ws/markers"), (markers: RvizMarker[]) => {
       const group = markerGroupRef.current;
       if (!group) return;
-      group.clear();
+      disposeAndClear(group);
       for (const m of markers) {
         const obj = markerToObject(m);
         if (obj) group.add(obj);
