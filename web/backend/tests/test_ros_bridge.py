@@ -1,4 +1,12 @@
-from rdsa_web.ros_bridge import JointStateRelay, TfRelay, joint_state_to_dict, tf_message_to_transforms
+from rdsa_web.ros_bridge import (
+    JointStateRelay,
+    MarkerRelay,
+    TfRelay,
+    joint_state_to_dict,
+    marker_to_dict,
+    prune_expired_markers,
+    tf_message_to_transforms,
+)
 
 
 def test_joint_state_to_dict_zips_names_and_positions():
@@ -31,6 +39,61 @@ class _Tf:
         self.transform = type(
             "T", (), {"translation": t, "rotation": q}
         )()
+
+
+class _Marker:
+    def __init__(self, ns="", id=0, action=0, marker_type=1, lifetime_sec=0.0):
+        self.ns = ns
+        self.id = id
+        self.action = action
+        self.type = marker_type
+        self.header = type("H", (), {"frame_id": "map"})()
+        self.pose = type(
+            "P", (), {
+                "position": _Vec(0.0, 0.0, 0.0),
+                "orientation": _Quat(0, 0, 0, 1),
+            }
+        )()
+        self.scale = _Vec(1.0, 1.0, 1.0)
+        self.color = type("C", (), {"r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0})()
+        self.points = []
+        self.text = ""
+        self.lifetime = type("D", (), {"sec": int(lifetime_sec), "nanosec": 0})()
+
+
+def test_marker_to_dict_maps_core_fields():
+    d = marker_to_dict(_Marker(ns="a", id=3, marker_type=2))
+    assert d["ns"] == "a"
+    assert d["id"] == 3
+    assert d["type"] == 2
+    assert d["frame_id"] == "map"
+    assert d["color"] == {"r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0}
+    assert d["scale"] == {"x": 1.0, "y": 1.0, "z": 1.0}
+
+
+def test_marker_relay_add_then_delete():
+    relay = MarkerRelay()
+    relay._ingest_one(_Marker(ns="a", id=1, action=0))
+    assert len(relay.latest()) == 1
+    relay._ingest_one(_Marker(ns="a", id=1, action=2))  # DELETE
+    assert relay.latest() == []
+
+
+def test_marker_relay_deleteall_clears():
+    relay = MarkerRelay()
+    relay._ingest_one(_Marker(ns="a", id=1, action=0))
+    relay._ingest_one(_Marker(ns="b", id=2, action=0))
+    relay._ingest_one(_Marker(ns="", id=0, action=3))  # DELETEALL
+    assert relay.latest() == []
+
+
+def test_prune_expired_markers_drops_past_expiry():
+    markers = {
+        ("a", 1): {"ns": "a", "id": 1, "expiry": 5.0},
+        ("a", 2): {"ns": "a", "id": 2, "expiry": None},
+    }
+    kept = prune_expired_markers(markers, now=10.0)
+    assert set(kept.keys()) == {("a", 2)}
 
 
 def test_tf_relay_latest_is_empty_before_start():
