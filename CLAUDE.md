@@ -9,3 +9,8 @@
   ```bash
   colcon build --parallel-workers 1 --packages-select robot_catalog_core
   ```
+
+## Git conventions
+
+- **No AI co-author trailers.** NEVER add `Co-Authored-By: Claude ...` (or any AI/assistant
+  co-author) trailer to commit messages or PR bodies. Keep commits authored solely by the user.
