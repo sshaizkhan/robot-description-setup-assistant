@@ -1,4 +1,4 @@
-from rdsa_web.ros_bridge import JointStateRelay, joint_state_to_dict, tf_message_to_transforms
+from rdsa_web.ros_bridge import JointStateRelay, TfRelay, joint_state_to_dict, tf_message_to_transforms
 
 
 def test_joint_state_to_dict_zips_names_and_positions():
@@ -31,6 +31,23 @@ class _Tf:
         self.transform = type(
             "T", (), {"translation": t, "rotation": q}
         )()
+
+
+def test_tf_relay_latest_is_empty_before_start():
+    assert TfRelay().latest() == []
+
+
+def test_tf_relay_ingest_dedupes_by_parent_child():
+    relay = TfRelay()
+    msg1 = type("M", (), {})()
+    msg1.transforms = [_Tf("world", "base", _Vec(1.0, 0.0, 0.0), _Quat(0, 0, 0, 1))]
+    msg2 = type("M", (), {})()
+    msg2.transforms = [_Tf("world", "base", _Vec(2.0, 0.0, 0.0), _Quat(0, 0, 0, 1))]
+    relay._ingest(msg1)
+    relay._ingest(msg2)
+    snap = relay.latest()
+    assert len(snap) == 1
+    assert snap[0]["translation"]["x"] == 2.0
 
 
 def test_tf_message_to_transforms_maps_fields():

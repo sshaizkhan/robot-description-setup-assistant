@@ -87,3 +87,60 @@ class JointStateRelay:
         if self._node is not None:
             self._node.destroy_node()
         self._started = False
+
+
+class TfRelay:
+    """Relay /tf and /tf_static into a deduplicated transform snapshot."""
+
+    def __init__(
+        self, topics: tuple[str, str] = ("/tf", "/tf_static")
+    ) -> None:
+        self._topics = topics
+        self._latest: dict[tuple[str, str], dict] = {}
+        self._lock = threading.Lock()
+        self._start_lock = threading.Lock()
+        self._node = None
+        self._executor = None
+        self._thread: threading.Thread | None = None
+        self._started = False
+
+    def _ingest(self, msg) -> None:
+        with self._lock:
+            for tr in tf_message_to_transforms(msg):
+                self._latest[(tr["parent"], tr["child"])] = tr
+
+    def start(self) -> None:
+        if self._started:
+            return
+        with self._start_lock:
+            if self._started:
+                return
+            import rclpy
+            from rclpy.executors import SingleThreadedExecutor
+            from tf2_msgs.msg import TFMessage
+
+            if not rclpy.ok():
+                rclpy.init()
+            self._node = rclpy.create_node("rdsa_tf_relay")
+            for topic in self._topics:
+                self._node.create_subscription(
+                    TFMessage, topic, self._ingest, 10
+                )
+            self._executor = SingleThreadedExecutor()
+            self._executor.add_node(self._node)
+            self._thread = threading.Thread(
+                target=self._executor.spin, daemon=True
+            )
+            self._thread.start()
+            self._started = True
+
+    def latest(self) -> list[dict]:
+        with self._lock:
+            return list(self._latest.values())
+
+    def stop(self) -> None:
+        if self._executor is not None:
+            self._executor.shutdown()
+        if self._node is not None:
+            self._node.destroy_node()
+        self._started = False
