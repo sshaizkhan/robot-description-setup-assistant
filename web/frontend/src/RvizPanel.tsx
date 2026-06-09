@@ -42,9 +42,36 @@ function disposeAndClear(group: THREE.Group): void {
   group.clear();
 }
 
+/**
+ * Frame `object` so it fills the view and aim the orbit controls at its
+ * center — the in-browser equivalent of RViz's default robot-centered camera.
+ */
+function fitCameraToObject(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  object: THREE.Object3D,
+): void {
+  const box = new THREE.Box3().setFromObject(object);
+  if (box.isEmpty()) return;
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  const fov = (camera.fov * Math.PI) / 180;
+  const dist = ((maxDim / 2) / Math.tan(fov / 2)) * 1.6; // 1.6 = padding
+  const dir = new THREE.Vector3(1, 0.8, 1).normalize();
+  camera.position.copy(center).addScaledVector(dir, dist);
+  camera.near = Math.max(dist / 100, 0.001);
+  camera.far = dist * 100;
+  camera.updateProjectionMatrix();
+  controls.target.copy(center);
+  controls.update();
+}
+
 export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const controlsRef = useRef<OrbitControls | null>(null);
   const robotRef = useRef<URDFRobot | null>(null);
   const markerGroupRef = useRef<THREE.Group | null>(null);
   const [status, setStatus] = useState("connecting…");
@@ -73,10 +100,12 @@ export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
       100,
     );
     camera.position.set(1.5, 1.5, 1.5);
+    cameraRef.current = camera;
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
     const controls = new OrbitControls(camera, renderer.domElement);
+    controlsRef.current = controls;
 
     let raf = 0;
     const loop = () => {
@@ -92,6 +121,8 @@ export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
       renderer.dispose();
       renderer.domElement.remove();
       sceneRef.current = null;
+      cameraRef.current = null;
+      controlsRef.current = null;
       markerGroupRef.current = null;
     };
   }, []);
@@ -114,11 +145,39 @@ export function RvizPanel({ urdfXml, meshBase }: RvizPanelProps) {
     const loader = new URDFLoader();
     loader.packages = (pkg: string) =>
       resolvePackageUrl(meshBase, `package://${pkg}`);
+
+    // URDF meshes load asynchronously after parse(), so the bounding box is
+    // only complete once every mesh has resolved. Count outstanding loads and
+    // fit the camera once — when parsing is done and nothing is pending.
+    let pending = 0;
+    let parseDone = false;
+    let fitted = false;
+    const tryFit = () => {
+      if (fitted || !parseDone || pending > 0) return;
+      fitted = true;
+      const cam = cameraRef.current;
+      const ctl = controlsRef.current;
+      if (cam && ctl && robotRef.current) {
+        fitCameraToObject(cam, ctl, robotRef.current);
+      }
+    };
+    const baseLoad = loader.loadMeshCb;
+    loader.loadMeshCb = (url, manager, onLoad) => {
+      pending += 1;
+      baseLoad(url, manager, (mesh, err) => {
+        onLoad(mesh, err);
+        pending -= 1;
+        tryFit();
+      });
+    };
+
     const robot = loader.parse(urdfXml) as URDFRobot;
     // URDF uses Z-up; match the grid/world orientation used by Viewer3D.
     robot.rotation.x = -Math.PI / 2;
     robotRef.current = robot;
     scene.add(robot);
+    parseDone = true;
+    tryFit(); // zero-mesh robots fit immediately
 
     return () => {
       if (robotRef.current) {
