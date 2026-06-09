@@ -25,12 +25,14 @@ describe("connectTf", () => {
 });
 
 describe("connectMarkers", () => {
-  it("parses markers", () => {
+  it("parses markers and closes", () => {
     let ws!: FakeWS;
     const WS = vi.fn((url: string) => (ws = new FakeWS(url))) as never;
     let got: RvizMarker[] = [];
-    connectMarkers("ws://x/ws/markers", (m) => (got = m), WS);
+    const close = connectMarkers("ws://x/ws/markers", (m) => (got = m), WS);
     ws.emit({ markers: [{ ns: "a", id: 1, type: 2 }] });
     expect(got[0].id).toBe(1);
+    close();
+    expect(ws.close).toHaveBeenCalled();
   });
 });
