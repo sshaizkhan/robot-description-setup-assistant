@@ -15,6 +15,28 @@ def joint_state_to_dict(
     return {name: float(pos) for name, pos in zip(names, positions)}
 
 
+def tf_message_to_transforms(msg) -> list[dict]:
+    """Convert a tf2_msgs/TFMessage into JSON-serializable transform dicts."""
+    out = []
+    for tr in msg.transforms:
+        t = tr.transform.translation
+        q = tr.transform.rotation
+        out.append(
+            {
+                "parent": tr.header.frame_id,
+                "child": tr.child_frame_id,
+                "translation": {"x": float(t.x), "y": float(t.y), "z": float(t.z)},
+                "rotation": {
+                    "x": float(q.x),
+                    "y": float(q.y),
+                    "z": float(q.z),
+                    "w": float(q.w),
+                },
+            }
+        )
+    return out
+
+
 class JointStateRelay:
     def __init__(self, topic: str = "/joint_states") -> None:
         self._topic = topic
