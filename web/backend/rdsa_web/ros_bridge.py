@@ -244,14 +244,28 @@ class TfRelay:
                 return
             import rclpy
             from rclpy.executors import SingleThreadedExecutor
+            from rclpy.qos import (
+                DurabilityPolicy,
+                HistoryPolicy,
+                QoSProfile,
+            )
             from tf2_msgs.msg import TFMessage
 
             if not rclpy.ok():
                 rclpy.init()
             self._node = rclpy.create_node("rdsa_tf_relay")
+            # /tf_static is published once with TRANSIENT_LOCAL (latched)
+            # durability; a default VOLATILE subscription silently misses it.
+            # Match the publisher (as RViz does) so static frames arrive.
+            static_qos = QoSProfile(
+                depth=100,
+                history=HistoryPolicy.KEEP_LAST,
+                durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            )
             for topic in self._topics:
+                qos = static_qos if topic.endswith("tf_static") else 10
                 self._node.create_subscription(
-                    TFMessage, topic, self._ingest, 10
+                    TFMessage, topic, self._ingest, qos
                 )
             self._executor = SingleThreadedExecutor()
             self._executor.add_node(self._node)
