@@ -118,6 +118,23 @@ if [ "$DISTRO" = "WSL" ]; then
     export LD_LIBRARY_PATH=/usr/lib/wsl/lib
 fi
 
+# ── X display auto-select ──────────────────────────────────────────────────
+#   Local terminals (terminator / VS Code on this laptop) -> :0  (real monitor)
+#   Remote SSH sessions (Mac via tunnel)                  -> :3  (TigerVNC)
+#   Override per-shell:  d0  (use :0) | d3 (use :3) | dpy (show current)
+#   Force a default for a shell before login: export RDS_DISPLAY=:N
+if [ -n "$RDS_DISPLAY" ]; then
+    export DISPLAY="$RDS_DISPLAY"
+elif [ -n "$SSH_CONNECTION" ]; then
+    export DISPLAY=:3
+else
+    export DISPLAY=:0
+fi
+alias d0='export DISPLAY=:0; echo "DISPLAY=:0 (laptop monitor)"'
+alias d3='export DISPLAY=:3; echo "DISPLAY=:3 (VNC / Mac)"'
+alias dpy='echo "DISPLAY=$DISPLAY"'
+# ───────────────────────────────────────────────────────────────────────────
+
 #bash completion
 if [ -f /etc/profile.d/bash_completion.sh ]; then
     echo "Sourcing: /etc/profile.d/bash_completion.sh"
