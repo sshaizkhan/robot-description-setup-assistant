@@ -67,3 +67,9 @@ r
 *.clangd
 
 build.sh
+
+# Playwright artifacts
+.playwright-mcp/
+**/.playwright-mcp/
+
+*.remember

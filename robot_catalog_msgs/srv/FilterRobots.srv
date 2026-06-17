@@ -1,0 +1,21 @@
+string type
+string category
+bool has_min_payload
+float64 min_payload
+bool has_max_payload
+float64 max_payload
+bool has_min_reach
+float64 min_reach
+bool has_max_reach
+float64 max_reach
+bool has_dof
+int32 degrees_of_freedom
+bool has_collaborative_only
+bool collaborative_only
+string[] required_tags
+string search_text
+int32 offset
+int32 limit
+---
+string robots_json
+int32 total

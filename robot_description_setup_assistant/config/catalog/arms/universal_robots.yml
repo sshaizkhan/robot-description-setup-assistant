@@ -1,0 +1,258 @@
+# Universal Robots arms.
+# Each entry: type=arm, and `attach.tool_frame` is the link an end-effector
+# mounts onto (UR descriptions expose "tool0").
+robots:
+  ur3:
+    type: arm
+    display_name: "UR3"
+    description: "Compact 6-axis collaborative robot ideal for light assembly tasks"
+    image_path: "resources/graphics/universal_robots/ur3.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3_robot ur_type:=ur3"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 3.0
+      reach_mm: 500
+      weight_kg: 11.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    tags: ["collaborative", "small", "light_payload", "compact"]
+
+  ur3e:
+    type: arm
+    display_name: "UR3e"
+    description: "Compact 6-axis collaborative robot ideal for light assembly tasks"
+    image_path: "resources/graphics/universal_robots/ur3e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur3e_robot ur_type:=ur3e"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 3.0
+      reach_mm: 500
+      weight_kg: 11.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    tags: ["collaborative", "small", "light_payload", "compact"]
+
+  ur5:
+    type: arm
+    display_name: "UR5"
+    description: "Medium payload collaborative robot for versatile automation"
+    image_path: "resources/graphics/universal_robots/ur5.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur5_robot ur_type:=ur5"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 5.0
+      reach_mm: 850
+      weight_kg: 18.4
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    tags: ["collaborative", "medium", "versatile", "popular"]
+
+  ur5e:
+    type: arm
+    display_name: "UR5e"
+    description: "Medium payload collaborative robot for versatile automation"
+    image_path: "resources/graphics/universal_robots/ur5e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur5e_robot ur_type:=ur5e"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 5.0
+      reach_mm: 850
+      weight_kg: 18.4
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    tags: ["collaborative", "medium", "versatile", "popular"]
+
+  ur10:
+    type: arm
+    display_name: "UR10"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur10.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur10_robot ur_type:=ur10"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 10.0
+      reach_mm: 1300
+      weight_kg: 28.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+
+  ur10e:
+    type: arm
+    display_name: "UR10e"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur10e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur10e_robot ur_type:=ur10e"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 10.0
+      reach_mm: 1300
+      weight_kg: 28.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+
+  ur16e:
+    type: arm
+    display_name: "UR16e"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur16e.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur16e_robot ur_type:=ur16e"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 16.0
+      reach_mm: 900
+      weight_kg: 33.5
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+
+  ur20:
+    type: arm
+    display_name: "UR20"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur20.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur20_robot ur_type:=ur20"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 20.0
+      reach_mm: 1750
+      weight_kg: 60.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]
+
+  ur30:
+    type: arm
+    display_name: "UR30"
+    description: "High payload collaborative robot for heavy-duty tasks"
+    image_path: "resources/graphics/universal_robots/ur30.png"
+    urdf_package: "ur_description"
+    urdf_path: "urdf/ur.urdf.xacro"
+    xacro_args: "name:=ur30_robot ur_type:=ur30"
+    category: "universal_robots"
+    attach:
+      tool_frame: "tool0"
+    specifications:
+      degrees_of_freedom: 6
+      payload_kg: 30.0
+      reach_mm: 2000
+      weight_kg: 80.0
+      repeatability_mm: 0.1
+      max_speed_ms: 1.0
+      mounting: ["floor", "ceiling", "wall"]
+      safety_certified: true
+      collaborative: true
+    required_packages:
+      - "ur_description"
+      - "ur_msgs"
+    optional_packages:
+      - "ur_moveit_config"
+      - "ur_gazebo"
+    tags: ["collaborative", "heavy_payload", "industrial", "popular"]

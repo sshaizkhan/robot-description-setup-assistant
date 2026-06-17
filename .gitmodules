@@ -1,6 +1,21 @@
 [submodule "deps/kuka_robot_descriptions"]
 	path = deps/kuka_robot_descriptions
 	url = https://github.com/sshaizkhan/kuka_robot_descriptions.git
-[submodule "deps/ur5_description"]
-	path = deps/ur5_description
+[submodule "deps/ur_robot_descriptions"]
+	path = deps/ur_robot_descriptions
 	url = https://github.com/UniversalRobots/Universal_Robots_ROS2_Description.git
+[submodule "deps/ros2_robotiq_gripper"]
+	path = deps/ros2_robotiq_gripper
+	url = https://github.com/PickNikRobotics/ros2_robotiq_gripper.git
+[submodule "deps/abb_robot_descriptions"]
+	path = deps/abb_robot_descriptions
+	url = https://github.com/sshaizkhan/abb_robot_description.git
+[submodule "deps/fanuc_robot_descriptions"]
+	path = deps/fanuc_robot_descriptions
+	url = https://github.com/sshaizkhan/fanuc_robot_descriptions.git
+[submodule "deps/yaskawa_robot_descriptions"]
+	path = deps/yaskawa_robot_descriptions
+	url = https://github.com/sshaizkhan/yaskawa_robot_descriptions.git
+[submodule "deps/app-robot-description-setup-assistant"]
+	path = deps/app-robot-description-setup-assistant
+	url = https://github.com/sshaizkhan/app-robot-description-setup-assistant.git

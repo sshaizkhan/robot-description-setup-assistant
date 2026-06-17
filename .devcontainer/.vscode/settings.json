@@ -134,7 +134,30 @@
       "**/.bash_logout": true,
       "**/skills-lock.json": true,
     },
+    "terminal.integrated.profiles.linux": {
+		"bash (:0 monitor)": {
+        "path": "bash",
+        "env": { "RDS_DISPLAY": ":0" },
+        "icon": "device-desktop"
+      },
+      "bash (:3 VNC/Mac)": {
+        "path": "bash",
+        "env": { "RDS_DISPLAY": ":3" },
+        "icon": "remote-explorer"
+      }
+    },
+    "urdf-visualizer.packages": {
+      "abb_robot_descriptions": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/abb_robot_descriptions",
+      "fanuc_robot_descriptions": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/fanuc_robot_descriptions",
+      "kuka_robot_descriptions": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/kuka_robot_descriptions",
+      "yaskawa_robot_descriptions": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/yaskawa_robot_descriptions",
+      "ur_robot_descriptions": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/ur_robot_descriptions",
+      "robotiq_description": "/home/bot/rds_ws/src/robot-description-setup-assistant/deps/ros2_robotiq_gripper/robotiq_description",
+    },
+    "urdf-visualizer.renderOnSave": true,
+    "urdf-visualizer.reRenderWhenSwitchFile": true,
     "git-graph.maxDepthOfRepoSearch": 50,
     "terminal.integrated.showExitAlert": false,
     "cmake.configureOnOpen": false,
+    "remote.autoForwardPorts": false,
   }
