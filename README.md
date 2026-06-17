@@ -18,7 +18,7 @@ single-page UI. See [`ARCHITECTURE.md`](ARCHITECTURE.md).
 ```
 
 It sources ROS + the workspace, builds the frontend, starts the C++ catalog node,
-and serves the API + SPA from one uvicorn process. See [`web/QUICKSTART.md`](web/QUICKSTART.md).
+and serves the API + SPA from one uvicorn process. See [`deps/app-robot-description-setup-assistant/QUICKSTART.md`](deps/app-robot-description-setup-assistant/QUICKSTART.md).
 
 ## Build (low-RAM machine)
 
@@ -36,5 +36,5 @@ colcon build --merge-install --parallel-workers 1 \
 | `robot_catalog_msgs` | `.srv` definitions for the catalog services |
 | `robot_catalog_server` | rclcpp node exposing the catalog over services |
 | `robot_description_setup_assistant` | Data-only: robot catalog (`config/`), images (`resources/`), web launch |
-| `web/` | FastAPI backend (rclpy bridge) + React/three.js frontend |
+| `deps/app-robot-description-setup-assistant/` | FastAPI backend (rclpy bridge) + React/three.js frontend |
 | `deps/` | Vendored robot descriptions (UR, KUKA) |

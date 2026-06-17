@@ -27,8 +27,10 @@ HOST="${1:-127.0.0.1}"
 PORT="${2:-8000}"
 WS="$(cd "$HERE/../.." && pwd)"          # repo is <ws>/src/<repo>; <ws> is two up
 ROS_SETUP="${ROS_SETUP:-/opt/ros/humble/setup.bash}"
-DIST="$HERE/web/frontend/dist"
-VENV="$HERE/web/backend/.venv"
+# Web app lives in its own repo, vendored under deps/ (see deps/app-robot-description-setup-assistant).
+APP="$HERE/deps/app-robot-description-setup-assistant"
+DIST="$APP/frontend/dist"
+VENV="$APP/backend/.venv"
 
 # --- 1. ROS environment ----------------------------------------------------
 [ -f "$ROS_SETUP" ] || { echo "[run] ERROR: ROS setup not found: $ROS_SETUP"; exit 1; }
@@ -49,7 +51,7 @@ if [ ! -x "$VENV/bin/uvicorn" ]; then
   python3 -m venv --system-site-packages "$VENV"
   # shellcheck disable=SC1091
   . "$VENV/bin/activate"
-  pip install -e "$HERE/web/backend"
+  pip install -e "$APP/backend"
 else
   # shellcheck disable=SC1091
   . "$VENV/bin/activate"
@@ -60,7 +62,7 @@ if [ ! -f "$DIST/index.html" ] || [ "${BUILD_FRONTEND:-0}" = "1" ]; then
   command -v npm >/dev/null 2>&1 || {
     echo "[run] ERROR: npm not found and no prebuilt dist at $DIST"; exit 1; }
   echo "[run] building frontend..."
-  ( cd "$HERE/web/frontend" && npm install && npm run build )
+  ( cd "$APP/frontend" && npm install && npm run build )
 else
   echo "[run] frontend dist present — skipping build (BUILD_FRONTEND=1 to force)"
 fi
@@ -109,7 +111,7 @@ echo "[run]   open:  http://${HOST}:${PORT}"
 [ "$HOST" = "0.0.0.0" ] && echo "[run]   (also reachable on this machine's LAN/Tailscale IPs)"
 echo "[run] Ctrl-C to stop everything."
 
-cd "$HERE/web/backend"
+cd "$APP/backend"
 uvicorn rdsa_web.app:app --host "$HOST" --port "$PORT" &
 UVI_PID=$!
 wait "$UVI_PID"

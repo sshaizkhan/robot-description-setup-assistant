@@ -16,3 +16,6 @@
 [submodule "deps/yaskawa_robot_descriptions"]
 	path = deps/yaskawa_robot_descriptions
 	url = https://github.com/sshaizkhan/yaskawa_robot_descriptions.git
+[submodule "deps/app-robot-description-setup-assistant"]
+	path = deps/app-robot-description-setup-assistant
+	url = git@github.com:sshaizkhan/app-robot-description-setup-assistant.git

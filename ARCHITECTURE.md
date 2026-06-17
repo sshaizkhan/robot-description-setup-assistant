@@ -4,7 +4,7 @@ How the whole workspace fits together: who parses URDF, who publishes/consumes
 `joint_states`, and how the C++, Python, and TypeScript code share one
 robot-catalog domain.
 
-> Web-stack-only detail lives in [`web/ARCHITECTURE.md`](web/ARCHITECTURE.md).
+> Web-stack-only detail lives in [`deps/app-robot-description-setup-assistant/ARCHITECTURE.md`](deps/app-robot-description-setup-assistant/ARCHITECTURE.md).
 > This file is the workspace-wide map.
 >
 > **No Qt / RViz / MoveIt.** The original Qt desktop setup assistant (and its
@@ -43,8 +43,8 @@ rules):
 | Definition | File | Notes |
 |---|---|---|
 | C++ | `robot_catalog_core/include/robot_catalog_core/types.hpp` | source of truth |
-| Python | `web/backend/rdsa_web/models.py` | Pydantic |
-| TypeScript | `web/frontend/src/api.ts` | interfaces |
+| Python | `deps/app-robot-description-setup-assistant/backend/rdsa_deps/app-robot-description-setup-assistant/models.py` | Pydantic |
+| TypeScript | `deps/app-robot-description-setup-assistant/frontend/src/api.ts` | interfaces |
 
 Filter semantics identical everywhere (`matchesFilter` / `_matches_filter`):
 type · category equality · payload/reach min–max · DOF exact · collaborative-only ·
@@ -57,7 +57,7 @@ name/description/category/tags. Empty filter ⇒ return all.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Browser (React + three.js)            web/frontend/src/              │
+│  Browser (React + three.js)            deps/app-robot-description-setup-assistant/frontend/src/              │
 │                                                                        │
 │   api.ts ──HTTP──┐    jointSocket.ts ──WS──┐   Viewer3D.tsx           │
 │   robots/cats/   │    (/ws/joint_states)   │   urdf-loader parses XML │
@@ -66,7 +66,7 @@ name/description/category/tags. Empty filter ⇒ return all.
                     │ HTTP                     │ WebSocket
                     ▼                          ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│  FastAPI / uvicorn (Python — thin relay)  web/backend/rdsa_web/app.py  │
+│  FastAPI / uvicorn (Python — thin relay)  deps/app-robot-description-setup-assistant/backend/rdsa_deps/app-robot-description-setup-assistant/app.py  │
 │                                                                        │
 │  /api/robots /api/categories /api/robots/filter ─┐                    │
 │  /api/robots/{id}/urdf      ── catalog.get_urdf() ┤ all rclpy          │
@@ -193,8 +193,8 @@ no longer depends on Qt5, RViz, or MoveIt.
 | `robot_catalog_msgs` | `.srv` defs (GetRobots/GetCategories/FilterRobots/ValidateRobot/GetUrdf/ResolveMesh) | rosidl |
 | `robot_catalog_server` | rclcpp node advertising `catalog/*` services | rclcpp + the two above |
 | `robot_description_setup_assistant` | **Data-only**: catalog `config/`, robot `resources/`, web launch | ament_cmake |
-| `web/backend` (`rdsa_web`) | FastAPI app + rclpy bridge (relay) + package gen | fastapi, rclpy |
-| `web/frontend` | React + three.js SPA | vite, urdf-loader, @tanstack/react-virtual |
+| `deps/app-robot-description-setup-assistant/backend` (`rdsa_web`) | FastAPI app + rclpy bridge (relay) + package gen | fastapi, rclpy |
+| `deps/app-robot-description-setup-assistant/frontend` | React + three.js SPA | vite, urdf-loader, @tanstack/react-virtual |
 | `deps/ur5_description`, `deps/kuka_robot_descriptions` | Vendored robot description packages (xacro + meshes) | — |
 
 **Build note:** low-RAM machine — always `colcon build --merge-install
