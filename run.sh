@@ -48,10 +48,19 @@ source "$WS/install/setup.bash"
 # --- 2. backend venv (bootstrap on first run) ------------------------------
 if [ ! -x "$VENV/bin/uvicorn" ]; then
   echo "[run] creating backend venv (system site-packages for rclpy/ament)..."
-  python3 -m venv --system-site-packages "$VENV"
-  # shellcheck disable=SC1091
-  . "$VENV/bin/activate"
-  pip install -e "$APP/backend"
+  # Prefer uv: stdlib `python3 -m venv` needs python3-venv/ensurepip, which is
+  # not installed on this machine. uv bootstraps pip into the venv itself.
+  if command -v uv >/dev/null 2>&1; then
+    uv venv --system-site-packages --python 3.10 "$VENV"
+    # shellcheck disable=SC1091
+    . "$VENV/bin/activate"
+    uv pip install -e "$APP/backend"
+  else
+    python3 -m venv --system-site-packages "$VENV"
+    # shellcheck disable=SC1091
+    . "$VENV/bin/activate"
+    pip install -e "$APP/backend"
+  fi
 else
   # shellcheck disable=SC1091
   . "$VENV/bin/activate"
