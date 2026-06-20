@@ -70,7 +70,7 @@ cmd_build() {
 }
 
 cmd_fetch() {
-  local hash tag url tmp
+  local hash tag tmp got=0
   hash="$(mesh_hash)"
   if current_ok "$hash"; then
     echo "[mesh-bundle] meshes-opt up to date ($hash)"
@@ -79,19 +79,33 @@ cmd_fetch() {
   tag="meshes-$hash"
   echo "[mesh-bundle] need bundle $hash"
 
-  url="https://github.com/$REPO_SLUG/releases/download/$tag/meshes-opt.tar.gz"
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' RETURN
-  if curl -fsSL "$url" -o "$tmp/bundle.tar.gz"; then
+
+  # Prefer the gh CLI: it authenticates, so this works for a PRIVATE repo (the
+  # anonymous releases/download URL 404s when the repo is private). Fall back to
+  # an anonymous curl, which covers a public repo on a machine without gh.
+  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    if gh release download "$tag" --repo "$REPO_SLUG" \
+         --pattern meshes-opt.tar.gz --dir "$tmp" 2>/dev/null; then
+      got=1
+    fi
+  fi
+  if [ "$got" -eq 0 ]; then
+    local url="https://github.com/$REPO_SLUG/releases/download/$tag/meshes-opt.tar.gz"
+    curl -fsSL "$url" -o "$tmp/meshes-opt.tar.gz" && got=1 || true
+  fi
+
+  if [ "$got" -eq 1 ]; then
     echo "[mesh-bundle] downloaded release asset; extracting…"
     rm -rf "$OUT"; mkdir -p "$OUT"
-    tar -xzf "$tmp/bundle.tar.gz" -C "$OUT"
+    tar -xzf "$tmp/meshes-opt.tar.gz" -C "$OUT"
     echo "$hash" > "$HASH_FILE"
     echo "[mesh-bundle] ready ($hash)"
     return 0
   fi
 
-  echo "[mesh-bundle] no prebuilt bundle at $url"
+  echo "[mesh-bundle] no prebuilt bundle for $tag (private repo without gh auth?)"
   cmd_build "$hash" || return 1
 }
 
