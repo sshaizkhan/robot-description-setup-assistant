@@ -24,7 +24,9 @@ ROS_SETUP="${ROS_SETUP:-/opt/ros/humble/setup.bash}"
 # Submodules whose *.dae are stored gzipped behind the daegz filter.
 DAEGZ_SUBMODULES=(abb fanuc kuka yaskawa)
 
-is_xml() { case "$(head -c 16 "$1" 2>/dev/null)" in *'<?xml'*) return 0 ;; *) return 1 ;; esac; }
+# True if the file starts with XML. Pipe to grep (not $()) so binary/gzipped
+# .dae don't trip bash's "ignored null byte" warning; -a treats input as text.
+is_xml() { head -c 16 "$1" 2>/dev/null | grep -qa '<?xml'; }
 
 # Register the daegz filter in a repo. $1 = "" for the current repo's global
 # config (--global), or a submodule path to set it locally there.
