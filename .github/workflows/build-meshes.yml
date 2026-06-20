@@ -63,12 +63,13 @@ jobs:
             find "$d" -name '*.dae' -delete
             git -C "$d" checkout -- .
           done
-          f="$(git -C deps/abb_robot_descriptions ls-files '*.dae' | head -1)"
-          if head -c 16 "deps/abb_robot_descriptions/$f" | grep -q '<?xml'; then
-            echo "daegz OK: $f decompressed"
-          else
-            echo "daegz FAILED: $f still not XML"; exit 1
-          fi
+          # Sanity: a smudged .dae must be XML, not gzip. Pipe-free to avoid
+          # SIGPIPE under 'set -o pipefail' (find -quit / head into a var).
+          f="$(find deps/abb_robot_descriptions -name '*.dae' -print -quit)"
+          case "$(head -c 16 "$f")" in
+            *'<?xml'*) echo "daegz OK: $f decompressed" ;;
+            *) echo "daegz FAILED: $f still not XML"; exit 1 ;;
+          esac
 
       - uses: ros-tooling/setup-ros@v0.7
         with:
