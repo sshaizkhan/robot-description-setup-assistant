@@ -59,6 +59,9 @@ if [ ! -x "$VENV/bin/uvicorn" ]; then
     python3 -m venv --system-site-packages "$VENV"
     # shellcheck disable=SC1091
     . "$VENV/bin/activate"
+    # The venv's bundled pip/setuptools can be too old for PEP 660 editable
+    # installs (pip >=21.3 + setuptools >=64 needed for build_editable).
+    python -m pip install -U pip setuptools wheel
     pip install -e "$APP/backend"
   fi
 else
