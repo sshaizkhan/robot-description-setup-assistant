@@ -31,6 +31,9 @@ ROS_SETUP="${ROS_SETUP:-/opt/ros/humble/setup.bash}"
 APP="$HERE/deps/app-robot-description-setup-assistant"
 DIST="$APP/frontend/dist"
 VENV="$APP/backend/.venv"
+# Local Node toolchain (auto-bootstrapped if npm is absent). LTS; Vite needs >=18.
+NODE_VERSION="${NODE_VERSION:-20.18.1}"
+NODE_DIR="$HERE/.cache/node-v${NODE_VERSION}"
 
 # --- 1. ROS environment ----------------------------------------------------
 [ -f "$ROS_SETUP" ] || { echo "[run] ERROR: ROS setup not found: $ROS_SETUP"; exit 1; }
@@ -69,10 +72,40 @@ else
   . "$VENV/bin/activate"
 fi
 
+# Ensure an `npm` is on PATH for the frontend build. Uses a system npm if
+# present; otherwise downloads a local Node into .cache/ (no sudo, no system
+# changes) and adds it to PATH. Reused on subsequent runs.
+ensure_node() {
+  command -v npm >/dev/null 2>&1 && return 0
+  if [ -x "$NODE_DIR/bin/npm" ]; then
+    export PATH="$NODE_DIR/bin:$PATH"; return 0
+  fi
+  local os arch
+  case "$(uname -s)" in
+    Linux) os=linux ;;
+    Darwin) os=darwin ;;
+    *) echo "[run] ERROR: npm not found; auto-install unsupported on $(uname -s). Install Node >=18."; return 1 ;;
+  esac
+  case "$(uname -m)" in
+    x86_64|amd64) arch=x64 ;;
+    aarch64|arm64) arch=arm64 ;;
+    *) echo "[run] ERROR: npm not found; auto-install unsupported on $(uname -m). Install Node >=18."; return 1 ;;
+  esac
+  local url="https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-${os}-${arch}.tar.gz"
+  echo "[run] npm not found — installing local Node ${NODE_VERSION} (${os}-${arch}, no sudo)…"
+  mkdir -p "$NODE_DIR"
+  if ! curl -fsSL "$url" | tar -xz -C "$NODE_DIR" --strip-components=1; then
+    echo "[run] ERROR: failed to download Node from $url"; return 1
+  fi
+  export PATH="$NODE_DIR/bin:$PATH"
+  command -v npm >/dev/null 2>&1 || { echo "[run] ERROR: local Node bootstrap failed"; return 1; }
+  echo "[run] local Node ready: $(node --version), npm $(npm --version)"
+}
+
 # --- 3. frontend build (static; served by uvicorn) -------------------------
 if [ ! -f "$DIST/index.html" ] || [ "${BUILD_FRONTEND:-0}" = "1" ]; then
-  command -v npm >/dev/null 2>&1 || {
-    echo "[run] ERROR: npm not found and no prebuilt dist at $DIST"; exit 1; }
+  ensure_node || {
+    echo "[run] ERROR: no npm and could not bootstrap Node; no prebuilt dist at $DIST"; exit 1; }
   echo "[run] building frontend..."
   ( cd "$APP/frontend" && npm install && npm run build )
 else
