@@ -221,27 +221,41 @@ All vendored under `deps/` (see [`.gitmodules`](.gitmodules)).
 
 - **ROS 2 Humble** (`/opt/ros/humble`)
 - **Node.js** + npm (frontend build) and **Python 3.10** with `uv` *or* `python3-venv`
+- **git**, **curl**, **tar**, **gzip** (clone, daegz filter, mesh-bundle download)
 - A colcon workspace — this repo lives at `<ws>/src/robot-description-setup-assistant`
 
-### 1. Clone with submodules
+### 1. Clone & bootstrap
 
 ```bash
-git clone --recurse-submodules <repo-url>
-# or, if already cloned:
-git submodule update --init --recursive
+git clone https://github.com/sshaizkhan/robot-description-setup-assistant.git
+cd robot-description-setup-assistant
+./bootstrap.sh           # registers the daegz mesh filter + inits submodules
 ```
 
-### 2. Build the C++ packages (once)
+> ⚠️ **Don't use `git clone --recurse-submodules`.** The description submodules
+> store `*.dae` gzip-compressed behind a *required* `daegz` git filter, so a
+> naive recursive clone fails (or leaves gzipped blobs). [`bootstrap.sh`](bootstrap.sh)
+> registers the filter first, then inits the submodules so the meshes decompress.
 
-> ⚠️ **Low-RAM machine:** always build with `--parallel-workers 1` (max 2), and
-> prefer `--packages-select`. Never run a full-parallel `colcon build`.
+### 2. Build the workspace (once)
+
+> ⚠️ **Low-RAM machine:** build with `--parallel-workers 1` and `--symlink-install`
+> (the latter avoids copying ~17 GiB of meshes into `install/`). Never run a
+> full-parallel `colcon build`.
 
 ```bash
-cd <ws>
+BUILD=1 ./bootstrap.sh   # filter + submodules + colcon build (parallel-workers 1)
+```
+
+…or build manually:
+
+```bash
+cd <ws>                  # colcon workspace root (repo is at <ws>/src/…)
 source /opt/ros/humble/setup.bash
-colcon build --merge-install --parallel-workers 1 \
+colcon build --merge-install --symlink-install --parallel-workers 1 \
   --packages-select robot_catalog_msgs robot_catalog_core robot_catalog_server \
-                    robot_description_setup_assistant
+    robot_description_setup_assistant abb_robot_descriptions fanuc_robot_descriptions \
+    kuka_robot_descriptions ur_description yaskawa_robot_descriptions robotiq_description
 source install/setup.bash
 ```
 
@@ -255,8 +269,23 @@ cd src/robot-description-setup-assistant
 
 `run.sh` sources ROS + the workspace, bootstraps the backend venv (prefers `uv`,
 falls back to stdlib `venv`), builds the frontend if `dist/` is missing
-(`BUILD_FRONTEND=1` forces a rebuild), starts the C++ catalog node, waits for its
-services, then serves the API + SPA from one uvicorn process.
+(`BUILD_FRONTEND=1` forces a rebuild), **downloads the prebuilt GLB mesh bundle**
+(see below; `SKIP_MESH_BUNDLE=1` to opt out), starts the C++ catalog node, waits
+for its services, then serves the API + SPA from one uvicorn process.
+
+### Optimized meshes (web viewer)
+
+Vendor visual meshes are large COLLADA (`.dae`) — FANUC/KUKA links reach 30–116 MiB,
+over the 5 MiB mesh cap and slow to load. CI converts them **once** to compact
+Draco-compressed glTF (`.glb`) and publishes a `meshes-<hash>.tar.gz` bundle as a
+GitHub Release (keyed to the description submodule commits). On launch,
+[`scripts/mesh-bundle.sh`](scripts/mesh-bundle.sh) (called by `run.sh`) downloads
+the matching bundle — no local conversion. The backend serves it at `/meshes-opt`
+and the viewer prefers the GLB, falling back to the source `.dae`.
+
+- Re-downloads only when a description submodule changes (the hash key).
+- Offline / custom robots: it falls back to generating the bundle locally.
+- ROS2-only users who don't need the web viewer: `SKIP_MESH_BUNDLE=1 ./run.sh`.
 
 ---
 
@@ -313,6 +342,8 @@ python3 scripts/generate_catalog.py     # rewrites config/catalog/arms/<vendor>.
 
 | Script | Purpose |
 |---|---|
+| [`bootstrap.sh`](bootstrap.sh) | Fresh-clone setup: register the `daegz` mesh filter, init submodules (decompressing `.dae`), and optionally `colcon build` (`BUILD=1`, low-RAM friendly). |
+| [`scripts/mesh-bundle.sh`](scripts/mesh-bundle.sh) | Manage the optimized GLB mesh bundle: `hash` (bundle id), `fetch` (download the matching Release asset, else build locally), `build`, `pack`. Called by `run.sh`. |
 | [`scripts/generate_catalog.py`](scripts/generate_catalog.py) | Enumerate each vendor's `urdf/*.urdf.xacro` (with a matching `config/<type>/`), read DOF from `joint_limits.yaml`, and emit `config/catalog/arms/<vendor>.yml`. Idempotent. |
 | [`scripts/make_placeholder.py`](scripts/make_placeholder.py) | Generate a 400×300 dark-gray PNG card placeholder using only the Python stdlib (no Pillow). |
 | [`scripts/test_generate_catalog.py`](scripts/test_generate_catalog.py) | Tests for the catalog generator. |
