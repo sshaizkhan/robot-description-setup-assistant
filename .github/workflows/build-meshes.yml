@@ -4,11 +4,14 @@ name: Build mesh bundle
 # GitHub Release asset, so end users never run the (slow) conversion. The bundle
 # is keyed to the description submodule commits; run.sh / scripts/mesh-bundle.sh
 # download the matching asset.
+#
+# Runs on a host runner (not a container) so we can free disk: the description
+# meshes decompress to ~17 GiB of COLLADA, which overflows the small container
+# disk.
 on:
   workflow_dispatch: {}
   push:
     branches: [master]
-    # Only when the mesh-bearing submodule pointers (or the converter) change.
     paths:
       - deps/abb_robot_descriptions
       - deps/fanuc_robot_descriptions
@@ -21,11 +24,20 @@ on:
 
 jobs:
   build-bundle:
-    runs-on: ubuntu-latest
-    container: ros:humble-ros-base
+    runs-on: ubuntu-22.04 # Humble targets 22.04
     permissions:
       contents: write # create/upload the release asset
     steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          swap-storage: true
+
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -51,7 +63,6 @@ jobs:
             find "$d" -name '*.dae' -delete
             git -C "$d" checkout -- .
           done
-          # Sanity: a smudged .dae must start with XML, not gzip magic.
           f="$(git -C deps/abb_robot_descriptions ls-files '*.dae' | head -1)"
           if head -c 16 "deps/abb_robot_descriptions/$f" | grep -q '<?xml'; then
             echo "daegz OK: $f decompressed"
@@ -59,16 +70,18 @@ jobs:
             echo "daegz FAILED: $f still not XML"; exit 1
           fi
 
+      - uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: humble
+
       - name: Install converter toolchain
         shell: bash
         run: |
-          apt-get update
-          apt-get install -y --no-install-recommends curl ca-certificates python3-pip
-          # Node 18 for the gltf-transform CLI (jammy's apt node is too old).
-          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-          apt-get install -y --no-install-recommends nodejs
-          npm install -g @gltf-transform/cli
-          pip3 install --no-cache-dir trimesh pycollada numpy
+          # Node 18 for the gltf-transform CLI (Draco); Python deps for the converter.
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt-get install -y --no-install-recommends nodejs
+          sudo npm install -g @gltf-transform/cli
+          pip3 install --user trimesh pycollada numpy
 
       - name: Build description packages (ament share dirs for the converter)
         shell: bash
@@ -76,7 +89,8 @@ jobs:
           source /opt/ros/humble/setup.bash
           rosdep update || true
           rosdep install --from-paths deps --ignore-src -y -r || true
-          colcon build --merge-install --parallel-workers 2 \
+          # --symlink-install so the 17 GiB of meshes are NOT copied into install/.
+          colcon build --symlink-install --parallel-workers 2 \
             --packages-select \
               abb_robot_descriptions fanuc_robot_descriptions \
               kuka_robot_descriptions ur_description \
