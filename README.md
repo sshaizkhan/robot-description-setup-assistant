@@ -220,8 +220,10 @@ All vendored under `deps/` (see [`.gitmodules`](.gitmodules)).
 ### Prerequisites
 
 - **ROS 2 Humble** (`/opt/ros/humble`)
-- **Node.js** + npm (frontend build) and **Python 3.10** with `uv` *or* `python3-venv`
+- **Python 3.10** with `uv` *or* `python3-venv`
 - **git**, **curl**, **tar**, **gzip** (clone, daegz filter, mesh-bundle download)
+- **Node.js** ≥18 is *optional* — `run.sh` auto-bootstraps a local Node into
+  `.cache/` (no sudo) if `npm` is missing, just to build the frontend once
 - A colcon workspace — this repo lives at `<ws>/src/robot-description-setup-assistant`
 
 ### 1. Clone & bootstrap
