@@ -31,6 +31,34 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Re-materialize gzipped .dae meshes (daegz filter)
+        shell: bash
+        run: |
+          # The description repos store *.dae gzip-compressed behind a custom
+          # 'daegz' git filter (clean: gzip -9, smudge: gzip -d). CI has no such
+          # filter configured, so checkout leaves the gzipped blobs in the tree
+          # and the converter sees non-XML. Register the filter and re-checkout
+          # the affected submodules so the .dae decompress to real COLLADA.
+          git config --global filter.daegz.clean  "gzip -n -9"
+          git config --global filter.daegz.smudge "gzip -d"
+          git config --global filter.daegz.required true
+          for s in abb fanuc kuka yaskawa; do
+            d="deps/${s}_robot_descriptions"
+            [ -d "$d" ] || continue
+            git -C "$d" config filter.daegz.clean  "gzip -n -9"
+            git -C "$d" config filter.daegz.smudge "gzip -d"
+            git -C "$d" config filter.daegz.required true
+            find "$d" -name '*.dae' -delete
+            git -C "$d" checkout -- .
+          done
+          # Sanity: a smudged .dae must start with XML, not gzip magic.
+          f="$(git -C deps/abb_robot_descriptions ls-files '*.dae' | head -1)"
+          if head -c 16 "deps/abb_robot_descriptions/$f" | grep -q '<?xml'; then
+            echo "daegz OK: $f decompressed"
+          else
+            echo "daegz FAILED: $f still not XML"; exit 1
+          fi
+
       - name: Install converter toolchain
         shell: bash
         run: |
