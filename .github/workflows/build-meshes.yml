@@ -1,0 +1,84 @@
+name: Build mesh bundle
+
+# Generate the optimized Draco GLB meshes ONCE in CI and publish them as a
+# GitHub Release asset, so end users never run the (slow) conversion. The bundle
+# is keyed to the description submodule commits; run.sh / scripts/mesh-bundle.sh
+# download the matching asset.
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [master]
+    # Only when the mesh-bearing submodule pointers (or the converter) change.
+    paths:
+      - deps/abb_robot_descriptions
+      - deps/fanuc_robot_descriptions
+      - deps/kuka_robot_descriptions
+      - deps/ur_robot_descriptions
+      - deps/yaskawa_robot_descriptions
+      - deps/ros2_robotiq_gripper
+      - deps/app-robot-description-setup-assistant
+      - .github/workflows/build-meshes.yml
+
+jobs:
+  build-bundle:
+    runs-on: ubuntu-latest
+    container: ros:humble-ros-base
+    permissions:
+      contents: write # create/upload the release asset
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install converter toolchain
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends curl ca-certificates python3-pip
+          # Node 18 for the gltf-transform CLI (jammy's apt node is too old).
+          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+          apt-get install -y --no-install-recommends nodejs
+          npm install -g @gltf-transform/cli
+          pip3 install --no-cache-dir trimesh pycollada numpy
+
+      - name: Build description packages (ament share dirs for the converter)
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          rosdep update || true
+          rosdep install --from-paths deps --ignore-src -y -r || true
+          colcon build --merge-install --parallel-workers 2 \
+            --packages-select \
+              abb_robot_descriptions fanuc_robot_descriptions \
+              kuka_robot_descriptions ur_description \
+              yaskawa_robot_descriptions robotiq_description
+
+      - name: Generate optimized GLBs
+        shell: bash
+        run: |
+          source /opt/ros/humble/setup.bash
+          source install/setup.bash
+          python3 deps/app-robot-description-setup-assistant/backend/scripts/optimize_meshes.py \
+            --out meshes-opt
+
+      - name: Pack bundle
+        id: pack
+        shell: bash
+        run: |
+          chmod +x scripts/mesh-bundle.sh
+          HASH="$(scripts/mesh-bundle.sh hash)"
+          scripts/mesh-bundle.sh pack
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to a GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: meshes-${{ steps.pack.outputs.hash }}
+          name: Mesh bundle meshes-${{ steps.pack.outputs.hash }}
+          body: >
+            Prebuilt Draco GLB mesh bundle for the web viewer, generated from the
+            robot description submodules. Downloaded automatically by run.sh /
+            scripts/mesh-bundle.sh — not for manual use.
+          files: meshes-opt.tar.gz
+          fail_on_unmatched_files: true
