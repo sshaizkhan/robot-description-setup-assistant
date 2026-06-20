@@ -73,3 +73,6 @@ build.sh
 **/.playwright-mcp/
 
 *.remember
+
+# Generated optimized meshes (regenerate: backend/scripts/optimize_meshes.py)
+/meshes-opt/
