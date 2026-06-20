@@ -1,4 +1,6 @@
-version: '3.8'
+# Base, cross-platform compose config.
+# OS-specific bits live in docker-compose.linux.yml / docker-compose.mac.yml,
+# selected automatically into docker-compose.override.yml by select-os.bash.
 services:
   rds_ws:
     container_name: r-d-s-a
@@ -12,60 +14,35 @@ services:
       - ROS_DOMAIN_ID=42
       - CONTAINER_NAME=r-d-s-a
       - TZ=America/New_York
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
       - DISPLAY=novnc:0.0
       - QT_X11_NO_MITSHM=1
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /etc/X11:/etc/X11:rw
-      - /dev:/dev:rw
-      - /dev/bus/usb:/dev/bus/usb:rw
-      - /dev/input:/dev/input:rw
       - ${HOME}/.ssh:/home/bot/.ssh:ro
-      - ../../../:/home/bot/rds_ws/:cached
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-    runtime: nvidia
     networks:
       - x11
     cap_add:
       - SYS_PTRACE
     security_opt:
       - seccomp=unconfined
-    privileged: true
-    devices:
-      - "/dev:/dev"
     stdin_open: true
-    working_dir: /home/bot
     tty: true
-    command: >
-      bash -c "
-      /bin/bash /home/bot/rds_ws/src/robot-description-setup-assistant/.devcontainer/post_create.bash &&
-      /bin/bash /home/bot/rds_ws/src/robot-description-setup-assistant/.devcontainer/post_attach.bash &&
-      tail -f /dev/null
-      "
+    working_dir: /home/bot
+    # Lifecycle scripts run via devcontainer.json postCreate/postAttach hooks.
+    command: tail -f /dev/null
+
+  # Browser-based GUI (http://localhost:8080). Works on Linux and macOS
+  # without a host X server. GPU bits for it are added in the Linux override.
   novnc:
     image: theasp/novnc:latest
     environment:
       - DISPLAY_WIDTH=1920
       - DISPLAY_HEIGHT=1080
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-    runtime: nvidia
     ports:
       - "0.0.0.0:8080:8080"
     networks:
       - x11
     restart: on-failure
+
 networks:
   x11:
     driver: bridge

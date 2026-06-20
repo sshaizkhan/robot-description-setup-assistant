@@ -1,0 +1,12 @@
+# macOS Docker Desktop: GUI via the in-container TigerVNC server on display :3.
+# Connect from the Mac:  vnc://localhost:5903  (password in ~/.vnc/last_password.txt)
+services:
+  rds_ws:
+    environment:
+      - DISPLAY=:3
+      - RDS_DISPLAY=:3          # .bashrc honors this first -> shells default to :3
+      - VNC_LOCALHOST=no        # let the published port reach TigerVNC
+    ports:
+      - "127.0.0.1:5903:5903"   # exposed only to the Mac's loopback
+    volumes:
+      - ../:/home/bot/rds_ws/src/robot-description-setup-assistant/:cached

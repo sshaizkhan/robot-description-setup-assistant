@@ -1,0 +1,39 @@
+# Linux-only: NVIDIA GPU passthrough, device access, X11 socket.
+# None of this works on macOS Docker Desktop (Linux VM, no host GPU/X/USB).
+services:
+  rds_ws:
+    privileged: true
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    devices:
+      - "/dev:/dev"
+    device_cgroup_rules:
+      - "c 189:* rmw"
+    volumes:
+      # Mounts the whole ROS workspace root (grandparent of this repo), as on the
+      # original Linux setup: <ws>/src/robot-description-setup-assistant -> grandparent = <ws>.
+      - ../../../:/home/bot/rds_ws/:cached
+      # Native X11 socket is available here; set DISPLAY=:0 if you prefer it over noVNC.
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /etc/X11:/etc/X11:rw
+      - /dev:/dev:rw
+      - /dev/bus/usb:/dev/bus/usb:rw
+      - /dev/input:/dev/input:rw  # required for open3d visualization
+
+  novnc:
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]

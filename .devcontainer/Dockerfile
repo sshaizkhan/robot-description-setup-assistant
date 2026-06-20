@@ -70,4 +70,12 @@ RUN if [ "$DISTRO" = "WSL" ]; then \
     fi
 
 
+# Pre-create the ROS workspace owned by the non-root user so bind-mounting only
+# a sub-path (the macOS case) doesn't leave root-owned parents that block colcon
+# from writing build/, install/, log/, colcon-log. Harmless on Linux (the full
+# rds_ws mount overlays this).
+RUN sudo mkdir -p /home/$USER_NAME/rds_ws/src \
+    && sudo chown -R $USER_NAME:sudo /home/$USER_NAME/rds_ws
+
+
 CMD [ "bash" ]

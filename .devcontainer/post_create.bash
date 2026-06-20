@@ -61,7 +61,6 @@ chmod +x /home/bot/.vnc/xstartup
 cat > /home/bot/.vnc/config <<'CEOF'
 geometry=1920x1080
 depth=24
-localhost
 SecurityTypes=VncAuth
 CEOF
 
@@ -79,7 +78,7 @@ echo "==================================================="
 # Start it (kill stale instance on same display first; ignore errors on fresh container)
 tigervncserver -kill :${VNC_DISPLAY} >/dev/null 2>&1 || true
 rm -f /tmp/.X11-unix/X${VNC_DISPLAY} /tmp/.X${VNC_DISPLAY}-lock 2>/dev/null || true
-tigervncserver :${VNC_DISPLAY} || echo "VNC start failed (run 'tigervncserver :${VNC_DISPLAY}' manually)"
+tigervncserver :${VNC_DISPLAY} -localhost ${VNC_LOCALHOST:-yes} || echo "VNC start failed (run 'tigervncserver :${VNC_DISPLAY}' manually)"
 
 # Check if $DISTRO=WSL then change permissions for /dev/dri/card0 and /dev/dri/renderD128
 # This is required for running Gazebo in WSL
