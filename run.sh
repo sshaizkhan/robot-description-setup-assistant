@@ -76,6 +76,16 @@ else
   echo "[run] frontend dist present — skipping build (BUILD_FRONTEND=1 to force)"
 fi
 
+# --- 3.5 optimized meshes (GLB bundle for the web viewer) -------------------
+# Download the prebuilt Draco GLB bundle (keyed to the description submodule
+# commits), or generate it locally as an offline fallback, so large robots
+# render. ROS-only users can skip with SKIP_MESH_BUNDLE=1.
+if [ "${SKIP_MESH_BUNDLE:-0}" != "1" ]; then
+  bash "$HERE/scripts/mesh-bundle.sh" fetch \
+    || echo "[run] mesh bundle unavailable — large robots may not display" \
+            "(SKIP_MESH_BUNDLE=1 to silence)"
+fi
+
 # --- 4. shutdown handling --------------------------------------------------
 NODE_PID=""
 UVI_PID=""
@@ -114,6 +124,7 @@ done
 export RDSA_CATALOG_BACKEND=cpp
 export RDSA_ROBOTS_YAML="$WS/install/share/robot_description_setup_assistant/config/catalog"
 export RDSA_FRONTEND_DIST="$DIST"
+export RDSA_MESH_OPT_DIR="$HERE/meshes-opt"   # prebuilt GLBs served at /meshes-opt
 
 echo "[run] starting backend (cpp mode) on http://$HOST:$PORT"
 echo "[run]   open:  http://${HOST}:${PORT}"
