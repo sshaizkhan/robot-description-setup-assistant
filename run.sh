@@ -107,7 +107,10 @@ if [ ! -f "$DIST/index.html" ] || [ "${BUILD_FRONTEND:-0}" = "1" ]; then
   ensure_node || {
     echo "[run] ERROR: no npm and could not bootstrap Node; no prebuilt dist at $DIST"; exit 1; }
   echo "[run] building frontend..."
-  ( cd "$APP/frontend" && npm install && npm run build )
+  # `npm ci` installs strictly from package-lock.json and never rewrites it
+  # (reproducible; avoids per-machine lockfile churn from npm version / platform
+  # optional-dep differences). Falls back to `npm install` if there's no lockfile.
+  ( cd "$APP/frontend" && { [ -f package-lock.json ] && npm ci || npm install; } && npm run build )
 else
   echo "[run] frontend dist present — skipping build (BUILD_FRONTEND=1 to force)"
 fi
