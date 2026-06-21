@@ -3,10 +3,6 @@
 services:
   rds_ws:
     environment:
-      - DISPLAY=:3
-      - RDS_DISPLAY=:3          # .bashrc honors this first -> shells default to :3
+      - DISPLAY=:0
+      - RDS_DISPLAY=:0          # .bashrc honors this first -> shells default to :3
       - VNC_LOCALHOST=no        # let the published port reach TigerVNC
-    ports:
-      - "127.0.0.1:5903:5903"   # exposed only to the Mac's loopback
-    volumes:
-      - ../:/home/bot/rds_ws/src/robot-description-setup-assistant/:cached

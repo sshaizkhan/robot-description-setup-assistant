@@ -14,12 +14,16 @@ services:
       - ROS_DOMAIN_ID=42
       - CONTAINER_NAME=r-d-s-a
       - TZ=America/New_York
-      - DISPLAY=novnc:0.0
       - QT_X11_NO_MITSHM=1
     volumes:
       - ${HOME}/.ssh:/home/bot/.ssh:ro
-    networks:
-      - x11
+      # Mount the whole ROS workspace root. .devcontainer lives at
+      # rds_ws/src/robot-description-setup-assistant/.devcontainer, so ../../../ = rds_ws.
+      - ../../../:/home/bot/rds_ws/
+    # Host networking on BOTH OSes (matches the original Linux runArgs --network=host).
+    # macOS: requires Docker Desktop 4.34+, signed-in account, the host-networking
+    # toggle enabled, and Enhanced Container Isolation OFF. L4 (TCP/UDP) only.
+    network_mode: host
     cap_add:
       - SYS_PTRACE
     security_opt:
@@ -32,17 +36,3 @@ services:
 
   # Browser-based GUI (http://localhost:8080). Works on Linux and macOS
   # without a host X server. GPU bits for it are added in the Linux override.
-  novnc:
-    image: theasp/novnc:latest
-    environment:
-      - DISPLAY_WIDTH=1920
-      - DISPLAY_HEIGHT=1080
-    ports:
-      - "0.0.0.0:8080:8080"
-    networks:
-      - x11
-    restart: on-failure
-
-networks:
-  x11:
-    driver: bridge
